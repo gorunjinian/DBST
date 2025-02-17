@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.gorunjinian.dbst">
+
+    <application
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:name=".MyApplication"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.DBST">
+
+        <meta-data android:name="android.accessibilityservice"
+            android:value="false"/>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="Settings"/>
+
+    </application>
+</manifest>

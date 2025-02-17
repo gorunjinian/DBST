@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_databases"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="Databases" />
+    <item
+        android:id="@+id/nav_yearly_view"
+        android:icon="@android:drawable/ic_menu_month"
+        android:title="Yearly View" />
+    <item
+        android:id="@+id/nav_export_data"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="Export Data" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:title="Settings" />
+</menu>
