@@ -1,22 +1,27 @@
 package com.gorunjinian.dbst
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationView
 import androidx.navigation.NavController
+import com.google.android.material.color.DynamicColors
+import android.util.TypedValue
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var drawerLayout: DrawerLayout
-    private lateinit var navigationView: NavigationView
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var toolbar: Toolbar
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -26,31 +31,42 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Apply Material 3 Dynamic Colors
+        DynamicColors.applyToActivityIfAvailable(this)
+
         // Initialize Views
-        drawerLayout = findViewById(R.id.drawer_layout)
-        navigationView = findViewById(R.id.navigation_view)
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         toolbar = findViewById(R.id.toolbar)
 
         // Set Toolbar
         setSupportActionBar(toolbar)
+        toolbar.inflateMenu(R.menu.toolbar_menu) // Inflate the menu
 
-        // Get NavController properly
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        // Fix Status Bar and Navigation Bar Colors Dynamically
+        val window: Window = this.window
+        window.statusBarColor = getColorFromAttr(com.google.android.material.R.attr.colorPrimary) // Matches toolbar
+        window.navigationBarColor = getColorFromAttr(com.google.android.material.R.attr.colorSurface) // Matches background
+
+        // Adjust Status Bar Icons for Light & Dark Mode
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = !isDarkMode()
+
+        // Get NavController
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         navController = navHostFragment.navController
 
         // Configure AppBarConfiguration
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.entryFragment, R.id.tetherFragment, R.id.validityFragment, R.id.infoFragment),
-            drawerLayout
+            setOf(R.id.entryFragment, R.id.validityFragment, R.id.tetherFragment, R.id.infoFragment)
         )
 
         // Setup navigation with Toolbar, Drawer, and Bottom Nav
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
         NavigationUI.setupWithNavController(bottomNavigationView, navController)
-        NavigationUI.setupWithNavController(navigationView, navController)
 
-        // Listen for navigation changes to update toolbar title
+        // Listen for navigation changes to update toolbar title dynamically
         navController.addOnDestinationChangedListener { _, destination, _ ->
             toolbar.title = when (destination.id) {
                 R.id.entryFragment -> "Entry"
@@ -60,24 +76,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.databasesFragment -> "Databases"
                 R.id.yearlyViewFragment -> "Yearly View"
                 R.id.exportDataFragment -> "Export Data"
-                else -> getString(R.string.app_name) // Default title (or use app name)
+                else -> getString(R.string.app_name) // Default title
             }
-        }
-
-        // Handle Drawer Menu Clicks
-        navigationView.setNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_databases -> navController.navigate(R.id.databasesFragment)
-                R.id.nav_yearly_view -> navController.navigate(R.id.yearlyViewFragment)
-                R.id.nav_export_data -> navController.navigate(R.id.exportDataFragment)
-                R.id.nav_settings -> {
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    startActivity(intent)
-                    toolbar.title = "Settings" // Set title manually for Settings
-                }
-            }
-            drawerLayout.closeDrawer(GravityCompat.START) // Close drawer after selection
-            true
         }
     }
 
@@ -99,17 +99,62 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     override fun onSupportNavigateUp(): Boolean {
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    // Ensure Back Button Closes Drawer If Open
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
+        super.onBackPressed()
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+
+        // Force menu icons to show in overflow menu
+        if (menu is androidx.appcompat.view.menu.MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
         }
+
+        return true
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.nav_databases -> {
+                navController.navigate(R.id.databasesFragment)
+                true
+            }
+            R.id.nav_yearly_view -> {
+                navController.navigate(R.id.yearlyViewFragment)
+                true
+            }
+            R.id.nav_export_data -> {
+                navController.navigate(R.id.exportDataFragment)
+                true
+            }
+            R.id.nav_settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    // Helper function to check if dark mode is active
+    private fun isDarkMode(): Boolean {
+        return resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+    }
+
+    private fun getColorFromAttr(attr: Int): Int {
+        val typedValue = TypedValue()
+        val theme = theme
+        if (theme.resolveAttribute(attr, typedValue, true)) {
+            return typedValue.data
+        }
+        return getColor(android.R.color.black) // Fallback color (optional)
     }
 }

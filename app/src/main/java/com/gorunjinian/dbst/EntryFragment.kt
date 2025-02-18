@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst
 
 import android.app.DatePickerDialog
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.*
 import android.widget.ArrayAdapter
@@ -8,6 +9,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -117,9 +119,10 @@ class EntryFragment : Fragment() {
         resetButtonStyles()
 
         // Highlight the selected button
-        selectedButton.strokeWidth = 5
+        selectedButton.strokeWidth = 10
         selectedButton.strokeColor =
-            ContextCompat.getColorStateList(requireContext(), R.color.white)
+            ColorStateList.valueOf(MaterialColors.getColor(selectedButton, com.google.android.material.R.attr.colorOnBackground))
+
 
         // Clear previous selection in Type dropdown
         typeDropdown.setText("", false) // Clears text without triggering an event

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/nav_databases"
+        android:title="Databases"
+        android:icon="@android:drawable/ic_menu_agenda"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/nav_yearly_view"
+        android:title="Yearly View"
+        android:icon="@android:drawable/ic_menu_month"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/nav_export_data"
+        android:title="Export Data"
+        android:icon="@android:drawable/ic_menu_save"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="never" />
+</menu>

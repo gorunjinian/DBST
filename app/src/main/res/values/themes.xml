@@ -1,10 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.DBST" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.DBST" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <!-- Ensure status bar matches toolbar -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightNavigationBar">true</item>
 
+        <!-- Toolbar & Popup Menu Fix -->
+        <item name="android:popupMenuStyle">@style/CustomPopupMenu</item>
+        <item name="android:toolbarStyle">@style/CustomToolbar</item>
     </style>
 
     <style name="Theme.DBST" parent="Base.Theme.DBST" />
+
+    <!-- Custom Toolbar -->
+    <style name="CustomToolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:titleTextColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <!-- Custom Popup Menu (Light Mode) -->
+    <style name="CustomPopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">?attr/colorSurface</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+    </style>
 </resources>

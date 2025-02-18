@@ -128,7 +128,7 @@
         android:visibility="gone">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/sell_rate_input"
+            android:id="@+id/rate_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal" />
