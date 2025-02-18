@@ -87,7 +87,7 @@ class ValidityFragment : Fragment() {
         resetButtonStyles()
 
         if (isCreditIn) {
-            creditInButton.strokeWidth = 5
+            creditInButton.strokeWidth = 10
             creditInButton.strokeColor =
                 ColorStateList.valueOf(MaterialColors.getColor(creditInButton, com.google.android.material.R.attr.colorOnBackground))
 
