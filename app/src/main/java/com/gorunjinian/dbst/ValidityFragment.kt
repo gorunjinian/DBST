@@ -98,6 +98,12 @@ class ValidityFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        setupDropdown(typeDropdown, listOf("Alfa", "Touch"))
+    }
+
+
     private fun setTodayDate() {
         val today = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())

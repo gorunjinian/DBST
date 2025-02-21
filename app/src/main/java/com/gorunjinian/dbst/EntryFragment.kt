@@ -53,7 +53,7 @@ class EntryFragment : Fragment() {
         dateInput = view.findViewById(R.id.date_input)
         personInput = view.findViewById(R.id.person_input)
         amountInput = view.findViewById(R.id.amount_input)
-        typeDropdown = view.findViewById(R.id.type_dropdown) // Fixed reference
+        typeDropdown = view.findViewById(R.id.type_dropdown)
         rateInput = view.findViewById(R.id.rate_input)
         amountExchangedLayout = view.findViewById(R.id.amount_exchanged_layout)
         amountExchangedInput = view.findViewById(R.id.amount_exchanged_input)
@@ -62,42 +62,61 @@ class EntryFragment : Fragment() {
         expenseButton = view.findViewById(R.id.expense_button)
         saveButton = view.findViewById(R.id.save_button)
 
+        // Restore previously selected button (Income/Expense)
+        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
+        val isExpenseSelected = prefs.getBoolean("is_expense_selected", true)
+        val lastSelectedType =
+            prefs.getString(if (isExpenseSelected) "expense_type" else "income_type", "")
+
+        // Set up default dropdown options based on selection
+        setupTypeDropdown(
+            if (isExpenseSelected) getExpenseTypes() else getIncomeTypes(),
+            lastSelectedType
+        )
+
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(amountExchangedInput)
         formatNumberWithCommas(rateInput)
 
-        // Automatically Set Today's Date
-        setTodayDate()
+        // Ensure clicking the field shows the dropdown
+        typeDropdown.setOnClickListener { typeDropdown.showDropDown() }
 
-        // Set default values
-        rateInput.setText("0")
-        amountExchangedInput.setText("0")
+        // Restore button selection
+        selectButton(if (isExpenseSelected) expenseButton else incomeButton, isExpenseSelected)
 
         // Set up Date Picker
-        dateInput.setOnClickListener {
-            showDatePicker()
-        }
+        dateInput.setOnClickListener { showDatePicker() }
 
-        // Set up default dropdown options
-        setupTypeDropdown(getExpenseTypes()) // Default to Expense Types
-
-        // Ensure clicking the field shows the dropdown
-        typeDropdown.setOnClickListener {
-            typeDropdown.showDropDown()
-        }
+        //Set today's date
+        setTodayDate()
 
         // Set up Button Click Listeners
         incomeButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = false) }
         expenseButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = true) }
 
-        // Set Expense as Default Selection
-        selectButton(expenseButton, isExpense = true)
-
         // Save Button Logic
-        saveButton.setOnClickListener {
-            saveData()
-        }
+        saveButton.setOnClickListener { saveData() }
     }
+
+
+    override fun onResume() {
+        super.onResume()
+
+        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
+        val isExpenseSelected = prefs.getBoolean("is_expense_selected", true) // Default to Expense
+        val lastSelectedType =
+            prefs.getString(if (isExpenseSelected) "expense_type" else "income_type", "")
+
+        // Restore correct button selection
+        selectButton(if (isExpenseSelected) expenseButton else incomeButton, isExpenseSelected)
+
+        // Restore dropdown options and last selected value
+        setupTypeDropdown(
+            if (isExpenseSelected) getExpenseTypes() else getIncomeTypes(),
+            lastSelectedType
+        )
+    }
+
 
     private fun setTodayDate() {
         val today = Calendar.getInstance()
@@ -129,44 +148,79 @@ class EntryFragment : Fragment() {
         // Highlight the selected button
         selectedButton.strokeWidth = 10
         selectedButton.strokeColor =
-            ColorStateList.valueOf(MaterialColors.getColor(selectedButton, com.google.android.material.R.attr.colorOnBackground))
+            ColorStateList.valueOf(
+                MaterialColors.getColor(
+                    selectedButton,
+                    com.google.android.material.R.attr.colorOnBackground
+                )
+            )
 
+        // Save selection in SharedPreferences
+        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
+        prefs.edit()
+            .putBoolean("is_expense_selected", isExpense)
+            .apply()
 
-        // Clear previous selection in Type dropdown
-        typeDropdown.setText("", false) // Clears text without triggering an event
+        // Restore last selected type (if exists)
+        val lastSelectedType = prefs.getString(if (isExpense) "expense_type" else "income_type", "")
 
         // Update UI based on selection
         if (isExpense) {
             amountLayout.hint = "Amount Expensed"
             amountExchangedLayout.visibility = View.VISIBLE
             amountExchangedInput.setText("0") // Reset Amount Exchanged to default
-            setupTypeDropdown(getExpenseTypes()) // Load expense categories
+            setupTypeDropdown(getExpenseTypes(), lastSelectedType) // Load expense categories
         } else {
             amountLayout.hint = "Amount"
             amountExchangedLayout.visibility = View.GONE
-            setupTypeDropdown(getIncomeTypes()) // Load income categories
+            setupTypeDropdown(getIncomeTypes(), lastSelectedType) // Load income categories
         }
     }
+
 
     private fun resetButtonStyles() {
         incomeButton.strokeWidth = 0
         expenseButton.strokeWidth = 0
     }
 
-    private fun setupTypeDropdown(types: List<String>) {
+    private fun setupTypeDropdown(types: List<String>, selectedValue: String?) {
         val adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_dropdown_item_1line,
             types
         )
-        typeDropdown.setAdapter(adapter) // Set the adapter properly
+
+        typeDropdown.setAdapter(adapter)
+
+        // Restore previous selection without filtering the dropdown
+        if (!selectedValue.isNullOrEmpty()) {
+            typeDropdown.setText(selectedValue, false) // Show previous selection
+        }
+
+        // Save selection when user chooses an item
+        typeDropdown.setOnItemClickListener { _, _, position, _ ->
+            val selectedType = types[position]
+            val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
+            prefs.edit()
+                .putString(
+                    if (expenseButton.strokeWidth > 0) "expense_type" else "income_type",
+                    selectedType
+                )
+                .apply()
+        }
+
+        // Ensure full dropdown appears when tapped
         typeDropdown.setOnClickListener {
-            typeDropdown.showDropDown() // Ensure it opens when clicked
+            typeDropdown.setAdapter(adapter) // Reset adapter to force full list display
+            typeDropdown.showDropDown()
         }
     }
 
+
     private fun getIncomeTypes(): List<String> {
-        return listOf("Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A")
+        return listOf(
+            "Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A"
+        )
     }
 
     private fun getExpenseTypes(): List<String> {
@@ -228,5 +282,6 @@ class EntryFragment : Fragment() {
             }
         })
     }
+
 
 }
