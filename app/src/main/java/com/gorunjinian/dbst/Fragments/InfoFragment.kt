@@ -1,8 +1,9 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Fragments
 
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
+import com.gorunjinian.dbst.R
 
 class InfoFragment : Fragment() {
 

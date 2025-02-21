@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Fragments
 
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.text.Editable
 import android.text.TextWatcher
-import java.text.DecimalFormat
+import com.gorunjinian.dbst.R
 import java.text.NumberFormat
 import java.util.Locale
 

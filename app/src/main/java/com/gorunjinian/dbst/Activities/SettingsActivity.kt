@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Activities
 
 import android.os.Bundle
 import android.view.View
@@ -12,6 +12,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
+import com.gorunjinian.dbst.MyApplication
+import com.gorunjinian.dbst.R
 
 class SettingsActivity : AppCompatActivity() {
 

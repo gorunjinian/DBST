@@ -2,7 +2,7 @@
 <resources>
     <style name="CustomHintText" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textSize">12sp</item> <!-- Adjust size if needed -->
-        <item name="android:textColor">?attr/colorOnSurface</item>
+        <!--<item name="android:textColor">?attr/colorOnSurface</item> -->
         <item name="android:paddingStart">25dp</item> <!-- Moves hint slightly inwards -->
     </style>
 

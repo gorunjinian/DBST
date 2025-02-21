@@ -1,8 +1,7 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -18,6 +17,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.navigation.NavController
 import com.google.android.material.color.DynamicColors
 import android.util.TypedValue
+import com.gorunjinian.dbst.R
 
 class MainActivity : AppCompatActivity() {
 

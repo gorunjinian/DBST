@@ -1,13 +1,17 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Fragments
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
+import com.gorunjinian.dbst.R
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,6 +45,9 @@ class TetherFragment : Fragment() {
         buyButton = view.findViewById(R.id.buy_button)
         sellButton = view.findViewById(R.id.sell_button)
         saveButton = view.findViewById(R.id.save_button)
+
+        formatNumberWithCommas(cashInput)
+        formatNumberWithCommas(usdtAmountInput)
 
         // Automatically Set Today's Date
         setTodayDate()
@@ -96,5 +103,36 @@ class TetherFragment : Fragment() {
         }
 
         Toast.makeText(requireContext(), "Data Saved:\nType: $selectedType", Toast.LENGTH_LONG).show()
+    }
+
+    private fun formatNumberWithCommas(editText: TextInputEditText) {
+        editText.addTextChangedListener(object : TextWatcher {
+            private var current = ""
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (s.toString() != current) {
+                    editText.removeTextChangedListener(this)
+
+                    val cleanString = s.toString().replace(",", "")
+                    if (cleanString.isNotEmpty()) {
+                        try {
+                            val parsed = cleanString.toDouble()
+                            val formatted = NumberFormat.getNumberInstance(Locale.US).format(parsed)
+                            current = formatted
+                            editText.setText(formatted)
+                            editText.setSelection(formatted.length) // Move cursor to end
+                        } catch (e: NumberFormatException) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    editText.addTextChangedListener(this)
+                }
+            }
+        })
     }
 }

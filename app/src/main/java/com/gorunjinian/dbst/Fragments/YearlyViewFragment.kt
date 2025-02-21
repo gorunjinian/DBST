@@ -1,17 +1,18 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.Fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.gorunjinian.dbst.R
 
-class DatabasesFragment : Fragment() {
+class YearlyViewFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_databases, container, false)
+        return inflater.inflate(R.layout.fragment_yearly_view, container, false)
     }
 }

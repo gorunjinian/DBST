@@ -2,22 +2,22 @@
 
     <item
         android:id="@+id/entryFragment"
-        android:icon="@android:drawable/ic_menu_save"
+        android:icon="@drawable/save"
         android:title="Entry" />
 
     <item
         android:id="@+id/validityFragment"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@drawable/validity"
         android:title="Validity" />
 
     <item
         android:id="@+id/tetherFragment"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@drawable/currency"
         android:title="USDT" />
 
     <item
         android:id="@+id/infoFragment"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/info"
         android:title="Info" />
 
 </menu>
