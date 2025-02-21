@@ -1,21 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.DBST" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
-        <!-- Status Bar should match Toolbar -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
+    <style name="Theme.DBST" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+
+        <!-- Fix Status Bar Color -->
+        <item name="android:statusBarColor">@color/primary</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">?attr/colorSurface</item>
+
+        <!-- Fix Navigation Bar Color (Set Dark Color) -->
+        <item name="android:navigationBarColor">@color/bottom_nav_dark</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <!-- Toolbar & Popup Menu Fix -->
-        <item name="android:popupMenuStyle">@style/CustomPopupMenu</item>
-        <item name="android:fontFamily">@font/opensans</item>
-    </style>
 
-    <style name="Theme.DBST" parent="Base.Theme.DBST" />
-
-
-    <!-- Custom Popup Menu (Dark Mode Fix) -->
-    <style name="CustomPopupMenu" parent="Widget.Material3.PopupMenu">
-        <item name="android:popupBackground">?attr/colorSurfaceContainerHigh</item>
-        <item name="android:textColorPrimary">?attr/colorOnSurfaceVariant</item>
+        <!-- Set Bottom Navigation Dark Theme -->
+        <item name="bottomNavigationStyle">@style/CustomBottomNavigationDark</item>
     </style>
 </resources>

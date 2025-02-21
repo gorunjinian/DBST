@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst.Fragments
+package com.gorunjinian.dbst.fragments
 
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
@@ -33,6 +33,7 @@ class EntryFragment : Fragment() {
     private lateinit var incomeButton: MaterialButton
     private lateinit var expenseButton: MaterialButton
     private lateinit var saveButton: MaterialButton
+    private lateinit var clearButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +62,7 @@ class EntryFragment : Fragment() {
         incomeButton = view.findViewById(R.id.income_button)
         expenseButton = view.findViewById(R.id.expense_button)
         saveButton = view.findViewById(R.id.save_button)
+        clearButton = view.findViewById(R.id.clear_button)
 
         // Restore previously selected button (Income/Expense)
         val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
@@ -89,6 +91,10 @@ class EntryFragment : Fragment() {
 
         //Set today's date
         setTodayDate()
+
+        clearButton.setOnClickListener {
+            clearInputFields()
+        }
 
         // Set up Button Click Listeners
         incomeButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = false) }
@@ -251,6 +257,15 @@ class EntryFragment : Fragment() {
             Toast.LENGTH_LONG
         ).show()
     }
+
+    private fun clearInputFields() {
+        personInput.text?.clear()
+        amountInput.text?.clear()
+        amountExchangedInput.text?.clear()
+        rateInput.text?.clear()
+        typeDropdown.text?.clear()
+    }
+
 
     private fun formatNumberWithCommas(editText: TextInputEditText) {
         editText.addTextChangedListener(object : TextWatcher {

@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst.Fragments
+package com.gorunjinian.dbst.fragments
 
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList

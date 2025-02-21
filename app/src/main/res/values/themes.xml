@@ -1,20 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.DBST" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
-        <!-- Ensure status bar matches toolbar -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">?attr/colorSurface</item>
+    <style name="Theme.DBST" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
 
-        <!-- Toolbar & Popup Menu Fix -->
-        <item name="android:popupMenuStyle">@style/CustomPopupMenu</item>
-        <item name="android:fontFamily">@font/opensans</item>
+        <!-- Fix Status Bar Color -->
+        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Fix Navigation Bar Color -->
+        <item name="android:navigationBarColor">@color/bottom_nav_color</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Apply Custom Popup Menu Theme -->
+        <item name="popupMenuStyle">@style/CustomPopupMenuLight</item>
+        <item name="android:popupMenuStyle">@style/CustomPopupMenuLight</item>
     </style>
 
-    <style name="Theme.DBST" parent="Base.Theme.DBST" />
-
-    <!-- Custom Popup Menu (Light Mode) -->
-    <style name="CustomPopupMenu" parent="Widget.Material3.PopupMenu">
-        <item name="android:popupBackground">?attr/colorSurface</item>
-        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+    <!-- Custom Light Mode Popup Menu Style -->
+    <style name="CustomPopupMenuLight" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">#FFFFFF</item> <!-- Light mode menu background -->
+        <item name="android:textColorPrimary">#000000</item> <!-- Light mode text color -->
     </style>
 </resources>

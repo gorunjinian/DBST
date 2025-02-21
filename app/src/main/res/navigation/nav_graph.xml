@@ -6,43 +6,43 @@
 
     <fragment
         android:id="@+id/entryFragment"
-        android:name="com.gorunjinian.dbst.Fragments.EntryFragment"
+        android:name="com.gorunjinian.dbst.fragments.EntryFragment"
         android:label="Entry"
         tools:layout="@layout/fragment_entry" />
 
     <fragment
         android:id="@+id/infoFragment"
-        android:name="com.gorunjinian.dbst.Fragments.InfoFragment"
+        android:name="com.gorunjinian.dbst.fragments.InfoFragment"
         android:label="Info"
         tools:layout="@layout/fragment_info" />
 
     <fragment
         android:id="@+id/tetherFragment"
-        android:name="com.gorunjinian.dbst.Fragments.TetherFragment"
+        android:name="com.gorunjinian.dbst.fragments.TetherFragment"
         android:label="Tether"
         tools:layout="@layout/fragment_tether" />
 
     <fragment
         android:id="@+id/validityFragment"
-        android:name="com.gorunjinian.dbst.Fragments.ValidityFragment"
+        android:name="com.gorunjinian.dbst.fragments.ValidityFragment"
         android:label="Validity"
         tools:layout="@layout/fragment_validity" />
 
     <fragment
         android:id="@+id/databasesFragment"
-        android:name="com.gorunjinian.dbst.Fragments.DatabasesFragment"
+        android:name="com.gorunjinian.dbst.fragments.DatabasesFragment"
         android:label="Databases"
         tools:layout="@layout/fragment_databases" />
 
     <fragment
         android:id="@+id/yearlyViewFragment"
-        android:name="com.gorunjinian.dbst.Fragments.YearlyViewFragment"
+        android:name="com.gorunjinian.dbst.fragments.YearlyViewFragment"
         android:label="Yearly Overview"
         tools:layout="@layout/fragment_yearly_view" />
 
     <fragment
         android:id="@+id/exportDataFragment"
-        android:name="com.gorunjinian.dbst.Fragments.ExportDataFragment"
+        android:name="com.gorunjinian.dbst.fragments.ExportDataFragment"
         android:label="Export Data"
         tools:layout="@layout/fragment_export_data" />
 

@@ -1,22 +1,22 @@
-package com.gorunjinian.dbst.Activities
+package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.navigation.NavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.color.DynamicColors
-import android.util.TypedValue
 import com.gorunjinian.dbst.R
 
 class MainActivity : AppCompatActivity() {
@@ -39,68 +39,67 @@ class MainActivity : AppCompatActivity() {
 
         // Set Toolbar
         setSupportActionBar(toolbar)
-        toolbar.inflateMenu(R.menu.toolbar_menu) // Inflate the menu
+        toolbar.inflateMenu(R.menu.toolbar_menu)
 
-        // Fix Status Bar and Navigation Bar Colors Dynamically
-        val window: Window = this.window
-        window.statusBarColor = getColorFromAttr(com.google.android.material.R.attr.colorPrimary) // Matches toolbar
-        window.navigationBarColor = getColorFromAttr(com.google.android.material.R.attr.colorSurface) // Matches background
+        // Apply Status Bar and Navigation Bar Colors
+        applySystemBarColors()
 
-        // Adjust Status Bar Icons for Light & Dark Mode
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = !isDarkMode()
-
-        // Get NavController
+        // Setup Navigation Components
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Configure AppBarConfiguration
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.entryFragment, R.id.validityFragment, R.id.tetherFragment, R.id.infoFragment)
         )
 
-        // Setup navigation with Toolbar, Drawer, and Bottom Nav
+        // Fix Navigation Action Bar
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
         NavigationUI.setupWithNavController(bottomNavigationView, navController)
 
-        // Listen for navigation changes to update toolbar title dynamically
+        // Update toolbar title dynamically when navigating
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            toolbar.title = when (destination.id) {
-                R.id.entryFragment -> "Entry"
-                R.id.validityFragment -> "Validity"
-                R.id.tetherFragment -> "USDT"
-                R.id.infoFragment -> "Info"
-                R.id.databasesFragment -> "Databases"
-                R.id.yearlyViewFragment -> "Yearly View"
-                R.id.exportDataFragment -> "Export Data"
-                else -> getString(R.string.app_name) // Default title
+            val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+            // Fragments that should hide bottom navigation and show back button
+            val fullScreenFragments = setOf(
+                R.id.databasesFragment,
+                R.id.yearlyViewFragment,
+                R.id.exportDataFragment
+            )
+
+            if (fullScreenFragments.contains(destination.id)) {
+                bottomNav.visibility = View.GONE // Hide Bottom Navigation
+                supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show Back Button
+            } else {
+                bottomNav.visibility = View.VISIBLE // Show Bottom Navigation
+                supportActionBar?.setDisplayHomeAsUpEnabled(false) // Hide Back Button for Main Screens
             }
+
+            // Set toolbar title dynamically
+            toolbar.title = getToolbarTitle(destination.id)
         }
+
     }
 
     override fun onResume() {
         super.onResume()
-        // Ensure toolbar title updates correctly when returning from SettingsActivity
-        val currentDestination = navController.currentDestination
-        if (currentDestination != null) {
-            toolbar.title = when (currentDestination.id) {
-                R.id.entryFragment -> "Entry"
-                R.id.validityFragment -> "Validity"
-                R.id.tetherFragment -> "USDT"
-                R.id.infoFragment -> "Info"
-                R.id.databasesFragment -> "Databases"
-                R.id.yearlyViewFragment -> "Yearly View"
-                R.id.exportDataFragment -> "Export Data"
-                else -> getString(R.string.app_name) // Default title
-            }
-        }
+        toolbar.title = getToolbarTitle(navController.currentDestination?.id)
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp()
+        return if (navController.currentDestination?.id in setOf(
+                R.id.databasesFragment,
+                R.id.yearlyViewFragment,
+                R.id.exportDataFragment
+            )) {
+            navController.popBackStack() // Go back when back button is clicked
+            true
+        } else {
+            super.onSupportNavigateUp()
+        }
     }
+
 
     override fun onBackPressed() {
         super.onBackPressed()
@@ -109,15 +108,11 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
-
-        // Force menu icons to show in overflow menu
         if (menu is androidx.appcompat.view.menu.MenuBuilder) {
-            menu.setOptionalIconsVisible(true)
+            menu.setOptionalIconsVisible(true) // Force icons to be visible in overflow
         }
-
         return true
     }
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
@@ -134,15 +129,49 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.nav_settings -> {
-                val intent = Intent(this, SettingsActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, SettingsActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    // Helper function to check if dark mode is active
+    private fun getToolbarTitle(destinationId: Int?): String {
+        return when (destinationId) {
+            R.id.entryFragment -> "Entry"
+            R.id.validityFragment -> "Validity"
+            R.id.tetherFragment -> "USDT"
+            R.id.infoFragment -> "Info"
+            R.id.databasesFragment -> "Databases"
+            R.id.yearlyViewFragment -> "Yearly View"
+            R.id.exportDataFragment -> "Export Data"
+            else -> getString(R.string.app_name)
+        }
+    }
+
+    private fun applySystemBarColors() {
+        val window: Window = this.window
+
+        // Set status bar color to match toolbar
+        window.statusBarColor = getColor(R.color.primary)
+
+        // Set navigation bar color correctly based on theme
+        val navBarColor = if (isDarkMode()) R.color.bottom_nav_dark else R.color.bottom_nav_light
+        window.navigationBarColor = getColor(navBarColor)
+
+        // Apply correct bottom navigation color dynamically
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNav.setBackgroundColor(getColor(navBarColor))
+
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+
+        // Ensure light/dark icons based on theme
+        windowInsetsController.isAppearanceLightStatusBars = !isDarkMode()
+        windowInsetsController.isAppearanceLightNavigationBars = !isDarkMode()
+    }
+
+
+
     private fun isDarkMode(): Boolean {
         return resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -150,10 +179,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getColorFromAttr(attr: Int): Int {
         val typedValue = TypedValue()
-        val theme = theme
-        if (theme.resolveAttribute(attr, typedValue, true)) {
-            return typedValue.data
-        }
-        return getColor(android.R.color.black) // Fallback color (optional)
+        theme.resolveAttribute(attr, typedValue, true)
+        return typedValue.data
     }
 }

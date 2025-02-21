@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst.Activities
+package com.gorunjinian.dbst.activities
 
 import android.os.Bundle
 import android.view.View

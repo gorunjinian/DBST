@@ -1,6 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Material 3 Dynamic Colors - No need for manual colors -->
-</resources>
+    <!-- Primary Theme Colors -->
+    <color name="primary">#6750A4</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="on_primary_container">#21005D</color>
 
+    <!-- Surface Colors -->
+    <color name="surface">#F5F5F5</color> <!-- Background -->
+    <color name="on_surface">#1C1B1F</color> <!-- Text Color -->
+
+    <!-- Bottom Navigation & Navigation Pill Color -->
+    <color name="bottom_nav_color">#F5F5F5</color>
+    <color name="menu_background">#FFFFFF</color> <!-- Light Mode Menu Background -->
+    <color name="menu_text">#000000</color> <!-- Light Mode Text Color -->
+    <color name="bottom_nav_light">#FFFFFF</color>  <!-- Light Mode Bottom Nav -->
+    <color name="bottom_nav_dark">#121212</color>  <!-- Dark Mode Bottom Nav -->
+    <color name="bottom_nav_icon">#000000</color> <!-- Bottom Nav Icon Color -->
+</resources>

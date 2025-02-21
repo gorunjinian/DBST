@@ -6,24 +6,56 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Date Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/date_layout"
-        android:layout_width="0dp"
+    <!-- New Container to Properly Position Clear Button -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Date"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/date_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
+        <!-- Clear Button Positioned at the Top-Right -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:backgroundTint="?attr/colorPrimary"
+            app:icon="@drawable/clear"
+            app:iconSize="24dp"
+            app:iconGravity="textStart"
+            app:cornerRadius="24dp"
+            android:text="Clear"
+            android:textSize="12sp"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            app:rippleColor="?attr/colorOnPrimary"
+            android:contentDescription="Clear all fields"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"/>
 
-    <!-- Person Input -->
+        <!-- Date Input Field Now Has Proper Spacing -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/date_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Date"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/clear_button"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/date_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Pushes All Other Elements Below the Date Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/person_layout"
         android:layout_width="0dp"
@@ -31,7 +63,7 @@
         android:hint="Person"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/date_layout"
+        app:layout_constraintTop_toBottomOf="@id/top_container"
         android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -95,7 +127,7 @@
             android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Type Dropdown (Fixed) -->
+    <!-- Type Dropdown -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/type_layout"
         android:layout_width="0dp"
@@ -142,6 +174,8 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="Income"
+            app:icon="@drawable/arrowdown"
+            app:iconGravity="textStart"
             android:layout_marginEnd="8dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -149,41 +183,22 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Expense" />
+            android:text="Expense"
+            app:icon="@drawable/arrowup"
+            app:iconGravity="textStart"/>
     </LinearLayout>
 
-    <!-- Save Button -->
     <!-- Save Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/save_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Save"
+        app:icon="@drawable/tick"
+        app:iconGravity="textEnd"
         app:layout_constraintTop_toBottomOf="@id/button_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp" />
-
-    <!-- Countdown Delete Button (Hidden by Default) -->
-    <!-- Countdown Delete Button (Hidden by Default) -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/undo_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:visibility="gone"
-        android:text="15"
-        android:textSize="14sp"
-        android:backgroundTint="@android:color/holo_red_dark"
-        android:textColor="@android:color/white"
-        app:cornerRadius="28dp"
-        app:strokeWidth="0dp"
-        app:layout_constraintTop_toBottomOf="@id/save_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="10dp"/>
-
-
-
-
+        android:layout_marginTop="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
