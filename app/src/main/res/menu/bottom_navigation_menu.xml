@@ -3,21 +3,21 @@
     <item
         android:id="@+id/entryFragment"
         android:icon="@drawable/save"
-        android:title="Entry" />
+        android:title="@string/entry_fragment_nav_title" />
 
     <item
         android:id="@+id/validityFragment"
         android:icon="@drawable/validity"
-        android:title="Validity" />
+        android:title="@string/validity_fragment_nav_title" />
 
     <item
         android:id="@+id/tetherFragment"
         android:icon="@drawable/currency"
-        android:title="USDT" />
+        android:title="@string/usdt_fragment_nav_title" />
 
     <item
         android:id="@+id/infoFragment"
-        android:icon="@drawable/info"
-        android:title="Info" />
+        android:icon="@drawable/dashboard"
+        android:title="@string/Info_fragment_nav_title" />
 
 </menu>

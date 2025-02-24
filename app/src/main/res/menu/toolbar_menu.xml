@@ -4,25 +4,25 @@
 
     <item
         android:id="@+id/nav_databases"
-        android:title="Databases"
+        android:title="@string/databases_fragment_toolbar_title"
         android:icon="@drawable/database"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_yearly_view"
-        android:title="Yearly View"
+        android:title="@string/yearlyview_fragment_toolbar_title"
         android:icon="@drawable/dashboard"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_export_data"
-        android:title="Export Data"
+        android:title="@string/exportdata_fragment_toolbar_title"
         android:icon="@drawable/fileexport"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_settings"
-        android:title="Settings"
+        android:title="@string/settings_activity_toolbar_title"
         android:icon="@drawable/settings"
         app:showAsAction="never" />
 </menu>

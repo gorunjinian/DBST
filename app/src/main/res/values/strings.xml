@@ -9,4 +9,12 @@
     <string name="appearance_section_name">Appearance</string>
     <string name="change_app_colors_theme">Change App Colors (Theme)</string>
     <string name="security_section_name">Security</string>
+    <string name="Info_fragment_nav_title">Dashboard</string>
+    <string name="usdt_fragment_nav_title">USDT</string>
+    <string name="validity_fragment_nav_title">Validity</string>
+    <string name="entry_fragment_nav_title">Entry</string>
+    <string name="databases_fragment_toolbar_title">Databases</string>
+    <string name="yearlyview_fragment_toolbar_title">Yearly View</string>
+    <string name="exportdata_fragment_toolbar_title">Export Data</string>
+    <string name="settings_activity_toolbar_title">Settings</string>
 </resources>

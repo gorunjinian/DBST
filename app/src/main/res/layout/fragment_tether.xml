@@ -6,22 +6,54 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Date Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/date_layout"
-        android:layout_width="0dp"
+    <!-- Top Container for Clear Button & Date Input -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Date"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/date_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
+        <!-- Clear Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:backgroundTint="?attr/colorPrimary"
+            app:icon="@drawable/clear"
+            app:iconSize="24dp"
+            app:iconGravity="textStart"
+            app:cornerRadius="24dp"
+            android:text="Clear"
+            android:textSize="12sp"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            app:rippleColor="?attr/colorOnPrimary"
+            android:contentDescription="Clear all fields"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Date Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/date_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Date"
+            app:layout_constraintTop_toBottomOf="@id/clear_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/date_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Person Input -->
     <com.google.android.material.textfield.TextInputLayout
@@ -31,7 +63,7 @@
         android:hint="Person"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/date_layout"
+        app:layout_constraintTop_toBottomOf="@id/top_container"
         android:layout_marginTop="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -66,7 +98,6 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:text="SELL" />
-
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- USDT Amount Input -->
