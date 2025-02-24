@@ -8,9 +8,4 @@
         <item name="android:popupBackground">?attr/colorSurface</item> <!-- Matches Material 3 surface color -->
         <item name="android:textColorPrimary">?attr/colorOnSurface</item> <!-- Text matches Material 3 theme -->
     </style>
-    <style name="CustomBottomNavigationDark" parent="Widget.Material3.BottomNavigationView">
-        <item name="android:background">@color/bottom_nav_light</item>
-        <item name="itemIconTint">?attr/colorOnSurface</item>
-        <item name="itemTextColor">?attr/colorOnSurface</item>
-    </style>
 </resources>

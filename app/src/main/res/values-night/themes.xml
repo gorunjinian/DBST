@@ -1,20 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.DBST" parent="Theme.Material3.Dark.NoActionBar">
-        <!-- Primary Colors -->
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorOnPrimary">@color/on_primary</item>
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorOnSurface">@color/on_surface</item>
+    <style name="Base.Theme.Converter" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/ColorPrimaryDark</item>
+        <item name="colorAccent">@color/ColorAccent</item>
+        <item name="colorOnSecondary">@color/colorSecondary</item>
+        <item name="colorContainer">@color/ColorPrimaryLight</item>
 
-        <!-- Fix Status Bar Color -->
-        <item name="android:statusBarColor">@color/primary</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <!-- Status bar and Navigation bar -->
+        <item name="android:statusBarColor">@color/ColorPrimaryDark</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowTranslucentStatus">false</item>
 
-        <!-- Fix Navigation Bar Color (Set Dark Color) -->
-        <item name="android:navigationBarColor">@color/bottom_nav_dark</item>
-        <item name="android:windowLightNavigationBar">false</item>
-
-        <!-- Set Bottom Navigation Dark Theme -->
-        <item name="bottomNavigationStyle">@style/CustomBottomNavigationDark</item>
     </style>
+
 </resources>

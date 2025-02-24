@@ -3,18 +3,14 @@ package com.gorunjinian.dbst.activities
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.Window
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.color.DynamicColors
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.MainPagerAdapter
 import com.gorunjinian.dbst.fragments.DatabasesFragment
@@ -26,33 +22,23 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var toolbar: Toolbar
     private lateinit var viewPager: ViewPager2
+    private lateinit var fullScreenContainer: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        DynamicColors.applyToActivityIfAvailable(this)
-
-        // Initialize Views
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         toolbar = findViewById(R.id.toolbar)
         viewPager = findViewById(R.id.viewPager)
+        fullScreenContainer = findViewById(R.id.full_screen_container)
 
-        // Set Toolbar
         setSupportActionBar(toolbar)
-        toolbar.inflateMenu(R.menu.toolbar_menu)
 
-        // Apply Status Bar and Navigation Bar Colors
-        applySystemBarColors()
-
-        // Set up ViewPager2 Adapter
         val adapter = MainPagerAdapter(this)
         viewPager.adapter = adapter
-
-        // Disable swipe for specific fragments if needed later
         viewPager.isUserInputEnabled = true
 
-        // Synchronize BottomNavigationView item clicks with ViewPager2
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.entryFragment -> viewPager.currentItem = 0
@@ -63,7 +49,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // Update BottomNavigationView selection and Toolbar title based on page swipes
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 bottomNavigationView.menu.getItem(position).isChecked = true
@@ -93,15 +78,15 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.nav_databases -> {
-                navigateToFullScreenFragment(R.id.databasesFragment)
+                navigateToFullScreenFragment(DatabasesFragment(), "Databases")
                 true
             }
             R.id.nav_yearly_view -> {
-                navigateToFullScreenFragment(R.id.yearlyViewFragment)
+                navigateToFullScreenFragment(YearlyViewFragment(), "Yearly View")
                 true
             }
             R.id.nav_export_data -> {
-                navigateToFullScreenFragment(R.id.exportDataFragment)
+                navigateToFullScreenFragment(ExportDataFragment(), "Export Data")
                 true
             }
             R.id.nav_settings -> {
@@ -112,41 +97,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun navigateToFullScreenFragment(fragmentId: Int) {
+    private fun navigateToFullScreenFragment(fragment: androidx.fragment.app.Fragment, title: String) {
         bottomNavigationView.visibility = View.GONE
         viewPager.visibility = View.GONE
+        fullScreenContainer.visibility = View.VISIBLE
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val fragment = when (fragmentId) {
-            R.id.databasesFragment -> DatabasesFragment()
-            R.id.yearlyViewFragment -> YearlyViewFragment()
-            R.id.exportDataFragment -> ExportDataFragment()
-            else -> null
-        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.full_screen_container, fragment)
+            .addToBackStack(null)
+            .commit()
 
-        fragment?.let {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.full_screen_container, it)
-                .addToBackStack(null)
-                .commit()
-            toolbar.title = getToolbarTitle(fragmentId)
-        }
+        toolbar.title = title
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
             bottomNavigationView.visibility = View.VISIBLE
             viewPager.visibility = View.VISIBLE
-            findViewById<FrameLayout>(R.id.full_screen_container).visibility = View.GONE
+            fullScreenContainer.visibility = View.GONE
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
             toolbar.title = getToolbarTitle(viewPager.currentItem)
         } else {
             super.onBackPressed()
         }
     }
-
 
     private fun getToolbarTitle(destinationId: Int?): String {
         return when (destinationId) {
@@ -159,31 +136,5 @@ class MainActivity : AppCompatActivity() {
             R.id.exportDataFragment -> "Export Data"
             else -> getString(R.string.app_name)
         }
-    }
-
-    private fun applySystemBarColors() {
-        val window: Window = this.window
-
-        window.statusBarColor = getColor(R.color.primary)
-
-        val navBarColor = if (isDarkMode()) R.color.bottom_nav_dark else R.color.bottom_nav_light
-        window.navigationBarColor = getColor(navBarColor)
-
-        bottomNavigationView.setBackgroundColor(getColor(navBarColor))
-
-        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = !isDarkMode()
-        windowInsetsController.isAppearanceLightNavigationBars = !isDarkMode()
-    }
-
-    private fun isDarkMode(): Boolean {
-        return resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun getColorFromAttr(attr: Int): Int {
-        val typedValue = TypedValue()
-        theme.resolveAttribute(attr, typedValue, true)
-        return typedValue.data
     }
 }

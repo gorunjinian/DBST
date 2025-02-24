@@ -1,27 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.DBST" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Primary Colors -->
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorOnPrimary">@color/on_primary</item>
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorOnSurface">@color/on_surface</item>
 
-        <!-- Fix Status Bar Color -->
-        <item name="android:statusBarColor">@color/primary</item>
-        <item name="android:windowLightStatusBar">true</item>
+    <style name="Base.Theme.DBST" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/ColorAccent</item>
+        <item name="colorOnSecondary">@color/colorSecondary</item>
+        <item name="colorContainer">@color/ColorPrimaryLight</item>
 
-        <!-- Fix Navigation Bar Color -->
-        <item name="android:navigationBarColor">@color/bottom_nav_color</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <!-- Status bar and Navigation bar -->
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowTranslucentStatus">false</item>
 
-        <!-- Apply Custom Popup Menu Theme -->
-        <item name="popupMenuStyle">@style/CustomPopupMenuLight</item>
-        <item name="android:popupMenuStyle">@style/CustomPopupMenuLight</item>
+
     </style>
 
-    <!-- Custom Light Mode Popup Menu Style -->
-    <style name="CustomPopupMenuLight" parent="Widget.Material3.PopupMenu">
-        <item name="android:popupBackground">#FFFFFF</item> <!-- Light mode menu background -->
-        <item name="android:textColorPrimary">#000000</item> <!-- Light mode text color -->
-    </style>
 </resources>

@@ -6,7 +6,7 @@
         android:supportsRtl="true"
         android:name=".MyApplication"
         android:label="@string/app_name"
-        android:theme="@style/Theme.DBST">
+        android:theme="@style/Base.Theme.DBST">
 
         <meta-data android:name="android.accessibilityservice"
             android:value="false"/>
