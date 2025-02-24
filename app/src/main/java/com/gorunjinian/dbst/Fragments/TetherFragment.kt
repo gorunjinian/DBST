@@ -25,6 +25,7 @@ class TetherFragment : Fragment() {
     private lateinit var buyButton: MaterialButton
     private lateinit var sellButton: MaterialButton
     private lateinit var saveButton: MaterialButton
+    private lateinit var clearButton: MaterialButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,12 +46,16 @@ class TetherFragment : Fragment() {
         buyButton = view.findViewById(R.id.buy_button)
         sellButton = view.findViewById(R.id.sell_button)
         saveButton = view.findViewById(R.id.save_button)
+        clearButton = view.findViewById(R.id.clear_button)
 
         formatNumberWithCommas(cashInput)
         formatNumberWithCommas(usdtAmountInput)
 
         // Automatically Set Today's Date
         setTodayDate()
+
+        // Automatically select SELL button
+        sellButton.isChecked = true
 
         // Set up Date Picker
         dateInput.setOnClickListener {
@@ -60,6 +65,10 @@ class TetherFragment : Fragment() {
         // Save Button Logic
         saveButton.setOnClickListener {
             saveData()
+        }
+
+        clearButton.setOnClickListener {
+            clearInputFields()
         }
     }
 
@@ -103,6 +112,12 @@ class TetherFragment : Fragment() {
         }
 
         Toast.makeText(requireContext(), "Data Saved:\nType: $selectedType", Toast.LENGTH_LONG).show()
+    }
+
+    private fun clearInputFields() {
+        personInput.text?.clear()
+        usdtAmountInput.text?.clear()
+        cashInput.text?.clear()
     }
 
     private fun formatNumberWithCommas(editText: TextInputEditText) {

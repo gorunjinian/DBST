@@ -1,5 +1,6 @@
 package com.gorunjinian.dbst.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -19,6 +20,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var biometricPrompt: BiometricPrompt
 
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -119,14 +121,14 @@ class SettingsActivity : AppCompatActivity() {
         val savedIndex = prefs.getInt("fingerprint_delay_index", 0)
         spinner.setSelection(savedIndex)
 
-        spinner.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
+        spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 prefs.edit().putInt("fingerprint_delay_index", position)
                     .putInt("fingerprint_delay_value", if (position == 0) 0 else position * 5).apply()
             }
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        })
+        }
     }
 
     private fun restartActivity() {
