@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
@@ -34,7 +35,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Appearance"
+                android:text="@string/appearance_section_name"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:layout_marginBottom="12dp" />
@@ -54,22 +55,23 @@
 
                 <Switch
                     android:id="@+id/dynamic_theme_toggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
             </LinearLayout>
 
             <Button
                 android:id="@+id/change_theme_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Change App Colors (Theme)"
+                android:text="@string/change_app_colors_theme"
                 android:layout_marginBottom="24dp" />
 
             <!-- Security Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Security"
+                android:text="@string/security_section_name"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:layout_marginBottom="12dp" />
@@ -89,8 +91,9 @@
 
                 <Switch
                     android:id="@+id/fingerprint_toggle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
             </LinearLayout>
 
             <TextView
@@ -101,8 +104,8 @@
 
             <Spinner
                 android:id="@+id/fingerprint_delay_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginBottom="16dp" />
         </LinearLayout>
     </ScrollView>

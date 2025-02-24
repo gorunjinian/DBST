@@ -35,6 +35,7 @@ class ValidityFragment : Fragment() {
     private lateinit var validityLayout: TextInputLayout
     private lateinit var totalLayout: TextInputLayout
     private lateinit var rateLayout: TextInputLayout
+    private lateinit var clearButton: MaterialButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,6 +61,7 @@ class ValidityFragment : Fragment() {
         validityLayout = view.findViewById(R.id.validity_layout)
         totalLayout = view.findViewById(R.id.total_layout)
         rateLayout = view.findViewById(R.id.rate_layout)
+        clearButton = view.findViewById(R.id.clear_button)
 
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(totalInput)
@@ -84,6 +86,11 @@ class ValidityFragment : Fragment() {
         // Ensure clicking dropdown shows the list
         typeDropdown.setOnClickListener { typeDropdown.showDropDown() }
         validityDropdown.setOnClickListener { validityDropdown.showDropDown() }
+
+        //clear button function call
+        clearButton.setOnClickListener {
+            clearInputFields()
+        }
 
         // Set up button click listeners
         creditInButton.setOnClickListener { selectCreditType(isCreditIn = true) }
@@ -189,6 +196,15 @@ class ValidityFragment : Fragment() {
                     if (creditInButton.strokeWidth > 0) "Rate: $rate" else "Validity: $validity\nTotal: $total",
             Toast.LENGTH_LONG
         ).show()
+    }
+
+    private fun clearInputFields() {
+        personInput.text?.clear()
+        amountInput.text?.clear()
+        rateInput.text?.clear()
+        typeDropdown.text?.clear()
+        totalInput.text?.clear()
+        validityDropdown.text?.clear()
     }
 
     private fun formatNumberWithCommas(editText: TextInputEditText) {

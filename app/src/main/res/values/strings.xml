@@ -6,4 +6,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="type_hint">Type</string>
     <string name="amount_expensed_hint">Amount Expensed</string>
+    <string name="appearance_section_name">Appearance</string>
+    <string name="change_app_colors_theme">Change App Colors (Theme)</string>
+    <string name="security_section_name">Security</string>
 </resources>
