@@ -8,34 +8,35 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.Window
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI
-import androidx.navigation.NavController
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.color.DynamicColors
 import com.gorunjinian.dbst.R
+import com.gorunjinian.dbst.MainPagerAdapter
+import com.gorunjinian.dbst.fragments.DatabasesFragment
+import com.gorunjinian.dbst.fragments.ExportDataFragment
+import com.gorunjinian.dbst.fragments.YearlyViewFragment
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var toolbar: Toolbar
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var navController: NavController
+    private lateinit var viewPager: ViewPager2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Apply Material 3 Dynamic Colors
         DynamicColors.applyToActivityIfAvailable(this)
 
         // Initialize Views
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         toolbar = findViewById(R.id.toolbar)
+        viewPager = findViewById(R.id.viewPager)
 
         // Set Toolbar
         setSupportActionBar(toolbar)
@@ -44,88 +45,63 @@ class MainActivity : AppCompatActivity() {
         // Apply Status Bar and Navigation Bar Colors
         applySystemBarColors()
 
-        // Setup Navigation Components
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        navController = navHostFragment.navController
+        // Set up ViewPager2 Adapter
+        val adapter = MainPagerAdapter(this)
+        viewPager.adapter = adapter
 
-        appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.entryFragment, R.id.validityFragment, R.id.tetherFragment, R.id.infoFragment)
-        )
+        // Disable swipe for specific fragments if needed later
+        viewPager.isUserInputEnabled = true
 
-        // Fix Navigation Action Bar
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration)
-        NavigationUI.setupWithNavController(bottomNavigationView, navController)
-
-        // Update toolbar title dynamically when navigating
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-
-            // Fragments that should hide bottom navigation and show back button
-            val fullScreenFragments = setOf(
-                R.id.databasesFragment,
-                R.id.yearlyViewFragment,
-                R.id.exportDataFragment
-            )
-
-            if (fullScreenFragments.contains(destination.id)) {
-                bottomNav.visibility = View.GONE // Hide Bottom Navigation
-                supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show Back Button
-            } else {
-                bottomNav.visibility = View.VISIBLE // Show Bottom Navigation
-                supportActionBar?.setDisplayHomeAsUpEnabled(false) // Hide Back Button for Main Screens
+        // Synchronize BottomNavigationView item clicks with ViewPager2
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.entryFragment -> viewPager.currentItem = 0
+                R.id.validityFragment -> viewPager.currentItem = 1
+                R.id.tetherFragment -> viewPager.currentItem = 2
+                R.id.infoFragment -> viewPager.currentItem = 3
             }
-
-            // Set toolbar title dynamically
-            toolbar.title = getToolbarTitle(destination.id)
+            true
         }
 
+        // Update BottomNavigationView selection and Toolbar title based on page swipes
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                bottomNavigationView.menu.getItem(position).isChecked = true
+                toolbar.title = getToolbarTitle(position)
+            }
+        })
     }
 
     override fun onResume() {
         super.onResume()
-        toolbar.title = getToolbarTitle(navController.currentDestination?.id)
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        return if (navController.currentDestination?.id in setOf(
-                R.id.databasesFragment,
-                R.id.yearlyViewFragment,
-                R.id.exportDataFragment
-            )) {
-            navController.popBackStack() // Go back when back button is clicked
-            true
-        } else {
-            super.onSupportNavigateUp()
-        }
-    }
-
-
-    override fun onBackPressed() {
-        super.onBackPressed()
+        toolbar.title = getToolbarTitle(viewPager.currentItem)
     }
 
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         if (menu is androidx.appcompat.view.menu.MenuBuilder) {
-            menu.setOptionalIconsVisible(true) // Force icons to be visible in overflow
+            menu.setOptionalIconsVisible(true)
         }
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
             R.id.nav_databases -> {
-                navController.navigate(R.id.databasesFragment)
+                navigateToFullScreenFragment(R.id.databasesFragment)
                 true
             }
             R.id.nav_yearly_view -> {
-                navController.navigate(R.id.yearlyViewFragment)
+                navigateToFullScreenFragment(R.id.yearlyViewFragment)
                 true
             }
             R.id.nav_export_data -> {
-                navController.navigate(R.id.exportDataFragment)
+                navigateToFullScreenFragment(R.id.exportDataFragment)
                 true
             }
             R.id.nav_settings -> {
@@ -136,12 +112,48 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    private fun navigateToFullScreenFragment(fragmentId: Int) {
+        bottomNavigationView.visibility = View.GONE
+        viewPager.visibility = View.GONE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val fragment = when (fragmentId) {
+            R.id.databasesFragment -> DatabasesFragment()
+            R.id.yearlyViewFragment -> YearlyViewFragment()
+            R.id.exportDataFragment -> ExportDataFragment()
+            else -> null
+        }
+
+        fragment?.let {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.full_screen_container, it)
+                .addToBackStack(null)
+                .commit()
+            toolbar.title = getToolbarTitle(fragmentId)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+            bottomNavigationView.visibility = View.VISIBLE
+            viewPager.visibility = View.VISIBLE
+            findViewById<FrameLayout>(R.id.full_screen_container).visibility = View.GONE
+            supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            toolbar.title = getToolbarTitle(viewPager.currentItem)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+
     private fun getToolbarTitle(destinationId: Int?): String {
         return when (destinationId) {
-            R.id.entryFragment -> "Entry"
-            R.id.validityFragment -> "Validity"
-            R.id.tetherFragment -> "USDT"
-            R.id.infoFragment -> "Info"
+            0, R.id.entryFragment -> "Entry"
+            1, R.id.validityFragment -> "Validity"
+            2, R.id.tetherFragment -> "USDT"
+            3, R.id.infoFragment -> "Info"
             R.id.databasesFragment -> "Databases"
             R.id.yearlyViewFragment -> "Yearly View"
             R.id.exportDataFragment -> "Export Data"
@@ -152,25 +164,17 @@ class MainActivity : AppCompatActivity() {
     private fun applySystemBarColors() {
         val window: Window = this.window
 
-        // Set status bar color to match toolbar
         window.statusBarColor = getColor(R.color.primary)
 
-        // Set navigation bar color correctly based on theme
         val navBarColor = if (isDarkMode()) R.color.bottom_nav_dark else R.color.bottom_nav_light
         window.navigationBarColor = getColor(navBarColor)
 
-        // Apply correct bottom navigation color dynamically
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav.setBackgroundColor(getColor(navBarColor))
+        bottomNavigationView.setBackgroundColor(getColor(navBarColor))
 
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-
-        // Ensure light/dark icons based on theme
         windowInsetsController.isAppearanceLightStatusBars = !isDarkMode()
         windowInsetsController.isAppearanceLightNavigationBars = !isDarkMode()
     }
-
-
 
     private fun isDarkMode(): Boolean {
         return resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
