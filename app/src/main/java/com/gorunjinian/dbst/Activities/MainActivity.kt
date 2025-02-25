@@ -2,6 +2,7 @@ package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -9,6 +10,8 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.gorunjinian.dbst.R
@@ -26,14 +29,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setTheme(R.style.Base_Theme_DBST)
+
         setContentView(R.layout.activity_main)
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
+
         toolbar = findViewById(R.id.toolbar)
-        viewPager = findViewById(R.id.viewPager)
-        fullScreenContainer = findViewById(R.id.full_screen_container)
 
         setSupportActionBar(toolbar)
+
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            // If your bar is bright and you want dark icons:
+            isAppearanceLightStatusBars = true
+
+            // Or if your bar is dark and you want light icons:
+            //isAppearanceLightStatusBars = true
+        }
+
+
+
+        viewPager = findViewById(R.id.viewPager)
+        fullScreenContainer = findViewById(R.id.full_screen_container)
 
         val adapter = MainPagerAdapter(this)
         viewPager.adapter = adapter
@@ -52,14 +70,24 @@ class MainActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 bottomNavigationView.menu.getItem(position).isChecked = true
-                toolbar.title = getToolbarTitle(position)
+                supportActionBar?.title = getToolbarTitle(position) // Ensure title updates correctly
             }
         })
+
+
     }
+
 
     override fun onResume() {
         super.onResume()
-        toolbar.title = getToolbarTitle(viewPager.currentItem)
+        supportActionBar?.title = getToolbarTitle(viewPager.currentItem) // Fix toolbar title
+
+        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
+
+        // If it's night mode, we want light icons; if it's day mode, we want dark icons.
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
+
     }
 
     @SuppressLint("RestrictedApi")
@@ -108,7 +136,7 @@ class MainActivity : AppCompatActivity() {
             .addToBackStack(null)
             .commit()
 
-        toolbar.title = title
+        supportActionBar?.title = title
     }
 
     @Deprecated("Deprecated in Java")
@@ -119,7 +147,7 @@ class MainActivity : AppCompatActivity() {
             viewPager.visibility = View.VISIBLE
             fullScreenContainer.visibility = View.GONE
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
-            toolbar.title = getToolbarTitle(viewPager.currentItem)
+            supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
         } else {
             super.onBackPressed()
         }

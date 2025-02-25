@@ -1,15 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.Converter" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Base.Theme.DBST" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/ColorPrimaryDark</item>
         <item name="colorAccent">@color/ColorAccent</item>
         <item name="colorOnSecondary">@color/colorSecondary</item>
         <item name="colorContainer">@color/ColorPrimaryLight</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryDark</item>
 
-        <!-- Status bar and Navigation bar -->
-        <item name="android:statusBarColor">@color/ColorPrimaryDark</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- Force the status bar to use colorPrimary exactly -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Ensure we actually draw the system bar backgrounds -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Disable translucency (if any) -->
         <item name="android:windowTranslucentStatus">false</item>
+    </style>
 
+    <style name="Toolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:background">@color/ColorPrimaryDark</item>
+        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
     </style>
 
 </resources>

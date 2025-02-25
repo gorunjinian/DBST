@@ -4,8 +4,26 @@
         <item name="android:textSize">12sp</item>
         <item name="android:paddingStart">25dp</item>
     </style>
-    <style name="CustomPopupMenu" parent="Widget.Material3.PopupMenu">
-        <item name="android:popupBackground">?attr/colorSurface</item> <!-- Matches Material 3 surface color -->
-        <item name="android:textColorPrimary">?attr/colorOnSurface</item> <!-- Text matches Material 3 theme -->
+
+    <style name="ToolbarStyle" parent="Widget.Material3.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:elevation">4dp</item>
+        <item name="android:popupTheme">@style/CustomPopupMenu</item>
+        <item name="titleTextColor">?attr/colorOnPrimary</item>
+
     </style>
+
+    <style name="CustomPopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="android:popupBackground">?attr/colorSurface</item>
+    </style>
+
+
+
+    <style name="Toolbar.TitleText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+
 </resources>

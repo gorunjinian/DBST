@@ -35,6 +35,7 @@ class EntryFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true) // Enable menu options for this fragment
@@ -297,6 +298,5 @@ class EntryFragment : Fragment() {
             }
         })
     }
-
 
 }
