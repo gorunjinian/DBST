@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:layout_marginTop="16dp"> <!-- FIX: Ensures 16dp margin from screen top -->
+        android:layout_marginTop="16dp"> <!-- Ensures 16dp margin from screen top -->
 
         <!-- Material Card for Denominations -->
         <com.google.android.material.card.MaterialCardView
@@ -29,17 +29,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <!-- Title -->
-                <TextView
-                    android:id="@+id/denomination_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Enter Cash Denominations"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="12dp" />
 
                 <!-- First Row: $1, $2, $5 -->
                 <LinearLayout
@@ -162,16 +151,26 @@
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
-                <!-- Total Amount Display -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/total_amount"
+                <!-- Total Amount Display (Material Design Style) -->
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Total: $0.00"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:gravity="center"
-                    android:layout_marginTop="16dp"/>
+                    android:layout_marginTop="16dp"
+                    android:hint="Total Amount">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/total_amount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="0.00"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:inputType="none"
+                        android:focusable="false"
+                        android:background="@null"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

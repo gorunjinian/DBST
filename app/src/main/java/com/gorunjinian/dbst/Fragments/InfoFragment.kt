@@ -1,5 +1,6 @@
 package com.gorunjinian.dbst.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,12 +10,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.gorunjinian.dbst.R
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textview.MaterialTextView
 
 class InfoFragment : Fragment() {
 
     private lateinit var inputFields: List<TextInputEditText>
-    private lateinit var totalAmountText: MaterialTextView
+    private lateinit var totalAmountEditText: TextInputEditText  // Changed from MaterialTextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,6 +23,7 @@ class InfoFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_info, container, false)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -37,11 +38,14 @@ class InfoFragment : Fragment() {
             view.findViewById(R.id.input_100)
         )
 
-        totalAmountText = view.findViewById(R.id.total_amount)
+        totalAmountEditText = view.findViewById(R.id.total_amount)  // Corrected
+
+
+        totalAmountEditText.setText("$0")
 
         // Add text change listeners to update total
         val denominationValues = listOf(1, 2, 5, 10, 20, 50, 100)
-        inputFields.forEachIndexed { index, editText ->
+        inputFields.forEachIndexed { _, editText ->
             editText.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
                     updateTotal(denominationValues)
@@ -52,14 +56,16 @@ class InfoFragment : Fragment() {
         }
     }
 
+    @SuppressLint("DefaultLocale", "SetTextI18n")
     private fun updateTotal(values: List<Int>) {
-        var total = 0.0
+        var total = 0
         inputFields.forEachIndexed { index, editText ->
             val input = editText.text.toString()
             if (input.isNotEmpty()) {
                 total += input.toInt() * values[index]
             }
         }
-        totalAmountText.text = "Total: $%.2f".format(total)
+        totalAmountEditText.setText("$" + String.format("%,d", total))
     }
+
 }
