@@ -1,24 +1,28 @@
 package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.MainPagerAdapter
 import com.gorunjinian.dbst.fragments.DatabasesFragment
 import com.gorunjinian.dbst.fragments.ExportDataFragment
 import com.gorunjinian.dbst.fragments.YearlyViewFragment
+import com.gorunjinian.dbst.FabManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,33 +30,32 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: Toolbar
     private lateinit var viewPager: ViewPager2
     private lateinit var fullScreenContainer: FrameLayout
+    private lateinit var fab: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTheme(R.style.Base_Theme_DBST)
-
         setContentView(R.layout.activity_main)
 
+        // Initialize views
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-
         toolbar = findViewById(R.id.toolbar)
+        viewPager = findViewById(R.id.viewPager)
+        fullScreenContainer = findViewById(R.id.full_screen_container)
+        fab = findViewById(R.id.fab_popup)
 
         setSupportActionBar(toolbar)
 
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            // If your bar is bright and you want dark icons:
-            isAppearanceLightStatusBars = true
+        // Set up FAB using the FabManager
+        FabManager.setupFab(fab, viewPager, this)
 
-            // Or if your bar is dark and you want light icons:
-            //isAppearanceLightStatusBars = true
+        // Adjust system UI appearance (status bar icons)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = true
         }
 
-
-
-        viewPager = findViewById(R.id.viewPager)
-        fullScreenContainer = findViewById(R.id.full_screen_container)
-
+        // Setup ViewPager and BottomNavigationView
         val adapter = MainPagerAdapter(this)
         viewPager.adapter = adapter
         viewPager.isUserInputEnabled = true
@@ -70,24 +73,33 @@ class MainActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 bottomNavigationView.menu.getItem(position).isChecked = true
-                supportActionBar?.title = getToolbarTitle(position) // Ensure title updates correctly
+                supportActionBar?.title = getToolbarTitle(position)
             }
         })
 
-
     }
 
+    private fun showPopup() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.popup_info)
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.show()
+    }
 
     override fun onResume() {
         super.onResume()
-        supportActionBar?.title = getToolbarTitle(viewPager.currentItem) // Fix toolbar title
+
+        // Ensure viewPager is initialized before accessing it
+        if (::viewPager.isInitialized) {
+            supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
+        }
 
         val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
 
-        // If it's night mode, we want light icons; if it's day mode, we want dark icons.
+        // Adjust status bar icons based on theme
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
-
     }
 
     @SuppressLint("RestrictedApi")

@@ -207,6 +207,7 @@ class ValidityFragment : Fragment() {
         validityDropdown.text?.clear()
     }
 
+
     private fun formatNumberWithCommas(editText: TextInputEditText) {
         editText.addTextChangedListener(object : TextWatcher {
             private var current = ""

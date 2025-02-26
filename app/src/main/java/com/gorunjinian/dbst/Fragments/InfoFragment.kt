@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.gorunjinian.dbst.R
 import com.google.android.material.textfield.TextInputEditText
@@ -55,6 +56,7 @@ class InfoFragment : Fragment() {
             })
         }
     }
+
 
     @SuppressLint("DefaultLocale", "SetTextI18n")
     private fun updateTotal(values: List<Int>) {

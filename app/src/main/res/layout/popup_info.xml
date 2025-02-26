@@ -1,18 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingHorizontal="16dp"
-    android:fillViewport="true">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:layout_marginTop="16dp"> <!-- Ensures 16dp margin from screen top -->
+        android:layout_marginTop="16dp">
 
         <!-- Material Card for Denominations -->
         <com.google.android.material.card.MaterialCardView
@@ -130,7 +128,7 @@
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
-                <!-- Third Row: $100 (Centered Below $20) -->
+                <!-- Third Row: $100 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -151,7 +149,7 @@
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
-                <!-- Total Amount Display (Material Design Style) -->
+                <!-- Total Amount Display -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -162,7 +160,7 @@
                         android:id="@+id/total_amount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="0.00"
+                        android:text="0.0"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:gravity="center"
@@ -170,11 +168,22 @@
                         android:focusable="false"
                         android:background="@null"/>
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Close Button at the Bottom -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/close_popup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Close"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.Button"
+            app:cornerRadius="50dp"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white"/>
 
     </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+</ScrollView>
