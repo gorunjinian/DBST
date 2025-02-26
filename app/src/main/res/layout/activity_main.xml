@@ -45,7 +45,9 @@
             android:src="@drawable/dataset"
             app:backgroundTint="@color/colorPrimary"
             android:layout_gravity="end|bottom"
-            android:layout_margin="16dp"/>
+            android:layout_margin="16dp"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"/>
     </FrameLayout>
 
     <!-- Bottom Navigation Bar -->
