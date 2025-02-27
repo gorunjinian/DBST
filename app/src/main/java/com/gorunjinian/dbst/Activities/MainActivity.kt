@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.full_screen_container, fragment)
-            .addToBackStack(title) // ✅ Ensure it adds to the back stack properly
+            .addToBackStack(title) // Ensure it adds to the back stack properly
             .setReorderingAllowed(true)
             .commit()
 

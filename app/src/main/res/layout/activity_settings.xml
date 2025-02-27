@@ -107,6 +107,38 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp" />
+
+            <!-- Databases Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Databases"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Table to Clear"
+                android:layout_marginBottom="8dp" />
+
+            <Spinner
+                android:id="@+id/table_delete_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/delete_table_data_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Delete Table Data"
+                android:backgroundTint="@color/design_default_color_error"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="24dp" />
+
+
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
