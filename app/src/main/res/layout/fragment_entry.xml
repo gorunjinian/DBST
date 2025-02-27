@@ -42,7 +42,7 @@
             android:id="@+id/date_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Date"
+            android:hint="@string/date_input_field"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/clear_button"
@@ -202,6 +202,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="16dp"/>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
