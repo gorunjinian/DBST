@@ -1,6 +1,6 @@
 package com.gorunjinian.dbst.fragments
 
-import DatabaseAdapter
+import com.gorunjinian.dbst.data.DatabaseAdapter
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
