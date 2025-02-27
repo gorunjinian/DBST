@@ -17,4 +17,6 @@
     <string name="yearlyview_fragment_toolbar_title">Yearly View</string>
     <string name="exportdata_fragment_toolbar_title">Export Data</string>
     <string name="settings_activity_toolbar_title">Settings</string>
+    <string name="select_table">Select Table</string>
+    <string name="import_csv_button">Import CSV</string>
 </resources>

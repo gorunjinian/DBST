@@ -22,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:hint="Select Table"
+            android:hint="@string/select_table"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:endIconMode="dropdown_menu">
 
@@ -48,7 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Import CSV"
+            android:text="@string/import_csv_button"
             android:textAllCaps="false"
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@android:color/white"
