@@ -37,7 +37,7 @@
 
     <!-- Exchanged Amount Column (DST only) -->
     <TextView
-        android:id="@+id/col_exchanged"
+        android:id="@+id/col_exch"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"

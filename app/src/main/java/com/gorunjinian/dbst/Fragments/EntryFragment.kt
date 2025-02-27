@@ -147,7 +147,8 @@ class EntryFragment : Fragment() {
         }
 
         val amount = amountText.replace(",", "").toDouble()
-        val rate = rateText.replace(",", "").toDoubleOrNull()
+        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0 // Default rate to 1.0 if null
+        val totalLBP = amount * rate
 
         lifecycleScope.launch {
             val incomeEntry = DBT(
@@ -155,7 +156,8 @@ class EntryFragment : Fragment() {
                 person = person,
                 amount = amount,
                 rate = rate,
-                type = type
+                type = type,
+                totalLBP = totalLBP
             )
             entryDao.insertIncome(incomeEntry)
             Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
@@ -178,8 +180,9 @@ class EntryFragment : Fragment() {
         }
 
         val amountExpensed = amountText.replace(",", "").toDouble()
-        val rate = rateText.replace(",", "").toDoubleOrNull()
+        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0 // Default rate to 1.0 if null
         val amountExchanged = if (amountExchangedText.isNotEmpty()) amountExchangedText.replace(",", "").toDouble() else 0.0
+        val exchangedLBP = amountExchanged * rate // ✅ Correctly calculate exchangedLBP
 
         lifecycleScope.launch {
             val expenseEntry = DST(
@@ -188,7 +191,8 @@ class EntryFragment : Fragment() {
                 amountExpensed = amountExpensed,
                 amountExchanged = amountExchanged,
                 rate = rate,
-                type = type
+                type = type,
+                exchangedLBP = exchangedLBP // ✅ Store the correct exchangedLBP
             )
             entryDao.insertExpense(expenseEntry)
             Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
