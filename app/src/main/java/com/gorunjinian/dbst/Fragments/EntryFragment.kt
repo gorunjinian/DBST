@@ -1,28 +1,26 @@
 package com.gorunjinian.dbst.fragments
 
 import android.app.DatePickerDialog
-import android.app.Dialog
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.gorunjinian.dbst.R
+import com.gorunjinian.dbst.data.*
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import android.text.Editable
-import android.text.TextWatcher
-import android.widget.Button
-import android.widget.TextView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.gorunjinian.dbst.R
-import java.text.NumberFormat
-import java.util.Locale
 
 class EntryFragment : Fragment() {
 
@@ -39,6 +37,8 @@ class EntryFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
 
+    private lateinit var database: EntryDatabase
+    private lateinit var entryDao: EntryDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +69,10 @@ class EntryFragment : Fragment() {
         saveButton = view.findViewById(R.id.save_button)
         clearButton = view.findViewById(R.id.clear_button)
 
+        // Initialize Room Database
+        database = EntryDatabase.getDatabase(requireContext())
+        entryDao = database.entryDao()
+
         // Restore previously selected button (Income/Expense)
         val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
         val isExpenseSelected = prefs.getBoolean("is_expense_selected", true)
@@ -94,7 +98,7 @@ class EntryFragment : Fragment() {
         // Set up Date Picker
         dateInput.setOnClickListener { showDatePicker() }
 
-        //Set today's date
+        // Set today's date
         setTodayDate()
 
         clearButton.setOnClickListener {
@@ -109,25 +113,52 @@ class EntryFragment : Fragment() {
         saveButton.setOnClickListener { saveData() }
     }
 
+    private fun saveData() {
+        // Validate inputs
+        val date = dateInput.text.toString()
+        val person = personInput.text.toString()
+        val amountText = amountInput.text.toString()
+        val rateText = rateInput.text.toString()
+        val type = typeDropdown.text.toString()
+        val amountExchangedText = amountExchangedInput.text.toString()
 
-    override fun onResume() {
-        super.onResume()
+        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
-        val isExpenseSelected = prefs.getBoolean("is_expense_selected", true) // Default to Expense
-        val lastSelectedType =
-            prefs.getString(if (isExpenseSelected) "expense_type" else "income_type", "")
+        val amount = amountText.replace(",", "").toDouble()
+        val rate = rateText.replace(",", "").toDoubleOrNull()
+        val amountExchanged = if (amountExchangedText.isNotEmpty()) amountExchangedText.replace(",", "").toDouble() else 0.0
 
-        // Restore correct button selection
-        selectButton(if (isExpenseSelected) expenseButton else incomeButton, isExpenseSelected)
-
-        // Restore dropdown options and last selected value
-        setupTypeDropdown(
-            if (isExpenseSelected) getExpenseTypes() else getIncomeTypes(),
-            lastSelectedType
-        )
+        lifecycleScope.launch {
+            if (expenseButton.strokeWidth > 0) {
+                // Expense Entry (DST Table)
+                val expenseEntry = DST(
+                    date = date,
+                    person = person,
+                    amountExpensed = amount,
+                    amountExchanged = amountExchanged,
+                    rate = rate,
+                    type = type
+                )
+                entryDao.insertExpense(expenseEntry)
+                Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
+            } else {
+                // Income Entry (DBT Table)
+                val incomeEntry = DBT(
+                    date = date,
+                    person = person,
+                    amount = amount,
+                    rate = rate,
+                    type = type
+                )
+                entryDao.insertIncome(incomeEntry)
+                Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
+            }
+            clearInputFields()
+        }
     }
-
 
     private fun setTodayDate() {
         val today = Calendar.getInstance()
@@ -151,6 +182,59 @@ class EntryFragment : Fragment() {
         )
         datePickerDialog.show()
     }
+
+    private fun clearInputFields() {
+        personInput.text?.clear()
+        amountInput.text?.clear()
+        amountExchangedInput.text?.clear()
+        rateInput.text?.clear()
+        typeDropdown.text?.clear()
+    }
+
+    private fun setupTypeDropdown(types: List<String>, selectedValue: String?) {
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            types
+        )
+        typeDropdown.setAdapter(adapter)
+
+        if (!selectedValue.isNullOrEmpty()) {
+            typeDropdown.setText(selectedValue, false)
+        }
+    }
+
+    private fun formatNumberWithCommas(editText: TextInputEditText) {
+        editText.addTextChangedListener(object : TextWatcher {
+            private var current = ""
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (s.toString() != current) {
+                    editText.removeTextChangedListener(this)
+
+                    val cleanString = s.toString().replace(",", "")
+                    if (cleanString.isNotEmpty()) {
+                        try {
+                            val parsed = cleanString.toDouble()
+                            val formatted = NumberFormat.getNumberInstance(Locale.US).format(parsed)
+                            current = formatted
+                            editText.setText(formatted)
+                            editText.setSelection(formatted.length) // Move cursor to end
+                        } catch (e: NumberFormatException) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    editText.addTextChangedListener(this)
+                }
+            }
+        })
+    }
+
 
     private fun selectButton(selectedButton: MaterialButton, isExpense: Boolean) {
         // Reset button styles
@@ -194,113 +278,7 @@ class EntryFragment : Fragment() {
         expenseButton.strokeWidth = 0
     }
 
-    private fun setupTypeDropdown(types: List<String>, selectedValue: String?) {
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            types
-        )
+    private fun getIncomeTypes(): List<String> = listOf("Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A")
 
-        typeDropdown.setAdapter(adapter)
-
-        // Restore previous selection without filtering the dropdown
-        if (!selectedValue.isNullOrEmpty()) {
-            typeDropdown.setText(selectedValue, false) // Show previous selection
-        }
-
-        // Save selection when user chooses an item
-        typeDropdown.setOnItemClickListener { _, _, position, _ ->
-            val selectedType = types[position]
-            val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
-            prefs.edit()
-                .putString(
-                    if (expenseButton.strokeWidth > 0) "expense_type" else "income_type",
-                    selectedType
-                )
-                .apply()
-        }
-
-        // Ensure full dropdown appears when tapped
-        typeDropdown.setOnClickListener {
-            typeDropdown.setAdapter(adapter) // Reset adapter to force full list display
-            typeDropdown.showDropDown()
-        }
-    }
-
-
-    private fun getIncomeTypes(): List<String> {
-        return listOf(
-            "Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A"
-        )
-    }
-
-    private fun getExpenseTypes(): List<String> {
-        return listOf(
-            "FOOD", "GROCERIES", "EXCHANGE", "WHISH TOPUP", "CLOTHING & SHOES",
-            "TRANSPORTATION", "WELLBEING", "NECESSITIES", "BANK TOPUP", "TECH",
-            "TUITION", "DEBT", "OTHER"
-        )
-    }
-
-    private fun saveData() {
-        // Validate inputs
-        val date = dateInput.text.toString()
-        val person = personInput.text.toString()
-        val amount = amountInput.text.toString()
-        val rate = rateInput.text.toString()
-        val type = typeDropdown.text.toString()
-
-        if (date.isEmpty() || person.isEmpty() || amount.isEmpty() || rate.isEmpty() || type.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Mock saving logic
-        Toast.makeText(
-            requireContext(),
-            "Data Saved:\nDate: $date\nPerson: $person\nAmount: $amount\nRate: $rate\nType: $type",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-
-    private fun clearInputFields() {
-        personInput.text?.clear()
-        amountInput.text?.clear()
-        amountExchangedInput.text?.clear()
-        rateInput.text?.clear()
-        typeDropdown.text?.clear()
-    }
-
-
-    private fun formatNumberWithCommas(editText: TextInputEditText) {
-        editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (s.toString() != current) {
-                    editText.removeTextChangedListener(this)
-
-                    val cleanString = s.toString().replace(",", "")
-                    if (cleanString.isNotEmpty()) {
-                        try {
-                            val parsed = cleanString.toDouble()
-                            val formatted = NumberFormat.getNumberInstance(Locale.US).format(parsed)
-                            current = formatted
-                            editText.setText(formatted)
-                            editText.setSelection(formatted.length) // Move cursor to end
-                        } catch (e: NumberFormatException) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    editText.addTextChangedListener(this)
-                }
-            }
-        })
-    }
-
+    private fun getExpenseTypes(): List<String> = listOf("FOOD", "GROCERIES", "EXCHANGE", "WELLBEING", "BANK TOPUP", "TECH", "DEBT", "OTHER")
 }

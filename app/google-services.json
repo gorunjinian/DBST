@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "500504101009",
+    "project_id": "dbst-482fd",
+    "storage_bucket": "dbst-482fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500504101009:android:e4602b9d60190ab5957f30",
+        "android_client_info": {
+          "package_name": "com.gorunjinian.dbst"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqlP3ZTwyX57AA99ZZtnVDUmxW8G0RvvI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

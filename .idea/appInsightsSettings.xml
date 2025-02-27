@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.gorunjinian.dbst" />
+                  <option name="mobileSdkAppId" value="1:500504101009:android:e4602b9d60190ab5957f30" />
+                  <option name="projectId" value="dbst-482fd" />
+                  <option name="projectNumber" value="500504101009" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

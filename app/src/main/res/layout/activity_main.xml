@@ -22,8 +22,10 @@
     <FrameLayout
         android:id="@+id/full_screen_container"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:visibility="gone" />
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:elevation="10dp"/>
+
 
     <!-- ViewPager2 Container with Floating Action Button -->
     <FrameLayout

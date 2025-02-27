@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ class YearlyViewFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Log.d("FragmentLifecycle", "ExportDataFragment View Created") // ✅ Debug log
         return inflater.inflate(R.layout.fragment_yearly_view, container, false)
     }
 }

@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -137,7 +139,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToFullScreenFragment(fragment: androidx.fragment.app.Fragment, title: String) {
+    private fun navigateToFullScreenFragment(fragment: Fragment, title: String) {
+        Log.d("FragmentDebug", "Navigating to: $title")
+
+        // Hide bottom navigation and ViewPager
         bottomNavigationView.visibility = View.GONE
         viewPager.visibility = View.GONE
         fullScreenContainer.visibility = View.VISIBLE
@@ -145,25 +150,33 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.full_screen_container, fragment)
-            .addToBackStack(null)
+            .addToBackStack(title) // ✅ Ensure it adds to the back stack properly
+            .setReorderingAllowed(true)
             .commit()
 
         supportActionBar?.title = title
     }
 
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
+
+            // ✅ Restore UI elements when returning to the main screen
             bottomNavigationView.visibility = View.VISIBLE
             viewPager.visibility = View.VISIBLE
             fullScreenContainer.visibility = View.GONE
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
+
+            // ✅ Restore toolbar title
             supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
+
         } else {
-            super.onBackPressed()
+            super.onBackPressed() // Exit app only if there are no fragments in back stack
         }
     }
+
 
     private fun getToolbarTitle(destinationId: Int?): String {
         return when (destinationId) {
