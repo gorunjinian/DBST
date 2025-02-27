@@ -13,4 +13,8 @@ class EntryRepository(private val entryDao: EntryDao) {
     suspend fun deleteIncome(id: Int) = entryDao.deleteIncome(id)  // Fixed parameter
 
     suspend fun deleteExpense(id: Int) = entryDao.deleteExpense(id)  // Fixed parameter
+
+    fun getAllIncomeSorted(): List<DBT> = entryDao.getAllIncomeSorted()
+
+    fun getAllExpenseSorted(): List<DST> = entryDao.getAllExpenseSorted()
 }

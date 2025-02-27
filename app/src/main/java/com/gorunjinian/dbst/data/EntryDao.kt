@@ -23,6 +23,14 @@ interface EntryDao {
     @Query("SELECT * FROM DST ORDER BY date DESC")
     fun getAllExpense(): List<DST>  // Removed `suspend`
 
+    // ✅ Get All Income Entries (Sorted by Date Descending)
+    @Query("SELECT * FROM DBT ORDER BY date DESC")
+    fun getAllIncomeSorted(): List<DBT>
+
+    // ✅ Get All Expense Entries (Sorted by Date Descending)
+    @Query("SELECT * FROM DST ORDER BY date DESC")
+    fun getAllExpenseSorted(): List<DST>
+
     // ✅ Dynamically get all table names in the database
     @RawQuery
     suspend fun getAllTableNames(query: SupportSQLiteQuery): List<String>
