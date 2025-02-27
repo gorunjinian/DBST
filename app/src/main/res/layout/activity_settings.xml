@@ -51,7 +51,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Dynamic Theme" />
+                    android:text="@string/dynamic_theme" />
 
                 <Switch
                     android:id="@+id/dynamic_theme_toggle"
@@ -87,7 +87,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Enable Fingerprint Authentication" />
+                    android:text="@string/enable_fingerprint_authentication" />
 
                 <Switch
                     android:id="@+id/fingerprint_toggle"
@@ -99,7 +99,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fingerprint Authentication Delay"
+                android:text="@string/fingerprint_authentication_delay"
                 android:layout_marginBottom="8dp" />
 
             <Spinner
@@ -112,7 +112,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Databases"
+                android:text="@string/databases_titl_section"
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:layout_marginBottom="12dp" />
@@ -120,7 +120,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select Table to Clear"
+                android:text="@string/select_table_to_clear"
                 android:layout_marginBottom="8dp" />
 
             <Spinner
@@ -133,7 +133,7 @@
                 android:id="@+id/delete_table_data_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Delete Table Data"
+                android:text="@string/delete_table_data"
                 android:backgroundTint="@color/design_default_color_error"
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="24dp" />

@@ -3,12 +3,14 @@ package com.gorunjinian.dbst
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -18,7 +20,6 @@ object FabManager {
 
     private lateinit var inputFields: List<EditText>
     private lateinit var totalAmountEditText: TextView
-
 
     fun setupFab(fab: FloatingActionButton, viewPager: ViewPager2, activity: FragmentActivity) {
         fab.setOnClickListener {
@@ -31,6 +32,14 @@ object FabManager {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
         dialog.setContentView(R.layout.popup_info)
+
+        // Apply rounded background to popup
+        val background: Drawable? = ContextCompat.getDrawable(context, R.drawable.rounded_popup)
+        dialog.window?.setBackgroundDrawable(background)
+
+        // Ensure popup appears rounded & properly sized
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setDimAmount(0.8f) // Add dim effect to background
 
         // Initialize input fields
         inputFields = listOf(
@@ -46,9 +55,9 @@ object FabManager {
         totalAmountEditText = dialog.findViewById(R.id.total_amount)
         totalAmountEditText.text = "$0"
 
-        // Add text change listeners to update total dynamically
+        // ✅ Add text change listeners to update total dynamically
         val denominationValues = listOf(1, 2, 5, 10, 20, 50, 100)
-        inputFields.forEachIndexed { _, editText ->
+        inputFields.forEachIndexed { index, editText ->
             editText.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
                     updateTotal(denominationValues)
@@ -58,6 +67,7 @@ object FabManager {
             })
         }
 
+        // Close button functionality
         val closeButton: Button = dialog.findViewById(R.id.close_popup)
         closeButton.setOnClickListener { dialog.dismiss() }
 
@@ -75,6 +85,6 @@ object FabManager {
                 total += input.toInt() * values[index]
             }
         }
-        totalAmountEditText.text = "$" + String.format("%,d", total)
+        totalAmountEditText.text = "$" + String.format("%,d", total) // Format with commas
     }
 }

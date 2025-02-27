@@ -3,7 +3,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="@drawable/rounded_popup">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -176,7 +176,7 @@
             android:id="@+id/close_popup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Close"
+            android:text="@string/close_button_text"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="16dp"
             style="@style/Widget.MaterialComponents.Button"

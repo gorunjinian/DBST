@@ -89,7 +89,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="BUY" />
+            android:text="@string/buy_type" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/sell_button"
@@ -97,7 +97,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="SELL" />
+            android:text="@string/sell_type" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- USDT Amount Input -->
@@ -105,7 +105,7 @@
         android:id="@+id/usdt_amount_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="USDT Amount"
+        android:hint="@string/usdt_amount"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toggle_group"
@@ -141,7 +141,7 @@
         android:id="@+id/save_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Save"
+        android:text="@string/save_button_text"
         app:icon="@drawable/tick"
         app:iconGravity="textEnd"
         app:layout_constraintTop_toBottomOf="@id/cash_layout"

@@ -19,4 +19,18 @@
     <string name="settings_activity_toolbar_title">Settings</string>
     <string name="select_table">Select Table</string>
     <string name="import_csv_button">Import CSV</string>
+    <string name="delete_table_data">Delete Table Data</string>
+    <string name="select_table_to_clear">Select Table to Clear</string>
+    <string name="databases_titl_section">Databases</string>
+    <string name="fingerprint_authentication_delay">Fingerprint Authentication Delay</string>
+    <string name="enable_fingerprint_authentication">Enable Fingerprint Authentication</string>
+    <string name="dynamic_theme">Dynamic Theme</string>
+    <string name="usdt_amount">USDT Amount</string>
+    <string name="sell_type">SELL</string>
+    <string name="buy_type">BUY</string>
+    <string name="save_button_text">Save</string>
+    <string name="expense_button_text">Expense</string>
+    <string name="rate_button_text">Rate</string>
+    <string name="amount_exchanged_field">Amount Exchanged</string>
+    <string name="close_button_text">Close</string>
 </resources>
