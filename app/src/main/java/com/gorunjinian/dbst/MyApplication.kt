@@ -1,8 +1,13 @@
 package com.gorunjinian.dbst
 
 import android.app.Application
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.textfield.TextInputEditText
+import java.text.NumberFormat
+import java.util.Locale
 
 class MyApplication : Application() {
 
@@ -32,8 +37,49 @@ class MyApplication : Application() {
         val isFingerprintEnabled = prefs.getBoolean("fingerprint_enabled", false)
         val lastAuthenticatedTime = prefs.getLong("last_authenticated_time", 0)
         val currentTime = System.currentTimeMillis()
-        val fingerprintDelay = prefs.getInt("fingerprint_delay_value", 0) * 60 * 1000 // Convert minutes to ms
+        val fingerprintDelay =
+            prefs.getInt("fingerprint_delay_value", 0) * 60 * 1000 // Convert minutes to ms
 
         return isFingerprintEnabled && (currentTime - lastAuthenticatedTime > fingerprintDelay)
+    }
+
+    companion object {
+         fun formatNumberWithCommas(editText: TextInputEditText) {
+            editText.addTextChangedListener(object : TextWatcher {
+                private var current = ""
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+                override fun afterTextChanged(s: Editable?) {
+                    if (s.toString() != current) {
+                        editText.removeTextChangedListener(this)
+
+                        val cleanString = s.toString().replace(",", "")
+                        if (cleanString.isNotEmpty()) {
+                            try {
+                                val parsed = cleanString.toDouble()
+                                val formatted =
+                                    NumberFormat.getNumberInstance(Locale.US).format(parsed)
+                                current = formatted
+                                editText.setText(formatted)
+                                editText.setSelection(formatted.length) // Move cursor to end
+                            } catch (e: NumberFormatException) {
+                                e.printStackTrace()
+                            }
+                        }
+
+                        editText.addTextChangedListener(this)
+                    }
+                }
+            })
+        }
     }
 }

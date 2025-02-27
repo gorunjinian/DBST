@@ -3,8 +3,6 @@ package com.gorunjinian.dbst.fragments
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -15,10 +13,11 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
+
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -110,10 +109,61 @@ class EntryFragment : Fragment() {
         expenseButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = true) }
 
         // Save Button Logic
-        saveButton.setOnClickListener { saveData() }
+        saveButton.setOnClickListener {
+            if (expenseButton.strokeWidth > 0) {
+                saveExpense()
+            } else {
+                saveIncome()
+            }
+        }
+
     }
 
-    private fun saveData() {
+    private fun getIncomeTypes(): List<String> = listOf(
+        "Income", "Buy", "Return", "Profit", "Validity",
+        "Loan", "Gift", "Other", "N/A")
+
+    private fun getExpenseTypes(): List<String> = listOf(
+        "FOOD", "GROCERIES", "EXCHANGE", "WELLBEING",
+        "BANK TOPUP", "TECH", "DEBT", "OTHER")
+
+
+    private fun resetButtonStyles() {
+        incomeButton.strokeWidth = 0
+        expenseButton.strokeWidth = 0
+    }
+
+    private fun saveIncome() {
+        // Validate inputs
+        val date = dateInput.text.toString()
+        val person = personInput.text.toString()
+        val amountText = amountInput.text.toString()
+        val rateText = rateInput.text.toString()
+        val type = typeDropdown.text.toString()
+
+        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val amount = amountText.replace(",", "").toDouble()
+        val rate = rateText.replace(",", "").toDoubleOrNull()
+
+        lifecycleScope.launch {
+            val incomeEntry = DBT(
+                date = date,
+                person = person,
+                amount = amount,
+                rate = rate,
+                type = type
+            )
+            entryDao.insertIncome(incomeEntry)
+            Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
+            clearInputFields()
+        }
+    }
+
+    private fun saveExpense() {
         // Validate inputs
         val date = dateInput.text.toString()
         val person = personInput.text.toString()
@@ -127,44 +177,25 @@ class EntryFragment : Fragment() {
             return
         }
 
-        val amount = amountText.replace(",", "").toDouble()
+        val amountExpensed = amountText.replace(",", "").toDouble()
         val rate = rateText.replace(",", "").toDoubleOrNull()
         val amountExchanged = if (amountExchangedText.isNotEmpty()) amountExchangedText.replace(",", "").toDouble() else 0.0
 
         lifecycleScope.launch {
-            if (expenseButton.strokeWidth > 0) {
-                // Expense Entry (DST Table)
-                val expenseEntry = DST(
-                    date = date,
-                    person = person,
-                    amountExpensed = amount,
-                    amountExchanged = amountExchanged,
-                    rate = rate,
-                    type = type
-                )
-                entryDao.insertExpense(expenseEntry)
-                Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
-            } else {
-                // Income Entry (DBT Table)
-                val incomeEntry = DBT(
-                    date = date,
-                    person = person,
-                    amount = amount,
-                    rate = rate,
-                    type = type
-                )
-                entryDao.insertIncome(incomeEntry)
-                Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
-            }
+            val expenseEntry = DST(
+                date = date,
+                person = person,
+                amountExpensed = amountExpensed,
+                amountExchanged = amountExchanged,
+                rate = rate,
+                type = type
+            )
+            entryDao.insertExpense(expenseEntry)
+            Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
         }
     }
 
-    private fun setTodayDate() {
-        val today = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-        dateInput.setText(dateFormat.format(today.time))
-    }
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
@@ -204,38 +235,6 @@ class EntryFragment : Fragment() {
         }
     }
 
-    private fun formatNumberWithCommas(editText: TextInputEditText) {
-        editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (s.toString() != current) {
-                    editText.removeTextChangedListener(this)
-
-                    val cleanString = s.toString().replace(",", "")
-                    if (cleanString.isNotEmpty()) {
-                        try {
-                            val parsed = cleanString.toDouble()
-                            val formatted = NumberFormat.getNumberInstance(Locale.US).format(parsed)
-                            current = formatted
-                            editText.setText(formatted)
-                            editText.setSelection(formatted.length) // Move cursor to end
-                        } catch (e: NumberFormatException) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    editText.addTextChangedListener(this)
-                }
-            }
-        })
-    }
-
-
     private fun selectButton(selectedButton: MaterialButton, isExpense: Boolean) {
         // Reset button styles
         resetButtonStyles()
@@ -272,13 +271,9 @@ class EntryFragment : Fragment() {
         }
     }
 
-
-    private fun resetButtonStyles() {
-        incomeButton.strokeWidth = 0
-        expenseButton.strokeWidth = 0
+    private fun setTodayDate() {
+        val today = Calendar.getInstance()
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        dateInput.setText(dateFormat.format(today.time))
     }
-
-    private fun getIncomeTypes(): List<String> = listOf("Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A")
-
-    private fun getExpenseTypes(): List<String> = listOf("FOOD", "GROCERIES", "EXCHANGE", "WELLBEING", "BANK TOPUP", "TECH", "DEBT", "OTHER")
 }

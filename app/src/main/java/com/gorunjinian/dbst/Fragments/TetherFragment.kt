@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
+import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -118,37 +119,5 @@ class TetherFragment : Fragment() {
         personInput.text?.clear()
         usdtAmountInput.text?.clear()
         cashInput.text?.clear()
-    }
-
-
-    private fun formatNumberWithCommas(editText: TextInputEditText) {
-        editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (s.toString() != current) {
-                    editText.removeTextChangedListener(this)
-
-                    val cleanString = s.toString().replace(",", "")
-                    if (cleanString.isNotEmpty()) {
-                        try {
-                            val parsed = cleanString.toDouble()
-                            val formatted = NumberFormat.getNumberInstance(Locale.US).format(parsed)
-                            current = formatted
-                            editText.setText(formatted)
-                            editText.setSelection(formatted.length) // Move cursor to end
-                        } catch (e: NumberFormatException) {
-                            e.printStackTrace()
-                        }
-                    }
-
-                    editText.addTextChangedListener(this)
-                }
-            }
-        })
     }
 }
