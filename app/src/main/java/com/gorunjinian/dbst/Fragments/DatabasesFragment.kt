@@ -83,13 +83,13 @@ class DatabasesFragment : Fragment() {
 
         // Load last selected table or default to DST
         val prefs = requireActivity().getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
-        currentTable = prefs.getString("last_table", "DST") // ✅ Default to DST
+        currentTable = prefs.getString("last_table", "DST") // Default to DST
         tableSpinner.setText(currentTable, false)
         loadTableData()
 
         tableSpinner.setOnItemClickListener { _, _, position, _ ->
             currentTable = availableTables[position]
-            prefs.edit().putString("last_table", currentTable).apply() // ✅ Save selection
+            prefs.edit().putString("last_table", currentTable).apply() // Save selection
             loadTableData()
         }
     }
@@ -97,8 +97,8 @@ class DatabasesFragment : Fragment() {
     private fun loadTableData() {
         lifecycleScope.launch(Dispatchers.IO) {
             val records = when (currentTable) {
-                "DBT" -> entryDao.getAllIncomeSorted()
-                "DST" -> entryDao.getAllExpenseSorted()
+                "DBT" -> entryDao.getAllIncome()
+                "DST" -> entryDao.getAllExpense()
                 else -> emptyList()
             }
 

@@ -43,7 +43,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
             is DBT -> {
                 holder.dateTextView.text = entry.date
                 holder.personTextView.text = entry.person
-                holder.amountTextView.text = formatter.format(entry.amount.toInt()) // ✅ Format with commas, no decimals
+                holder.amountTextView.text = formatter.format(entry.amount.toInt()) // Format with commas, no decimals
                 holder.rateTextView.text = formatter.format(entry.rate?.toInt() ?: 0)
                 holder.typeTextView.text = entry.type
                 holder.exchangedLBPTextView.text = formatter.format(entry.totalLBP.toInt())
@@ -54,10 +54,11 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
             is DST -> {
                 holder.dateTextView.text = entry.date
                 holder.personTextView.text = entry.person
-                holder.amountTextView.text = formatter.format(entry.amountExpensed.toInt()) // ✅ Format with commas, no decimals
+                holder.amountTextView.text = formatter.format(entry.amountExpensed.toInt()) //
+                // Format with commas, no decimals
                 holder.rateTextView.text = formatter.format(entry.rate?.toInt() ?: 0)
                 holder.typeTextView.text = entry.type
-                holder.exchTextView.text = formatter.format(entry.amountExchanged.toInt()) // ✅ Show amount exchanged
+                holder.exchTextView.text = formatter.format(entry.amountExchanged.toInt()) // Show amount exchanged
                 holder.exchangedLBPTextView.text = formatter.format(entry.exchangedLBP.toInt())
 
                 // Ensure Exch column is visible for DST
