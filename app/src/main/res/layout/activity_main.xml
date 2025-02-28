@@ -61,5 +61,5 @@
         app:itemIconTint="?attr/colorSurface"
         app:itemTextColor="?attr/colorOnSurface"
         app:menu="@menu/bottom_navigation_menu"
-        app:labelVisibilityMode="labeled"/>
+        app:labelVisibilityMode="labeled" />
 </LinearLayout>

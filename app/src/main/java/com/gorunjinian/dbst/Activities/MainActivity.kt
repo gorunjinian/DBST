@@ -177,7 +177,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun getToolbarTitle(destinationId: Int?): String {
         return when (destinationId) {
             0, R.id.entryFragment -> "Entry"

@@ -23,19 +23,25 @@ import java.util.*
 
 class EntryFragment : Fragment() {
 
+    //inputs
     private lateinit var dateInput: TextInputEditText
     private lateinit var personInput: TextInputEditText
     private lateinit var amountInput: TextInputEditText
     private lateinit var amountExchangedInput: TextInputEditText
     private lateinit var rateInput: TextInputEditText
     private lateinit var typeDropdown: MaterialAutoCompleteTextView
+
+    //layouts
     private lateinit var amountExchangedLayout: TextInputLayout
     private lateinit var amountLayout: TextInputLayout
+
+    //buttons
     private lateinit var incomeButton: MaterialButton
     private lateinit var expenseButton: MaterialButton
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
 
+    //database components
     private lateinit var database: EntryDatabase
     private lateinit var entryDao: EntryDao
 
@@ -77,6 +83,7 @@ class EntryFragment : Fragment() {
         val isExpenseSelected = prefs.getBoolean("is_expense_selected", true)
         val lastSelectedType =
             prefs.getString(if (isExpenseSelected) "expense_type" else "income_type", "")
+
 
         // Set up default dropdown options based on selection
         setupTypeDropdown(
@@ -182,7 +189,7 @@ class EntryFragment : Fragment() {
         val amountExpensed = amountText.replace(",", "").toDouble()
         val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0 // Default rate to 1.0 if null
         val amountExchanged = if (amountExchangedText.isNotEmpty()) amountExchangedText.replace(",", "").toDouble() else 0.0
-        val exchangedLBP = amountExchanged * rate // ✅ Correctly calculate exchangedLBP
+        val exchangedLBP = amountExchanged * rate // Correctly calculate exchangedLBP
 
         lifecycleScope.launch {
             val expenseEntry = DST(
@@ -192,7 +199,7 @@ class EntryFragment : Fragment() {
                 amountExchanged = amountExchanged,
                 rate = rate,
                 type = type,
-                exchangedLBP = exchangedLBP // ✅ Store the correct exchangedLBP
+                exchangedLBP = exchangedLBP // Store the correct exchangedLBP
             )
             entryDao.insertExpense(expenseEntry)
             Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()

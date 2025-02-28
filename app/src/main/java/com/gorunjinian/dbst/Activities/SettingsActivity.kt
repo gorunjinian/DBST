@@ -202,7 +202,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun loadTableNames() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val tableNames = listOf("DBT", "DST") //  Only allowing user to delete these tables
+            val tableNames = listOf("DBT", "DST") // Only allowing user to delete these tables
 
             withContext(Dispatchers.Main) {
                 val adapter = ArrayAdapter(
