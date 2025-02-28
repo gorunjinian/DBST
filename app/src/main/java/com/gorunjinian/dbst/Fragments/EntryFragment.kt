@@ -3,6 +3,7 @@ package com.gorunjinian.dbst.fragments
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -40,10 +41,18 @@ class EntryFragment : Fragment() {
     private lateinit var expenseButton: MaterialButton
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
+    private lateinit var undoButton: MaterialButton
+    private var undoCountDownTimer: CountDownTimer? = null
+
+
 
     //database components
     private lateinit var database: EntryDatabase
     private lateinit var entryDao: EntryDao
+    private var lastEntryTime: Long = 0L
+    private var lastEntryType: String? = null  // "income" or "expense"
+    private var lastEntry: Any? = null         // holds the last inserted DBT or DST instance
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +82,11 @@ class EntryFragment : Fragment() {
         expenseButton = view.findViewById(R.id.expense_button)
         saveButton = view.findViewById(R.id.save_button)
         clearButton = view.findViewById(R.id.clear_button)
+        undoButton = view.findViewById(R.id.undo_button)
+
+        undoButton.setOnClickListener { undoButtonAction() }
+
+
 
         // Initialize Room Database
         database = EntryDatabase.getDatabase(requireContext())
@@ -107,9 +121,7 @@ class EntryFragment : Fragment() {
         // Set today's date
         setTodayDate()
 
-        clearButton.setOnClickListener {
-            clearInputFields()
-        }
+        clearButton.setOnClickListener { clearInputFields() }
 
         // Set up Button Click Listeners
         incomeButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = false) }
@@ -166,10 +178,23 @@ class EntryFragment : Fragment() {
                 type = type,
                 totalLBP = totalLBP
             )
-            entryDao.insertIncome(incomeEntry)
+            // Capture the generated id
+            val newId = entryDao.insertIncome(incomeEntry)
+            // Update the entry with the generated id
+            val savedIncomeEntry = incomeEntry.copy(id = newId.toInt())
             Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
+
+            // Track the last inserted entry for undo
+            lastEntryTime = System.currentTimeMillis()
+            lastEntryType = "income"
+            lastEntry = savedIncomeEntry
+
+            // Start the 15 second countdown
+            startUndoCountdown()
         }
+
+
     }
 
     private fun saveExpense() {
@@ -199,13 +224,89 @@ class EntryFragment : Fragment() {
                 amountExchanged = amountExchanged,
                 rate = rate,
                 type = type,
-                exchangedLBP = exchangedLBP // Store the correct exchangedLBP
+                exchangedLBP = exchangedLBP
             )
-            entryDao.insertExpense(expenseEntry)
+            val newId = entryDao.insertExpense(expenseEntry)
+            val savedExpenseEntry = expenseEntry.copy(id = newId.toInt())
             Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
+
+            // Track the last inserted entry for undo
+            lastEntryTime = System.currentTimeMillis()
+            lastEntryType = "expense"
+            lastEntry = savedExpenseEntry
+
+            // Start the 15 second countdown
+            startUndoCountdown()
         }
+
+
     }
+
+    private fun undoButtonAction() {
+
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastEntryTime <= 15000) {  // within 15 seconds
+            // Cancel the countdown so it stops updating the button text
+            undoCountDownTimer?.cancel()
+            // Reset button text immediately
+            undoButton.text = "Undo"
+            // Optionally, disable the button so it can't be used again
+            undoButton.isEnabled = false
+
+            lifecycleScope.launch {
+                when (lastEntryType) {
+                    "income" -> {
+                        lastEntry?.let { entry ->
+                            entryDao.deleteIncome((entry as DBT).id)
+                        }
+                    }
+                    "expense" -> {
+                        lastEntry?.let { entry ->
+                            entryDao.deleteExpense((entry as DST).id)
+                        }
+                    }
+                }
+                // Reset the tracking variables after undoing
+                lastEntryTime = 0L
+                lastEntryType = null
+                lastEntry = null
+            }
+            Toast.makeText(requireContext(), "Last entry undone", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Undo period expired", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    private fun startUndoCountdown() {
+        // Cancel any previous countdown
+        undoCountDownTimer?.cancel()
+
+        // Enable the undo button and set initial text
+        undoButton.isEnabled = true
+        undoButton.text = "Undo (15s)"
+
+        // Create and start a new CountDownTimer
+        undoCountDownTimer = object : CountDownTimer(15000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsRemaining = millisUntilFinished / 1000
+                // Update the button text with remaining seconds
+                undoButton.text = "Undo (${secondsRemaining}s)"
+            }
+
+            override fun onFinish() {
+                // Once finished, reset the button text and disable it
+                undoButton.text = "Undo"
+                undoButton.isEnabled = false
+                // Optionally, reset tracking for last entry if needed
+                lastEntryTime = 0L
+                lastEntryType = null
+                lastEntry = null
+            }
+        }.start()
+    }
+
 
 
     private fun showDatePicker() {

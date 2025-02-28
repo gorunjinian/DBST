@@ -8,11 +8,11 @@ interface EntryDao {
 
     // Insert Income Entry
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertIncome(entry: DBT)
+    suspend fun insertIncome(entry: DBT): Long
 
     // Insert Expense Entry
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertExpense(entry: DST)
+    suspend fun insertExpense(entry: DST): Long
 
     // Get All Income Entries (Sorted by Date Descending)
     @Query("SELECT * FROM DBT ORDER BY date DESC")
@@ -41,4 +41,5 @@ interface EntryDao {
     // Delete All Expense Entries
     @Query("DELETE FROM DST")
     suspend fun deleteAllExpense()
+
 }
