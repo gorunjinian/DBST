@@ -6,10 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [DBT::class, DST::class, VBSTIN::class, VBSTOUT::class],
-    version = 4,  // Incremented version
-    exportSchema = false
-)
+    entities = [DBT::class,
+        DST::class, VBSTIN::class,
+        VBSTOUT::class],version = 4, exportSchema = false)
 abstract class EntryDatabase : RoomDatabase() {
 
     abstract fun entryDao(): EntryDao
@@ -25,6 +24,8 @@ abstract class EntryDatabase : RoomDatabase() {
                     EntryDatabase::class.java,
                     "entry_database"
                 )
+                    // Allow destructive migrations for now.
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

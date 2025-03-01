@@ -1,25 +1,28 @@
 package com.gorunjinian.dbst.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import java.text.SimpleDateFormat
-import java.util.*
-import android.text.Editable
-import android.text.TextWatcher
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
-import java.text.NumberFormat
-import java.util.Locale
+import com.gorunjinian.dbst.data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ValidityFragment : Fragment() {
 
@@ -33,10 +36,21 @@ class ValidityFragment : Fragment() {
     private lateinit var creditInButton: MaterialButton
     private lateinit var creditOutButton: MaterialButton
     private lateinit var saveButton: MaterialButton
+    private lateinit var clearButton: MaterialButton
+    private lateinit var undoButton: MaterialButton
     private lateinit var validityLayout: TextInputLayout
     private lateinit var totalLayout: TextInputLayout
     private lateinit var rateLayout: TextInputLayout
-    private lateinit var clearButton: MaterialButton
+
+    // Database components
+    private lateinit var database: EntryDatabase
+    private lateinit var entryDao: EntryDao
+
+    // Undo tracking variables
+    private var undoCountDownTimer: CountDownTimer? = null
+    private var lastEntryTime: Long = 0L
+    private var lastEntryType: String? = null  // "credit_in" or "credit_out"
+    private var lastEntry: Any? = null         // holds the last inserted VBSTIN or VBSTOUT instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,16 +73,24 @@ class ValidityFragment : Fragment() {
         creditInButton = view.findViewById(R.id.credit_in_button)
         creditOutButton = view.findViewById(R.id.credit_out_button)
         saveButton = view.findViewById(R.id.save_button)
+        clearButton = view.findViewById(R.id.clear_button)
+        undoButton = view.findViewById(R.id.undo_button)
+
+        // Initialize additional layouts
         validityLayout = view.findViewById(R.id.validity_layout)
         totalLayout = view.findViewById(R.id.total_layout)
         rateLayout = view.findViewById(R.id.rate_layout)
-        clearButton = view.findViewById(R.id.clear_button)
+
+
+        // Initialize Database and DAO
+        database = EntryDatabase.getDatabase(requireContext())
+        entryDao = database.entryDao()
 
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(totalInput)
         formatNumberWithCommas(rateInput)
 
-        // Automatically Set Today's Date
+        // Automatically set today's date
         setTodayDate()
 
         // Set default values
@@ -76,9 +98,7 @@ class ValidityFragment : Fragment() {
         totalInput.setText("0")
 
         // Set up Date Picker
-        dateInput.setOnClickListener {
-            showDatePicker()
-        }
+        dateInput.setOnClickListener { showDatePicker() }
 
         // Set up default dropdown options
         setupDropdown(typeDropdown, listOf("Alfa", "Touch"))
@@ -88,29 +108,29 @@ class ValidityFragment : Fragment() {
         typeDropdown.setOnClickListener { typeDropdown.showDropDown() }
         validityDropdown.setOnClickListener { validityDropdown.showDropDown() }
 
-        //clear button function call
-        clearButton.setOnClickListener {
-            clearInputFields()
-        }
+        // Clear button functionality
+        clearButton.setOnClickListener { clearInputFields() }
 
-        // Set up button click listeners
+        // Set up credit type button click listeners
         creditInButton.setOnClickListener { selectCreditType(isCreditIn = true) }
         creditOutButton.setOnClickListener { selectCreditType(isCreditIn = false) }
 
-        // Set Credit OUT as Default Selection
+        // Set Credit OUT as default selection
         selectCreditType(isCreditIn = false)
 
-        // Save Button Logic
-        saveButton.setOnClickListener {
-            saveData()
-        }
+        // Set up Undo button click listener
+        undoButton.setOnClickListener { undoButtonAction() }
+        // Initially disable undo button
+        undoButton.isEnabled = false
+
+        // Save button logic
+        saveButton.setOnClickListener { saveData() }
     }
 
     override fun onResume() {
         super.onResume()
         setupDropdown(typeDropdown, listOf("Alfa", "Touch"))
     }
-
 
     private fun setTodayDate() {
         val today = Calendar.getInstance()
@@ -139,26 +159,29 @@ class ValidityFragment : Fragment() {
         resetButtonStyles()
 
         if (isCreditIn) {
-            // Correctly show Credit IN fields
+            // For Credit IN (VBSTIN): Show validity and total fields, hide rate field.
             creditInButton.strokeWidth = 10
             creditInButton.strokeColor =
-                ColorStateList.valueOf(MaterialColors.getColor(creditInButton, com.google.android.material.R.attr.colorOnBackground))
+                ColorStateList.valueOf(
+                    MaterialColors.getColor(creditInButton, com.google.android.material.R.attr.colorOnBackground)
+                )
 
-            validityLayout.visibility = View.VISIBLE  // Should be visible for Credit OUT
-            totalLayout.visibility = View.VISIBLE  // Should be visible for Credit OUT
-            rateLayout.visibility = View.GONE  // Should be hidden for Credit OUT
+            validityLayout.visibility = View.VISIBLE
+            totalLayout.visibility = View.VISIBLE
+            rateLayout.visibility = View.GONE
         } else {
-            // Correctly show Credit OUT fields
+            // For Credit OUT (VBSTOUT): Show rate field (sell rate), hide validity and total fields.
             creditOutButton.strokeWidth = 10
             creditOutButton.strokeColor =
-                ColorStateList.valueOf(MaterialColors.getColor(creditOutButton, com.google.android.material.R.attr.colorOnBackground))
+                ColorStateList.valueOf(
+                    MaterialColors.getColor(creditOutButton, com.google.android.material.R.attr.colorOnBackground)
+                )
 
-            validityLayout.visibility = View.GONE  // Should be hidden for Credit IN
-            totalLayout.visibility = View.GONE  // Should be hidden for Credit IN
-            rateLayout.visibility = View.VISIBLE  // Should be visible for Credit IN
+            validityLayout.visibility = View.GONE
+            totalLayout.visibility = View.GONE
+            rateLayout.visibility = View.VISIBLE
         }
     }
-
 
     private fun resetButtonStyles() {
         creditInButton.strokeWidth = 0
@@ -178,25 +201,167 @@ class ValidityFragment : Fragment() {
         val date = dateInput.text.toString()
         val person = personInput.text.toString()
         val type = typeDropdown.text.toString()
-        val amount = amountInput.text.toString()
-        val rate = rateInput.text.toString()
+        val amountStr = amountInput.text.toString()
+        val rateStr = rateInput.text.toString()
         val validity = validityDropdown.text.toString()
-        val total = totalInput.text.toString()
+        val totalStr = totalInput.text.toString()
 
-        if (date.isEmpty() || person.isEmpty() || type.isEmpty() || amount.isEmpty() ||
-            (creditOutButton.strokeWidth > 0 && validity.isEmpty()) ||
-            (creditInButton.strokeWidth > 0 && rate.isEmpty())
-        ) {
-            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+        // Validate common fields
+        if (date.isEmpty() || person.isEmpty() || type.isEmpty() || amountStr.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill in all required fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        Toast.makeText(
-            requireContext(),
-            "Data Saved:\nDate: $date\nPerson: $person\nType: $type\nAmount: $amount\n" +
-                    if (creditInButton.strokeWidth > 0) "Rate: $rate" else "Validity: $validity\nTotal: $total",
-            Toast.LENGTH_LONG
-        ).show()
+        // Validate additional fields based on selected credit type
+        if (creditInButton.strokeWidth > 0) {
+            // For Credit IN (VBSTIN): require validity and total
+            if (validity.isEmpty() || totalStr.isEmpty()) {
+                Toast.makeText(requireContext(), "Please fill in validity and total fields", Toast.LENGTH_SHORT).show()
+                return
+            }
+        } else if (creditOutButton.strokeWidth > 0) {
+            // For Credit OUT (VBSTOUT): require sell rate (entered in rate field)
+            if (rateStr.isEmpty()) {
+                Toast.makeText(requireContext(), "Please fill in the sell rate field", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
+        // Parse numerical values
+        val amount = amountStr.replace(",", "").toDouble()
+        if (creditInButton.strokeWidth > 0) {
+            // Save record into VBSTIN table.
+            val total = totalStr.replace(",", "").toDouble()
+            // VBSTIN computes rate automatically as total/amount.
+            val vbstin = VBSTIN(
+                date = date,
+                person = person,
+                type = type,
+                validity = validity,
+                amount = amount,
+                total = total
+            )
+            lifecycleScope.launch {
+                val newId = entryDao.insertVbstIn(vbstin)
+                val savedVbstin = vbstin.copy(id = newId.toInt())
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Credit IN entry saved", Toast.LENGTH_SHORT).show()
+                    clearInputFields()
+                }
+                // Track the last entry for undo
+                lastEntryTime = System.currentTimeMillis()
+                lastEntryType = "credit_in"
+                lastEntry = savedVbstin
+                startUndoCountdown()
+            }
+        } else if (creditOutButton.strokeWidth > 0) {
+            // Save record into VBSTOUT table.
+            val sellrate = rateStr.replace(",", "").toDouble()
+            val profit = 0.0 // Set profit to 0.0 or compute as needed
+            val vbstout = VBSTOUT(
+                date = date,
+                person = person,
+                amount = amount,
+                sellrate = sellrate,
+                type = type,
+                profit = profit
+            )
+            lifecycleScope.launch {
+                val newId = entryDao.insertVbstOut(vbstout)
+                val savedVbstout = vbstout.copy(id = newId.toInt())
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Credit OUT entry saved", Toast.LENGTH_SHORT).show()
+                    clearInputFields()
+                }
+                // Track the last entry for undo
+                lastEntryTime = System.currentTimeMillis()
+                lastEntryType = "credit_out"
+                lastEntry = savedVbstout
+                startUndoCountdown()
+            }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun undoButtonAction() {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
+            // Cancel the countdown so it stops updating the button text
+            undoCountDownTimer?.cancel()
+            // Reset button text immediately and disable it
+            undoButton.text = "Undo"
+            undoButton.isEnabled = false
+
+            lifecycleScope.launch {
+                when (lastEntryType) {
+                    "credit_in" -> {
+                        (lastEntry as? VBSTIN)?.let { vbstin ->
+                            entryDao.deleteVbstIn(vbstin.id)
+                            withContext(Dispatchers.Main) {
+                                // Repopulate fields for Credit IN
+                                selectCreditType(isCreditIn = true)
+                                dateInput.setText(vbstin.date)
+                                personInput.setText(vbstin.person)
+                                typeDropdown.setText(vbstin.type, false)
+                                validityDropdown.setText(vbstin.validity, false)
+                                amountInput.setText(vbstin.amount.toString())
+                                totalInput.setText(vbstin.total.toString())
+                            }
+                        }
+                    }
+                    "credit_out" -> {
+                        (lastEntry as? VBSTOUT)?.let { vbstout ->
+                            entryDao.deleteVbstOut(vbstout.id)
+                            withContext(Dispatchers.Main) {
+                                // Repopulate fields for Credit OUT
+                                selectCreditType(isCreditIn = false)
+                                dateInput.setText(vbstout.date)
+                                personInput.setText(vbstout.person)
+                                typeDropdown.setText(vbstout.type, false)
+                                amountInput.setText(vbstout.amount.toString())
+                                rateInput.setText(vbstout.sellrate.toString())
+                            }
+                        }
+                    }
+                }
+                // Clear the tracking variables after undoing
+                lastEntryTime = 0L
+                lastEntryType = null
+                lastEntry = null
+            }
+            Toast.makeText(requireContext(), "Last entry undone", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Undo period expired", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun startUndoCountdown() {
+        // Cancel any previous countdown
+        undoCountDownTimer?.cancel()
+
+        // Enable the undo button and set initial text
+        undoButton.isEnabled = true
+        undoButton.text = "Undo (30s)"
+
+        // Create and start a new CountDownTimer for 30 seconds
+        undoCountDownTimer = object : CountDownTimer(30000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsRemaining = millisUntilFinished / 1000
+                // Update the button text with remaining seconds
+                undoButton.text = "Undo (${secondsRemaining}s)"
+            }
+
+            override fun onFinish() {
+                // Once finished, reset the button text and disable it
+                undoButton.text = "Undo"
+                undoButton.isEnabled = false
+                // Reset tracking for last entry
+                lastEntryTime = 0L
+                lastEntryType = null
+                lastEntry = null
+            }
+        }.start()
     }
 
     private fun clearInputFields() {
@@ -207,5 +372,4 @@ class ValidityFragment : Fragment() {
         totalInput.text?.clear()
         validityDropdown.text?.clear()
     }
-
 }

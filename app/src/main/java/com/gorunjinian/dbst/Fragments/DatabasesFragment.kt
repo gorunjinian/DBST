@@ -40,7 +40,7 @@ class DatabasesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Database
+        // Initialize Database and DAO
         database = EntryDatabase.getDatabase(requireContext())
         entryDao = database.entryDao()
 
@@ -52,7 +52,9 @@ class DatabasesFragment : Fragment() {
 
         // Setup RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.addItemDecoration(DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL))
+        recyclerView.addItemDecoration(
+            DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
+        )
         adapter = DatabaseAdapter()
         recyclerView.adapter = adapter
 
@@ -63,7 +65,10 @@ class DatabasesFragment : Fragment() {
     private fun loadTableNames() {
         lifecycleScope.launch(Dispatchers.IO) {
             val rawQuery = SimpleSQLiteQuery(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'android_metadata' AND name NOT LIKE 'sqlite_sequence' AND name NOT LIKE 'room_master_table'"
+                "SELECT name FROM sqlite_master WHERE type='table' " +
+                        "AND name NOT LIKE 'android_metadata' " +
+                        "AND name NOT LIKE 'sqlite_sequence' " +
+                        "AND name NOT LIKE 'room_master_table'"
             )
             availableTables = entryDao.getAllTableNames(rawQuery)
 
@@ -81,9 +86,9 @@ class DatabasesFragment : Fragment() {
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, availableTables)
         tableSpinner.setAdapter(spinnerAdapter)
 
-        // Load last selected table or default to DST
+        // Load last selected table or default to DST (modify the default as needed)
         val prefs = requireActivity().getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
-        currentTable = prefs.getString("last_table", "DST") // Default to DST
+        currentTable = prefs.getString("last_table", "DST")
         tableSpinner.setText(currentTable, false)
         loadTableData()
 
@@ -99,9 +104,10 @@ class DatabasesFragment : Fragment() {
             val records = when (currentTable) {
                 "DBT" -> entryDao.getAllIncome()
                 "DST" -> entryDao.getAllExpense()
+                "VBSTIN" -> entryDao.getAllVbstIn()
+                "VBSTOUT" -> entryDao.getAllVbstOut()
                 else -> emptyList()
             }
-
             withContext(Dispatchers.Main) {
                 updateColumnHeaders()
                 adapter.updateData(currentTable ?: "", records)
@@ -115,6 +121,8 @@ class DatabasesFragment : Fragment() {
         val headers = when (currentTable) {
             "DBT" -> listOf("Date", "Person", "Amount", "Rate", "Type", "Total LBP")
             "DST" -> listOf("Date", "Person", "Expd", "Exch", "Rate", "Type", "Exchanged LBP")
+            "VBSTIN" -> listOf("Date", "Person", "Type", "Validity", "Amount", "Total", "Rate")
+            "VBSTOUT" -> listOf("Date", "Person", "Amount", "SellRate", "Type", "Profit")
             else -> return
         }
 

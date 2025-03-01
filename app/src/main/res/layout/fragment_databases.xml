@@ -55,7 +55,6 @@
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
-
     <!-- Table Header -->
     <TableRow
         android:id="@+id/table_header"
