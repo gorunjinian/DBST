@@ -6,7 +6,7 @@
     <corners android:radius="24dp" />
 
     <!-- Set background color (using colorSecondary) -->
-    <solid android:color="?attr/colorSecondary" />
+    <solid android:color="?attr/colorBackgroundFloating" />
 
     <!-- Add shadow for better UI -->
     <padding android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp"/>

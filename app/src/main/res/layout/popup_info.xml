@@ -17,8 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="20dp"
-            app:cardElevation="4dp"
-            app:cardCornerRadius="12dp"
+            app:cardElevation="8dp"
+            app:cardCornerRadius="16dp"
             app:strokeWidth="1dp"
             android:layout_marginBottom="16dp"
             app:cardBackgroundColor="?attr/colorSurface">
@@ -49,7 +49,9 @@
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <View android:layout_width="8dp" android:layout_height="0dp"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="0dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
@@ -63,7 +65,9 @@
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <View android:layout_width="8dp" android:layout_height="0dp"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="0dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
@@ -99,7 +103,9 @@
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <View android:layout_width="8dp" android:layout_height="0dp"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="0dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
@@ -113,7 +119,9 @@
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <View android:layout_width="8dp" android:layout_height="0dp"/>
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="0dp"/>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
@@ -171,7 +179,20 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Close Button at the Bottom -->
+        <!-- New Save Button Above the Close Button with distinct styling -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_popup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            style="@style/Widget.MaterialComponents.Button"
+            app:cornerRadius="50dp"
+            android:backgroundTint="#4CAF50"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp"
+            android:elevation="4dp"/>
+
+        <!-- Close Button at the Bottom with distinct styling -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/close_popup"
             android:layout_width="match_parent"
@@ -181,8 +202,9 @@
             android:layout_marginBottom="16dp"
             style="@style/Widget.MaterialComponents.Button"
             app:cornerRadius="50dp"
-            android:backgroundTint="?attr/colorPrimary"
-            android:textColor="@android:color/white"/>
+            android:backgroundTint="#F44336"
+            android:textColor="@android:color/white"
+            android:elevation="4dp"/>
 
     </LinearLayout>
 
