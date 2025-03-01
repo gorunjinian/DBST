@@ -1,77 +1,9 @@
-<TableRow
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:padding="8dp"
     android:background="?attr/colorSurface">
-
-    <!-- Date Column -->
-    <TextView
-        android:id="@+id/col_date"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Date"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- Person Column -->
-    <TextView
-        android:id="@+id/col_person"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Person"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- Amount Column (DBT: Amount, DST: Expensed Amount) -->
-    <TextView
-        android:id="@+id/col_amount"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Amount"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- Exchanged Amount Column (DST only) -->
-    <TextView
-        android:id="@+id/col_exch"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Exch"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- Rate Column -->
-    <TextView
-        android:id="@+id/col_rate"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Rate"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- Type Column (Income/Expense) -->
-    <TextView
-        android:id="@+id/col_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Type"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-
-    <!-- LBP Column (DBT: totalLBP, DST: exchangedLBP) -->
-    <TextView
-        android:id="@+id/col_exchanged_lbp"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="LBP"
-        android:textColor="?attr/colorOnSurface"
-        android:gravity="center"/>
-</TableRow>
+    <!-- No static child views: columns will be added dynamically at runtime -->
+</LinearLayout>

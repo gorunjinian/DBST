@@ -12,10 +12,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.gorunjinian.dbst.R
-import com.gorunjinian.dbst.data.*
+import com.gorunjinian.dbst.data.AppDao
+import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.data.DatabaseAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.reflect.full.memberProperties
 
 class DatabasesFragment : Fragment() {
 
@@ -58,7 +61,7 @@ class DatabasesFragment : Fragment() {
         adapter = DatabaseAdapter()
         recyclerView.adapter = adapter
 
-        // Load Table Names
+        // Load Table Names from the SQLite master table
         loadTableNames()
     }
 
@@ -71,7 +74,6 @@ class DatabasesFragment : Fragment() {
                         "AND name NOT LIKE 'room_master_table'"
             )
             availableTables = appDao.getAllTableNames(rawQuery)
-
             withContext(Dispatchers.Main) {
                 if (availableTables.isEmpty()) {
                     Toast.makeText(requireContext(), "No tables found!", Toast.LENGTH_SHORT).show()
@@ -94,7 +96,7 @@ class DatabasesFragment : Fragment() {
 
         tableSpinner.setOnItemClickListener { _, _, position, _ ->
             currentTable = availableTables[position]
-            prefs.edit().putString("last_table", currentTable).apply() // Save selection
+            prefs.edit().putString("last_table", currentTable).apply()
             loadTableData()
         }
     }
@@ -109,33 +111,32 @@ class DatabasesFragment : Fragment() {
                 else -> emptyList()
             }
             withContext(Dispatchers.Main) {
-                updateColumnHeaders()
-                adapter.updateData(currentTable ?: "", records)
+                updateColumnHeaders(records)
+                adapter.updateData(records)
             }
         }
     }
 
-    private fun updateColumnHeaders() {
+    private fun updateColumnHeaders(records: List<Any>) {
         columnHeaderLayout.removeAllViews()
 
-        val headers = when (currentTable) {
-            "DBT" -> listOf("Date", "Person", "Amount", "Rate", "Type", "Total LBP")
-            "DST" -> listOf("Date", "Person", "Expd", "Exch", "Rate", "Type", "Exchanged LBP")
-            "VBSTIN" -> listOf("Date", "Person", "Type", "Validity", "Amount", "Total", "Rate")
-            "VBSTOUT" -> listOf("Date", "Person", "Amount", "SellRate", "Type", "Profit")
-            else -> return
-        }
-
-        headers.forEach { title ->
-            val textView = TextView(requireContext()).apply {
-                text = title
-                textSize = 14f
-                setTextColor(resources.getColor(R.color.white, requireContext().theme))
-                setPadding(8, 8, 8, 8)
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
-                gravity = Gravity.CENTER
+        if (records.isNotEmpty()) {
+            val firstRecord = records.first()
+            // Use reflection to get property names from the first record
+            val props = firstRecord::class.memberProperties.toList()
+            props.forEach { prop ->
+                // Capitalize first letter of the property name
+                val headerText = prop.name.replaceFirstChar { it.uppercaseChar() }
+                val textView = TextView(requireContext()).apply {
+                    text = headerText
+                    textSize = 14f
+                    setTextColor(resources.getColor(R.color.white, requireContext().theme))
+                    setPadding(8, 8, 8, 8)
+                    layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                    gravity = Gravity.CENTER
+                }
+                columnHeaderLayout.addView(textView)
             }
-            columnHeaderLayout.addView(textView)
         }
     }
 }
