@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -15,6 +16,10 @@ import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.AppDao
 import com.gorunjinian.dbst.data.AppDatabase
 import com.gorunjinian.dbst.data.DatabaseAdapter
+import com.gorunjinian.dbst.data.DBT
+import com.gorunjinian.dbst.data.DST
+import com.gorunjinian.dbst.data.VBSTIN
+import com.gorunjinian.dbst.data.VBSTOUT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,7 +66,12 @@ class DatabasesFragment : Fragment() {
         adapter = DatabaseAdapter()
         recyclerView.adapter = adapter
 
-        // Load Table Names from the SQLite master table
+        // Set long-press deletion callback
+        adapter.onRecordLongClickListener = { record ->
+            showDeleteConfirmationDialog(record)
+        }
+
+        // Load Table Names
         loadTableNames()
     }
 
@@ -88,7 +98,7 @@ class DatabasesFragment : Fragment() {
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, availableTables)
         tableSpinner.setAdapter(spinnerAdapter)
 
-        // Load last selected table or default to DST (modify the default as needed)
+        // Load last selected table or default to DST
         val prefs = requireActivity().getSharedPreferences("db_prefs", Context.MODE_PRIVATE)
         currentTable = prefs.getString("last_table", "DST")
         tableSpinner.setText(currentTable, false)
@@ -119,13 +129,12 @@ class DatabasesFragment : Fragment() {
 
     private fun updateColumnHeaders(records: List<Any>) {
         columnHeaderLayout.removeAllViews()
-
         if (records.isNotEmpty()) {
             val firstRecord = records.first()
-            // Use reflection to get property names from the first record
+
+            // Use reflection to obtain property names from the first record
             val props = firstRecord::class.memberProperties.toList()
             props.forEach { prop ->
-                // Capitalize first letter of the property name
                 val headerText = prop.name.replaceFirstChar { it.uppercaseChar() }
                 val textView = TextView(requireContext()).apply {
                     text = headerText
@@ -138,5 +147,30 @@ class DatabasesFragment : Fragment() {
                 columnHeaderLayout.addView(textView)
             }
         }
+    }
+
+    private fun showDeleteConfirmationDialog(record: Any) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Delete Record")
+        builder.setMessage("Are you sure you want to delete this record?")
+        builder.setPositiveButton("Delete") { dialog, _ ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                when (record) {
+                    is DBT -> appDao.deleteIncome(record.id)
+                    is DST -> appDao.deleteExpense(record.id)
+                    is VBSTIN -> appDao.deleteVbstIn(record.id)
+                    is VBSTOUT -> appDao.deleteVbstOut(record.id)
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
+                    loadTableData()
+                }
+            }
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.create().show()
     }
 }
