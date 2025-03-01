@@ -79,7 +79,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/person_input"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:selectAllOnFocus="true"
+            android:imeOptions="actionNext"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Type Dropdown -->
@@ -152,7 +154,9 @@
             android:id="@+id/amount_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"/>
+            android:inputType="numberDecimal"
+            android:selectAllOnFocus="true"
+            android:imeOptions="actionNext"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Total Input (Only for Credit OUT) -->

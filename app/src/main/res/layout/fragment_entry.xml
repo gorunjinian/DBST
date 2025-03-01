@@ -87,7 +87,9 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/date_input"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:selectAllOnFocus="true"
+                    android:imeOptions="actionNext"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Person Input Field -->
@@ -100,21 +102,28 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/person_input"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:selectAllOnFocus="true"
+                    android:imeOptions="actionNext"
+                    android:singleLine="true"
+                    android:nextFocusDown="@id/amount_expensed_input"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Amount Input Field -->
+            <!-- Amount Expensed Input Field -->
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/amount_layout"
+                android:id="@+id/amount_expensed_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/amount_expensed_hint"
                 android:layout_marginTop="8dp">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/amount_input"
+                    android:id="@+id/amount_expensed_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"/>
+                    android:inputType="numberDecimal"
+                    android:selectAllOnFocus="true"
+                    android:imeOptions="actionNext"
+                    android:nextFocusDown="@id/amount_exchanged_input"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Amount Exchanged Input (Hidden by default) -->
@@ -129,7 +138,10 @@
                     android:id="@+id/amount_exchanged_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"/>
+                    android:inputType="numberDecimal"
+                    android:selectAllOnFocus="true"
+                    android:imeOptions="actionNext"
+                    android:nextFocusDown="@id/rate_input"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Rate Input Field -->
@@ -143,7 +155,9 @@
                     android:id="@+id/rate_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"/>
+                    android:inputType="numberDecimal"
+                    android:selectAllOnFocus="true"
+                    android:imeOptions="actionNext"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Type Dropdown -->
@@ -151,7 +165,7 @@
                 android:id="@+id/type_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Type"
+                android:hint="@string/type_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:endIconMode="dropdown_menu"
                 android:layout_marginTop="8dp">
