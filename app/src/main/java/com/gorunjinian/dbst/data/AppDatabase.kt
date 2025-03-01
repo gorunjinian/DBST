@@ -8,21 +8,21 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [DBT::class,
         DST::class, VBSTIN::class,
-        VBSTOUT::class],version = 4, exportSchema = false)
-abstract class EntryDatabase : RoomDatabase() {
+        VBSTOUT::class],version = 6, exportSchema = false)
+abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun entryDao(): EntryDao
+    abstract fun appDao(): AppDao
 
     companion object {
         @Volatile
-        private var INSTANCE: EntryDatabase? = null
+        private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context): EntryDatabase {
+        fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    EntryDatabase::class.java,
-                    "entry_database"
+                    AppDatabase::class.java,
+                    "app_database"
                 )
                     // Allow destructive migrations for now.
                     .fallbackToDestructiveMigration()

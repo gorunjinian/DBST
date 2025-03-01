@@ -13,8 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.gorunjinian.dbst.MyApplication
 import com.gorunjinian.dbst.R
-import com.gorunjinian.dbst.data.EntryDatabase
-import com.gorunjinian.dbst.data.EntryDao
+import com.gorunjinian.dbst.data.AppDao
+import com.gorunjinian.dbst.data.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,7 +24,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var tableDeleteSpinner: Spinner
     private lateinit var deleteTableDataButton: Button
-    private lateinit var entryDao: EntryDao
+    private lateinit var appDao: AppDao
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,8 +42,8 @@ class SettingsActivity : AppCompatActivity() {
         val delaySpinner = findViewById<Spinner>(R.id.fingerprint_delay_spinner)
 
         // Initialize Database
-        val database = EntryDatabase.getDatabase(this)
-        entryDao = database.entryDao()
+        val database = AppDatabase.getDatabase(this)
+        appDao = database.appDao()
 
         // Initialize Views
         tableDeleteSpinner = findViewById(R.id.table_delete_spinner)
@@ -168,8 +168,8 @@ class SettingsActivity : AppCompatActivity() {
     private fun deleteTableData(tableName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             when (tableName) {
-                "DBT" -> entryDao.deleteAllIncome()
-                "DST" -> entryDao.deleteAllExpense()
+                "DBT" -> appDao.deleteAllIncome()
+                "DST" -> appDao.deleteAllExpense()
             }
 
             withContext(Dispatchers.Main) {

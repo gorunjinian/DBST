@@ -3,10 +3,10 @@ package com.gorunjinian.dbst.viewmodels
 import androidx.lifecycle.*
 import com.gorunjinian.dbst.data.DBT
 import com.gorunjinian.dbst.data.DST
-import com.gorunjinian.dbst.data.EntryRepository
+import com.gorunjinian.dbst.data.AppRepository
 import kotlinx.coroutines.launch
 
-class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
+class EntryViewModel(private val repository: AppRepository) : ViewModel() {
 
     private val _incomeEntries = MutableLiveData<List<DBT>>()
     val incomeEntries: LiveData<List<DBT>> get() = _incomeEntries

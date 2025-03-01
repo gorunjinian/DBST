@@ -19,8 +19,8 @@ import kotlinx.coroutines.withContext
 
 class DatabasesFragment : Fragment() {
 
-    private lateinit var database: EntryDatabase
-    private lateinit var entryDao: EntryDao
+    private lateinit var database: AppDatabase
+    private lateinit var appDao: AppDao
     private lateinit var tableSpinner: MaterialAutoCompleteTextView
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: DatabaseAdapter
@@ -41,8 +41,8 @@ class DatabasesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize Database and DAO
-        database = EntryDatabase.getDatabase(requireContext())
-        entryDao = database.entryDao()
+        database = AppDatabase.getDatabase(requireContext())
+        appDao = database.appDao()
 
         // UI Elements
         tableSpinner = view.findViewById(R.id.table_spinner)
@@ -70,7 +70,7 @@ class DatabasesFragment : Fragment() {
                         "AND name NOT LIKE 'sqlite_sequence' " +
                         "AND name NOT LIKE 'room_master_table'"
             )
-            availableTables = entryDao.getAllTableNames(rawQuery)
+            availableTables = appDao.getAllTableNames(rawQuery)
 
             withContext(Dispatchers.Main) {
                 if (availableTables.isEmpty()) {
@@ -102,10 +102,10 @@ class DatabasesFragment : Fragment() {
     private fun loadTableData() {
         lifecycleScope.launch(Dispatchers.IO) {
             val records = when (currentTable) {
-                "DBT" -> entryDao.getAllIncome()
-                "DST" -> entryDao.getAllExpense()
-                "VBSTIN" -> entryDao.getAllVbstIn()
-                "VBSTOUT" -> entryDao.getAllVbstOut()
+                "DBT" -> appDao.getAllIncome()
+                "DST" -> appDao.getAllExpense()
+                "VBSTIN" -> appDao.getAllVbstIn()
+                "VBSTOUT" -> appDao.getAllVbstOut()
                 else -> emptyList()
             }
             withContext(Dispatchers.Main) {

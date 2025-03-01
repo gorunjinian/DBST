@@ -48,3 +48,13 @@ data class VBSTOUT(
     val type: String,
     val profit: Double
 )
+
+@Entity(tableName = "USDT")
+data class USDT(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val date: String,
+    val person: String,
+    val amountUsdt: Double,
+    val amountCash: Double,
+    val type: String,
+)

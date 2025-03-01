@@ -4,7 +4,7 @@ import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
-interface EntryDao {
+interface AppDao {
 
     //DBT and DST queries
 

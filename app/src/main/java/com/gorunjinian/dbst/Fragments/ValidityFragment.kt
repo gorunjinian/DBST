@@ -43,8 +43,8 @@ class ValidityFragment : Fragment() {
     private lateinit var rateLayout: TextInputLayout
 
     // Database components
-    private lateinit var database: EntryDatabase
-    private lateinit var entryDao: EntryDao
+    private lateinit var database: AppDatabase
+    private lateinit var appDao: AppDao
 
     // Undo tracking variables
     private var undoCountDownTimer: CountDownTimer? = null
@@ -83,8 +83,8 @@ class ValidityFragment : Fragment() {
 
 
         // Initialize Database and DAO
-        database = EntryDatabase.getDatabase(requireContext())
-        entryDao = database.entryDao()
+        database = AppDatabase.getDatabase(requireContext())
+        appDao = database.appDao()
 
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(totalInput)
@@ -242,7 +242,7 @@ class ValidityFragment : Fragment() {
                 total = total
             )
             lifecycleScope.launch {
-                val newId = entryDao.insertVbstIn(vbstin)
+                val newId = appDao.insertVbstIn(vbstin)
                 val savedVbstin = vbstin.copy(id = newId.toInt())
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Credit IN entry saved", Toast.LENGTH_SHORT).show()
@@ -267,7 +267,7 @@ class ValidityFragment : Fragment() {
                 profit = profit
             )
             lifecycleScope.launch {
-                val newId = entryDao.insertVbstOut(vbstout)
+                val newId = appDao.insertVbstOut(vbstout)
                 val savedVbstout = vbstout.copy(id = newId.toInt())
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Credit OUT entry saved", Toast.LENGTH_SHORT).show()
@@ -296,7 +296,7 @@ class ValidityFragment : Fragment() {
                 when (lastEntryType) {
                     "credit_in" -> {
                         (lastEntry as? VBSTIN)?.let { vbstin ->
-                            entryDao.deleteVbstIn(vbstin.id)
+                            appDao.deleteVbstIn(vbstin.id)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit IN
                                 selectCreditType(isCreditIn = true)
@@ -311,7 +311,7 @@ class ValidityFragment : Fragment() {
                     }
                     "credit_out" -> {
                         (lastEntry as? VBSTOUT)?.let { vbstout ->
-                            entryDao.deleteVbstOut(vbstout.id)
+                            appDao.deleteVbstOut(vbstout.id)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit OUT
                                 selectCreditType(isCreditIn = false)

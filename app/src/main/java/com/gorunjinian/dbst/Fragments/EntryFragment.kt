@@ -48,8 +48,8 @@ class EntryFragment : Fragment() {
 
 
     //database components
-    private lateinit var database: EntryDatabase
-    private lateinit var entryDao: EntryDao
+    private lateinit var database: AppDatabase
+    private lateinit var appDao: AppDao
     private var lastEntryTime: Long = 0L
     private var lastEntryType: String? = null  // "income" or "expense"
     private var lastEntry: Any? = null         // holds the last inserted DBT or DST instance
@@ -89,8 +89,8 @@ class EntryFragment : Fragment() {
 
 
         // Initialize Room Database
-        database = EntryDatabase.getDatabase(requireContext())
-        entryDao = database.entryDao()
+        database = AppDatabase.getDatabase(requireContext())
+        appDao = database.appDao()
 
         // Restore previously selected button (Income/Expense)
         val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
@@ -179,7 +179,7 @@ class EntryFragment : Fragment() {
                 totalLBP = totalLBP
             )
             // Capture the generated id
-            val newId = entryDao.insertIncome(incomeEntry)
+            val newId = appDao.insertIncome(incomeEntry)
             // Update the entry with the generated id
             val savedIncomeEntry = incomeEntry.copy(id = newId.toInt())
             Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
@@ -226,7 +226,7 @@ class EntryFragment : Fragment() {
                 type = type,
                 exchangedLBP = exchangedLBP
             )
-            val newId = entryDao.insertExpense(expenseEntry)
+            val newId = appDao.insertExpense(expenseEntry)
             val savedExpenseEntry = expenseEntry.copy(id = newId.toInt())
             Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
@@ -259,7 +259,7 @@ class EntryFragment : Fragment() {
                     "income" -> {
                         lastEntry?.let { entry ->
                             val incomeEntry = entry as DBT
-                            entryDao.deleteIncome(incomeEntry.id)
+                            appDao.deleteIncome(incomeEntry.id)
                             // Switch UI to Income mode and repopulate fields
                             withContext(Dispatchers.Main) {
                                 selectButton(incomeButton, isExpense = false)
@@ -274,7 +274,7 @@ class EntryFragment : Fragment() {
                     "expense" -> {
                         lastEntry?.let { entry ->
                             val expenseEntry = entry as DST
-                            entryDao.deleteExpense(expenseEntry.id)
+                            appDao.deleteExpense(expenseEntry.id)
                             // Switch UI to Expense mode and repopulate fields
                             withContext(Dispatchers.Main) {
                                 selectButton(expenseButton, isExpense = true)
