@@ -40,7 +40,7 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="4dp"
                     app:rippleColor="?attr/colorOnPrimary"
-                    android:contentDescription="Undo last action"
+                    android:contentDescription="Undo last entry save"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/spacer"
                     app:layout_constraintTop_toTopOf="parent"
@@ -95,7 +95,7 @@
                 android:id="@+id/person_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Person"
+                android:hint="@string/person_hint"
                 android:layout_marginTop="8dp">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/person_input"
