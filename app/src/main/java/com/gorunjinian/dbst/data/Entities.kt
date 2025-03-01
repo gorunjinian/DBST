@@ -25,3 +25,26 @@ data class DST(
     val type: String,
     val exchangedLBP: Double = amountExchanged * (rate ?: 1.0) // Default rate to 1.0 if null
 )
+
+@Entity(tableName = "VBSTIN")
+data class VBSTIN(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val date: String,
+    val person: String,
+    val type: String,
+    val validity: String,
+    val amount: Double,
+    val total: Double,
+    val rate: Double = total / amount
+)
+
+@Entity(tableName = "VBSTOUT")
+data class VBSTOUT(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val date: String,
+    val person: String,
+    val amount: Double,
+    val sellrate: Double,
+    val type: String,
+    val profit: Double
+)

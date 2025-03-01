@@ -5,7 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [DBT::class, DST::class], version = 3, exportSchema = false)
+@Database(
+    entities = [DBT::class, DST::class, VBSTIN::class, VBSTOUT::class],
+    version = 4,  // Incremented version
+    exportSchema = false
+)
 abstract class EntryDatabase : RoomDatabase() {
 
     abstract fun entryDao(): EntryDao
@@ -20,7 +24,8 @@ abstract class EntryDatabase : RoomDatabase() {
                     context.applicationContext,
                     EntryDatabase::class.java,
                     "entry_database"
-                ).build()
+                )
+                    .build()
                 INSTANCE = instance
                 instance
             }

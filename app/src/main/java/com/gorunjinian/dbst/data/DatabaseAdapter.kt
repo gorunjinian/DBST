@@ -55,6 +55,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
                 holder.dateTextView.text = entry.date
                 holder.personTextView.text = entry.person
                 holder.amountTextView.text = formatter.format(entry.amountExpensed.toInt()) //
+
                 // Format with commas, no decimals
                 holder.rateTextView.text = formatter.format(entry.rate?.toInt() ?: 0)
                 holder.typeTextView.text = entry.type

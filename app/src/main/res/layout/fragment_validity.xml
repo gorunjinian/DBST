@@ -6,6 +6,27 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- Undo Button Positioned to the Left of Clear -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/undo_button"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:backgroundTint="?attr/colorPrimary"
+        app:icon="@drawable/undo"
+        app:iconSize="24dp"
+        app:iconGravity="textStart"
+        app:cornerRadius="24dp"
+        android:text="Undo"
+        android:textSize="12sp"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp"
+        app:rippleColor="?attr/colorOnPrimary"
+        android:contentDescription="Undo last action"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/clear_button"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"/>
+
     <!-- Clear Button at Top-Right -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/clear_button"

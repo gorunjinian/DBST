@@ -6,6 +6,8 @@ import androidx.sqlite.db.SupportSQLiteQuery
 @Dao
 interface EntryDao {
 
+    //DBT and DST queries
+
     // Insert Income Entry
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIncome(entry: DBT): Long
@@ -42,4 +44,41 @@ interface EntryDao {
     @Query("DELETE FROM DST")
     suspend fun deleteAllExpense()
 
+
+    // VBSTIN Queries
+
+    // Insert VBSTIN Entry
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVbstIn(entry: VBSTIN): Long
+
+    // Get All VBSTIN Entries (Sorted by Date Descending)
+    @Query("SELECT * FROM VBSTIN ORDER BY date DESC")
+    fun getAllVbstIn(): List<VBSTIN>
+
+    // Delete a VBSTIN Entry by ID
+    @Query("DELETE FROM VBSTIN WHERE id = :id")
+    suspend fun deleteVbstIn(id: Int)
+
+    // Delete All VBSTIN Entries
+    @Query("DELETE FROM VBSTIN")
+    suspend fun deleteAllVbstIn()
+
+
+    // --- VBSTOUT Queries ---
+
+    // Insert VBSTOUT Entry
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVbstOut(entry: VBSTOUT): Long
+
+    // Get All VBSTOUT Entries (Sorted by Date Descending)
+    @Query("SELECT * FROM VBSTOUT ORDER BY date DESC")
+    fun getAllVbstOut(): List<VBSTOUT>
+
+    // Delete a VBSTOUT Entry by ID
+    @Query("DELETE FROM VBSTOUT WHERE id = :id")
+    suspend fun deleteVbstOut(id: Int)
+
+    // Delete All VBSTOUT Entries
+    @Query("DELETE FROM VBSTOUT")
+    suspend fun deleteAllVbstOut()
 }
