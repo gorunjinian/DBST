@@ -1,5 +1,6 @@
 package com.gorunjinian.dbst.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -17,8 +18,9 @@ import com.google.android.material.textfield.TextInputLayout
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,7 +45,6 @@ class EntryFragment : Fragment() {
     private lateinit var clearButton: MaterialButton
     private lateinit var undoButton: MaterialButton
     private var undoCountDownTimer: CountDownTimer? = null
-
 
 
     //database components
@@ -85,7 +86,6 @@ class EntryFragment : Fragment() {
         undoButton = view.findViewById(R.id.undo_button)
 
         undoButton.setOnClickListener { undoButtonAction() }
-
 
 
         // Initialize Room Database
@@ -243,31 +243,52 @@ class EntryFragment : Fragment() {
 
     }
 
-    private fun undoButtonAction() {
 
+    @SuppressLint("SetTextI18n")
+    private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastEntryTime <= 15000) {  // within 15 seconds
             // Cancel the countdown so it stops updating the button text
             undoCountDownTimer?.cancel()
-            // Reset button text immediately
+            // Reset button text immediately and disable it
             undoButton.text = "Undo"
-            // Optionally, disable the button so it can't be used again
             undoButton.isEnabled = false
 
             lifecycleScope.launch {
                 when (lastEntryType) {
                     "income" -> {
                         lastEntry?.let { entry ->
-                            entryDao.deleteIncome((entry as DBT).id)
+                            val incomeEntry = entry as DBT
+                            entryDao.deleteIncome(incomeEntry.id)
+                            // Switch UI to Income mode and repopulate fields
+                            withContext(Dispatchers.Main) {
+                                selectButton(incomeButton, isExpense = false)
+                                dateInput.setText(incomeEntry.date)
+                                personInput.setText(incomeEntry.person)
+                                amountInput.setText(incomeEntry.amount.toString())
+                                rateInput.setText(incomeEntry.rate.toString())
+                                typeDropdown.setText(incomeEntry.type, false)
+                            }
                         }
                     }
                     "expense" -> {
                         lastEntry?.let { entry ->
-                            entryDao.deleteExpense((entry as DST).id)
+                            val expenseEntry = entry as DST
+                            entryDao.deleteExpense(expenseEntry.id)
+                            // Switch UI to Expense mode and repopulate fields
+                            withContext(Dispatchers.Main) {
+                                selectButton(expenseButton, isExpense = true)
+                                dateInput.setText(expenseEntry.date)
+                                personInput.setText(expenseEntry.person)
+                                amountInput.setText(expenseEntry.amountExpensed.toString())
+                                rateInput.setText(expenseEntry.rate.toString())
+                                typeDropdown.setText(expenseEntry.type, false)
+                                amountExchangedInput.setText(expenseEntry.amountExchanged.toString())
+                            }
                         }
                     }
                 }
-                // Reset the tracking variables after undoing
+                // Clear the tracking variables after undoing
                 lastEntryTime = 0L
                 lastEntryType = null
                 lastEntry = null
@@ -276,9 +297,10 @@ class EntryFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), "Undo period expired", Toast.LENGTH_SHORT).show()
         }
-
     }
 
+
+    @SuppressLint("SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()
@@ -289,12 +311,15 @@ class EntryFragment : Fragment() {
 
         // Create and start a new CountDownTimer
         undoCountDownTimer = object : CountDownTimer(15000, 1000) {
+
+            @SuppressLint("SetTextI18n")
             override fun onTick(millisUntilFinished: Long) {
                 val secondsRemaining = millisUntilFinished / 1000
                 // Update the button text with remaining seconds
                 undoButton.text = "Undo (${secondsRemaining}s)"
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onFinish() {
                 // Once finished, reset the button text and disable it
                 undoButton.text = "Undo"
@@ -378,6 +403,7 @@ class EntryFragment : Fragment() {
             setupTypeDropdown(getExpenseTypes(), lastSelectedType) // Load expense categories
         } else {
             amountLayout.hint = "Amount"
+            rateInput.setText("0") // Rate field to default 0 for Income
             amountExchangedLayout.visibility = View.GONE
             setupTypeDropdown(getIncomeTypes(), lastSelectedType) // Load income categories
         }

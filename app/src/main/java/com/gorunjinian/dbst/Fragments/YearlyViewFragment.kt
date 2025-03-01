@@ -14,7 +14,7 @@ class YearlyViewFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        Log.d("FragmentLifecycle", "ExportDataFragment View Created") // ✅ Debug log
+        Log.d("FragmentLifecycle", "ExportDataFragment View Created") // Debug log
         return inflater.inflate(R.layout.fragment_yearly_view, container, false)
     }
 }

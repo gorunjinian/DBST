@@ -33,12 +33,12 @@ class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
     }
 
     fun deleteIncome(entry: DBT) = viewModelScope.launch {
-        repository.deleteIncome(entry.id) // ✅ Pass only the ID
+        repository.deleteIncome(entry.id) // Pass only the ID
         _incomeEntries.postValue(repository.getAllIncome())
     }
 
     fun deleteExpense(entry: DST) = viewModelScope.launch {
-        repository.deleteExpense(entry.id) // ✅ Pass only the ID
+        repository.deleteExpense(entry.id) // Pass only the ID
         _expenseEntries.postValue(repository.getAllExpense())
     }
 
@@ -46,7 +46,7 @@ class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
         val total = MutableLiveData<Double>()
         viewModelScope.launch {
             val incomeEntries = repository.getAllIncome()
-            total.postValue(incomeEntries.sumOf { it.totalLBP }) // ✅ Sum of all totalLBP values
+            total.postValue(incomeEntries.sumOf { it.totalLBP }) // Sum of all totalLBP values
         }
         return total
     }
@@ -55,7 +55,7 @@ class EntryViewModel(private val repository: EntryRepository) : ViewModel() {
         val total = MutableLiveData<Double>()
         viewModelScope.launch {
             val expenseEntries = repository.getAllExpense()
-            total.postValue(expenseEntries.sumOf { it.exchangedLBP }) // ✅ Sum of exchangedLBP from all expenses
+            total.postValue(expenseEntries.sumOf { it.exchangedLBP }) // Sum of exchangedLBP from all expenses
         }
         return total
     }

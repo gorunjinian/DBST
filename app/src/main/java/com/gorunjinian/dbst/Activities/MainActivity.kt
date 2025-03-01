@@ -157,7 +157,6 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = title
     }
 
-
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
