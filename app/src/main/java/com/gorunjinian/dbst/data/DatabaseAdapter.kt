@@ -48,8 +48,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         @Suppress("UNCHECKED_CAST")
         val props = dataList[position]::class.memberProperties.toList() as List<KProperty1<Any, *>>
         props.forEach { prop: KProperty1<Any, *> ->
-            val value = prop.get(dataList[position])
-            val textValue = when (value) {
+            val textValue = when (val value = prop.get(dataList[position])) {
                 is Number -> formatter.format(value)
                 else -> value?.toString() ?: ""
             }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,221 +7,195 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- New Container to Properly Position Clear and Undo Buttons -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/top_container"
+    <!-- Use a ScrollView for forms with many fields -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Undo Button Positioned to the Left of Clear -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/undo_button"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:backgroundTint="?attr/colorPrimary"
-            app:icon="@drawable/undo"
-            app:iconSize="24dp"
-            app:iconGravity="textStart"
-            app:cornerRadius="24dp"
-            android:text="Undo"
-            android:textSize="12sp"
-            android:paddingStart="8dp"
-            android:paddingEnd="4dp"
-            app:rippleColor="?attr/colorOnPrimary"
-            android:contentDescription="Undo last action"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/clear_button"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"/>
-
-        <!-- Clear Button Positioned at the Top-Right -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/clear_button"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:backgroundTint="?attr/colorPrimary"
-            app:icon="@drawable/clear"
-            app:iconSize="24dp"
-            app:iconGravity="textStart"
-            app:cornerRadius="24dp"
-            android:text="Clear"
-            android:textSize="12sp"
-            android:paddingStart="8dp"
-            android:paddingEnd="4dp"
-            app:rippleColor="?attr/colorOnPrimary"
-            android:contentDescription="Clear all fields"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"/>
-
-        <!-- Date Input Field Now Has Proper Spacing -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/date_layout"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/date_input_field"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/clear_button"
-            android:layout_marginTop="8dp">
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="8dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/date_input"
+            <!-- Top Row: Undo and Clear Buttons -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/undo_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    app:icon="@drawable/undo"
+                    app:iconSize="24dp"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="24dp"
+                    android:text="Undo"
+                    android:textSize="12sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    app:rippleColor="?attr/colorOnPrimary"
+                    android:contentDescription="Undo last action"/>
 
-    <!-- Pushes All Other Elements Below the Date Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/person_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Person"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_container"
-        android:layout_marginTop="8dp">
+                <!-- Spacer -->
+                <View
+                    android:layout_width="8dp"
+                    android:layout_height="wrap_content"/>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/person_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/clear_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    app:icon="@drawable/clear"
+                    app:iconSize="24dp"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="24dp"
+                    android:text="Clear"
+                    android:textSize="12sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    app:rippleColor="?attr/colorOnPrimary"
+                    android:contentDescription="Clear all fields"/>
+            </LinearLayout>
 
-    <!-- Amount Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/amount_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/amount_expensed_hint"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/person_layout"
-        android:layout_marginTop="8dp">
+            <!-- Date Input Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/date_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/date_input_field"
+                android:layout_marginTop="16dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/date_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/amount_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Person Input Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/person_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Person"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/person_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Amount Exchanged Input (Hidden by default) -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/amount_exchanged_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/amount_exchanged_field"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/amount_layout"
-        android:layout_marginTop="8dp"
-        android:visibility="gone">
+            <!-- Amount Input Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/amount_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/amount_expensed_hint"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/amount_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/amount_exchanged_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Amount Exchanged Input (Hidden by default) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/amount_exchanged_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/amount_exchanged_field"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/amount_exchanged_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Rate Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/rate_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/rate_button_text"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/amount_exchanged_layout"
-        android:layout_marginTop="8dp">
+            <!-- Rate Input Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/rate_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/rate_button_text"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/rate_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/rate_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Type Dropdown -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/type_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Type"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="dropdown_menu"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/type_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:textSize="16sp"
+                    android:hint=""
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:inputType="none"
+                    tools:ignore="ContentDescription"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Type Dropdown -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/type_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Type"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:endIconMode="dropdown_menu"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rate_layout"
-        android:layout_marginTop="8dp">
+            <!-- Income & Expense Buttons -->
+            <LinearLayout
+                android:id="@+id/button_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="16dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/income_button"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Income"
+                    app:icon="@drawable/arrowdown"
+                    app:iconGravity="textStart"
+                    android:layout_marginEnd="8dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/expense_button"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/expense_button_text"
+                    app:icon="@drawable/arrowup"
+                    app:iconGravity="textStart"/>
+            </LinearLayout>
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/type_dropdown"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:textSize="16sp"
-            android:hint=""
-            android:contentDescription="@null"
-            android:importantForAccessibility="no"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:focusable="false"
-            android:clickable="true"
-            android:inputType="none"
-            tools:ignore="ContentDescription" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Income & Expense Buttons -->
-    <LinearLayout
-        android:id="@+id/button_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/type_layout"
-        android:layout_marginTop="16dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/income_button"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Income"
-            app:icon="@drawable/arrowdown"
-            app:iconGravity="textStart"
-            android:layout_marginEnd="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/expense_button"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="@string/expense_button_text"
-            app:icon="@drawable/arrowup"
-            app:iconGravity="textStart"/>
-    </LinearLayout>
-
-    <!-- Save Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/save_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/save_button_text"
-        app:icon="@drawable/tick"
-        app:iconGravity="textEnd"
-        app:layout_constraintTop_toBottomOf="@id/button_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Save Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/save_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save_button_text"
+                app:icon="@drawable/tick"
+                app:iconGravity="textEnd"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+    </ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
