@@ -20,12 +20,11 @@
             android:gravity="center_horizontal"
             android:padding="8dp">
 
-            <!-- Top Row: Undo and Clear Buttons -->
-            <LinearLayout
+            <!-- Top Row: Undo and Clear Buttons aligned to the right with an 8dp spacer -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/top_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_height="wrap_content">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/undo_button"
@@ -41,12 +40,21 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="4dp"
                     app:rippleColor="?attr/colorOnPrimary"
-                    android:contentDescription="Undo last action"/>
+                    android:contentDescription="Undo last action"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/spacer"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintHorizontal_bias="1" />
 
-                <!-- Spacer -->
                 <View
+                    android:id="@+id/spacer"
                     android:layout_width="8dp"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="0dp"
+                    app:layout_constraintStart_toEndOf="@id/undo_button"
+                    app:layout_constraintEnd_toStartOf="@id/clear_button"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/clear_button"
@@ -62,8 +70,12 @@
                     android:paddingStart="8dp"
                     android:paddingEnd="4dp"
                     app:rippleColor="?attr/colorOnPrimary"
-                    android:contentDescription="Clear all fields"/>
-            </LinearLayout>
+                    android:contentDescription="Clear all fields"
+                    app:layout_constraintStart_toEndOf="@id/spacer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             <!-- Date Input Field -->
             <com.google.android.material.textfield.TextInputLayout
