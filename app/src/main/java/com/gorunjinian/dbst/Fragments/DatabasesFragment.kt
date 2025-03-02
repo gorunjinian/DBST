@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.reflect.full.memberProperties
 import android.view.LayoutInflater
-import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
@@ -293,6 +292,13 @@ class DatabasesFragment : Fragment() {
                     "Please select a column and enter a search term",
                     Toast.LENGTH_SHORT).show()
             }
+        }
+
+        btnClear.setOnClickListener {
+            columnSelector.text.clear()
+            searchEditText.text?.clear()
+            clearSearch()
+            dialog.dismiss()
         }
 
         // Show the dialog
