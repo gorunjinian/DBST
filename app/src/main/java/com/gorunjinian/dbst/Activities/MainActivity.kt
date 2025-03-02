@@ -3,9 +3,11 @@ package com.gorunjinian.dbst.activities
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.util.TypedValue
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -13,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
@@ -35,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewPager: ViewPager2
     private lateinit var fullScreenContainer: FrameLayout
     private lateinit var fab: FloatingActionButton
+    private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,12 +58,17 @@ class MainActivity : AppCompatActivity() {
         // Style the toolbar icons to match the title color
         updateToolbarIconsColor()
 
+        // Set FAB color to match toolbar
+        updateFabColor()
+
         // Set up FAB using the FabManager
         FabManager.setupFab(fab, viewPager, this)
 
-        // Adjust system UI appearance (status bar icons)
+        // Adjust system UI appearance (status bar icons) based on current theme
+        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
         WindowInsetsControllerCompat(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
+            isAppearanceLightStatusBars = !isNightMode
         }
 
         // Setup ViewPager and BottomNavigationView
@@ -77,13 +86,38 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        // Store callback reference to properly unregister later
+        pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 bottomNavigationView.menu.getItem(position).isChecked = true
                 supportActionBar?.title = getToolbarTitle(position)
             }
-        })
+        }.also {
+            viewPager.registerOnPageChangeCallback(it)
+        }
 
+        // Handle back press with the new API (replacing deprecated onBackPressed)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+
+                    // Restore UI elements when returning to the main screen
+                    bottomNavigationView.visibility = View.VISIBLE
+                    viewPager.visibility = View.VISIBLE
+                    fullScreenContainer.visibility = View.GONE
+                    supportActionBar?.setDisplayHomeAsUpEnabled(false)
+
+                    // Restore toolbar title
+                    if (::viewPager.isInitialized) {
+                        supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
+                    }
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed() // Let system handle app exit
+                }
+            }
+        })
     }
 
     private fun showPopup() {
@@ -105,6 +139,16 @@ class MainActivity : AppCompatActivity() {
         toolbar.navigationIcon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
     }
 
+    private fun updateFabColor() {
+        // Get the toolbar color (colorPrimary)
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
+        val toolbarColor = typedValue.data
+
+        // Set the FAB background color to match the toolbar
+        fab.backgroundTintList = ColorStateList.valueOf(toolbarColor)
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -121,6 +165,15 @@ class MainActivity : AppCompatActivity() {
 
         // Update toolbar icons color to match current theme
         updateToolbarIconsColor()
+
+        // Update FAB color when theme changes
+        updateFabColor()
+    }
+
+    override fun onDestroy() {
+        // Remove the callback to prevent memory leaks
+        pageChangeCallback?.let { viewPager.unregisterOnPageChangeCallback(it) }
+        super.onDestroy()
     }
 
     @SuppressLint("RestrictedApi")
@@ -143,7 +196,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 true
             }
             R.id.nav_databases -> {
@@ -187,23 +240,12 @@ class MainActivity : AppCompatActivity() {
         updateToolbarIconsColor()
     }
 
+    // Deprecated method is kept for backward compatibility
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
-
-            // Restore UI elements when returning to the main screen
-            bottomNavigationView.visibility = View.VISIBLE
-            viewPager.visibility = View.VISIBLE
-            fullScreenContainer.visibility = View.GONE
-            supportActionBar?.setDisplayHomeAsUpEnabled(false)
-
-            // Restore toolbar title
-            supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
-
-        } else {
-            super.onBackPressed() // Exit app only if there are no fragments in back stack
-        }
+        super.onBackPressed()
+        // Forward to the new API
+        onBackPressedDispatcher.onBackPressed()
     }
 
     private fun getToolbarTitle(destinationId: Int?): String {
