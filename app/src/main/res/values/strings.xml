@@ -35,4 +35,5 @@
     <string name="close_button_text">Close</string>
     <string name="date_input_field">Date</string>
     <string name="person_hint">Person</string>
+    <string name="paid_by_wish">Paid by wish?</string>
 </resources>
