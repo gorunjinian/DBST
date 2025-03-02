@@ -136,16 +136,46 @@
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Save Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/save_button"
+            <!-- Save and Undo Buttons Container -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/save_button_text"
-                app:icon="@drawable/tick"
-                app:iconGravity="textEnd"
+                android:orientation="horizontal"
                 android:layout_marginTop="16dp"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center"
+                android:gravity="center">
+
+                <!-- Save Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/save_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="@string/save_button_text"
+                    app:icon="@drawable/tick"
+                    app:iconGravity="textEnd"
+                    android:textSize="12sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    android:layout_marginEnd="8dp"
+                    app:cornerRadius="24dp"/>
+
+                <!-- Undo Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/undo_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    app:icon="@drawable/undo"
+                    app:iconSize="24dp"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="24dp"
+                    android:text="Undo"
+                    android:textSize="12sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    app:rippleColor="?attr/colorOnPrimary"
+                    android:contentDescription="Undo last entry save"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

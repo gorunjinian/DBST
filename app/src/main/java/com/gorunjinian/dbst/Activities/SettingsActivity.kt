@@ -3,7 +3,6 @@ package com.gorunjinian.dbst.activities
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -16,6 +15,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.gorunjinian.dbst.MyApplication
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.AppDao
@@ -170,25 +170,39 @@ class SettingsActivity : AppCompatActivity() {
             }
     }
 
-    // Update the deleteTableData method in SettingsActivity.kt
     private fun deleteTableData(tableName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             when (tableName) {
                 "DBT" -> {
                     appDao.deleteAllIncome()
-                    appDao.resetDbtSequence() // Reset sequence counter after deleting all records
+                    appDao.resetDbtSequence()
                 }
                 "DST" -> {
                     appDao.deleteAllExpense()
-                    appDao.resetDstSequence() // Reset sequence counter after deleting all records
+                    appDao.resetDstSequence()
                 }
                 "VBSTIN" -> {
                     appDao.deleteAllVbstIn()
-                    appDao.resetVbstInSequence() // Reset sequence counter after deleting all records
+                    appDao.resetVbstInSequence()
                 }
                 "VBSTOUT" -> {
                     appDao.deleteAllVbstOut()
-                    appDao.resetVbstOutSequence() // Reset sequence counter after deleting all records
+                    appDao.resetVbstOutSequence()
+                }
+                "USDT" -> {
+                    appDao.deleteAllUsdt()
+                    appDao.resetUsdtSequence()
+                }
+                else -> {
+                    // Generic table deletion for any other tables
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@SettingsActivity,
+                            "Generic table deletion not implemented for $tableName",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
                 }
             }
 
@@ -222,13 +236,19 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun loadTableNames() {
         lifecycleScope.launch(Dispatchers.IO) {
-            val tableNames = listOf("DBT", "DST") // Only allowing user to delete these tables
+            val rawQuery = SimpleSQLiteQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' " +
+                        "AND name NOT LIKE 'android_metadata' " +
+                        "AND name NOT LIKE 'sqlite_sequence' " +
+                        "AND name NOT LIKE 'room_master_table'"
+            )
+            val availableTables = appDao.getAllTableNames(rawQuery)
 
             withContext(Dispatchers.Main) {
                 val adapter = ArrayAdapter(
                     this@SettingsActivity,
                     android.R.layout.simple_spinner_item,
-                    tableNames
+                    availableTables
                 )
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 tableDeleteSpinner.adapter = adapter
@@ -259,9 +279,7 @@ class SettingsActivity : AppCompatActivity() {
         windowInsetsController.isAppearanceLightStatusBars = !isNightMode
 
         // Handle navigation bar icons
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
-        }
+        windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
     }
 
 // Call this in onCreate() and onResume() of SettingsActivity.kt

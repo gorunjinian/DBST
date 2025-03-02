@@ -1,8 +1,10 @@
 package com.gorunjinian.dbst.fragments
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -14,8 +16,7 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
-import com.gorunjinian.dbst.data.AppDatabase
-import com.gorunjinian.dbst.data.USDT
+import com.gorunjinian.dbst.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,9 +34,16 @@ class TetherFragment : Fragment() {
     private lateinit var sellButton: MaterialButton
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
+    private lateinit var undoButton: MaterialButton
 
     // Database components
     private lateinit var database: AppDatabase
+
+
+    // Undo tracking variables
+    private var undoCountDownTimer: CountDownTimer? = null
+    private var lastEntryTime: Long = 0L
+    private var lastEntry: USDT? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,6 +68,7 @@ class TetherFragment : Fragment() {
         sellButton = view.findViewById(R.id.sell_button)
         saveButton = view.findViewById(R.id.save_button)
         clearButton = view.findViewById(R.id.clear_button)
+        undoButton = view.findViewById(R.id.undo_button)
 
         formatNumberWithCommas(cashInput)
         formatNumberWithCommas(usdtAmountInput)
@@ -86,6 +95,13 @@ class TetherFragment : Fragment() {
         clearButton.setOnClickListener {
             clearInputFields()
         }
+
+        // Undo Button Logic
+        undoButton.setOnClickListener {
+            undoButtonAction()
+        }
+        // Disable undo button by default
+        undoButton.isEnabled = false
     }
 
     private fun setTodayDate() {
@@ -144,7 +160,8 @@ class TetherFragment : Fragment() {
 
         // Save to database
         lifecycleScope.launch(Dispatchers.IO) {
-            database.appDao().insertUsdt(usdtEntry)
+            val newId = database.appDao().insertUsdt(usdtEntry)
+            val savedUsdtEntry = usdtEntry.copy(id = newId.toInt())
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(
@@ -153,6 +170,13 @@ class TetherFragment : Fragment() {
                     Toast.LENGTH_SHORT
                 ).show()
                 clearInputFields()
+
+                // Track the last entry for undo
+                lastEntryTime = System.currentTimeMillis()
+                lastEntry = savedUsdtEntry
+
+                // Start the undo countdown
+                startUndoCountdown()
             }
         }
     }
@@ -187,6 +211,73 @@ class TetherFragment : Fragment() {
                 saveButton.requestFocus()
                 true
             } else false
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun startUndoCountdown() {
+        // Cancel any previous countdown
+        undoCountDownTimer?.cancel()
+
+        // Enable the undo button and set initial text
+        undoButton.isEnabled = true
+        undoButton.text = "Undo (30s)"
+
+        // Create and start a new CountDownTimer
+        undoCountDownTimer = object : CountDownTimer(30000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsRemaining = millisUntilFinished / 1000
+                // Update the button text with remaining seconds
+                undoButton.text = "Undo (${secondsRemaining}s)"
+            }
+
+            override fun onFinish() {
+                // Once finished, reset the button text and disable it
+                undoButton.text = "Undo"
+                undoButton.isEnabled = false
+                // Reset tracking for last entry
+                lastEntryTime = 0L
+                lastEntry = null
+            }
+        }.start()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun undoButtonAction() {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
+            // Cancel the countdown so it stops updating the button text
+            undoCountDownTimer?.cancel()
+            // Reset button text immediately and disable it
+            undoButton.text = "Undo"
+            undoButton.isEnabled = false
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                lastEntry?.let { usdtEntry ->
+                    database.appDao().deleteUsdt(usdtEntry.id)
+
+                    withContext(Dispatchers.Main) {
+                        // Repopulate fields
+                        dateInput.setText(usdtEntry.date)
+                        personInput.setText(usdtEntry.person)
+                        usdtAmountInput.setText(usdtEntry.amountUsdt.toString())
+                        cashInput.setText(usdtEntry.amountCash.toString())
+
+                        // Set the correct toggle button based on type
+                        when (usdtEntry.type) {
+                            "BUY" -> buyButton.isChecked = true
+                            "SELL" -> sellButton.isChecked = true
+                        }
+                    }
+                }
+
+                // Clear the tracking variables after undoing
+                lastEntryTime = 0L
+                lastEntry = null
+            }
+            Toast.makeText(requireContext(), "Last entry undone", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Undo period expired", Toast.LENGTH_SHORT).show()
         }
     }
 
