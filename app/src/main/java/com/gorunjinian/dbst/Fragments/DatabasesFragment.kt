@@ -168,7 +168,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-
     private fun updateColumnHeaders(records: List<Any>) {
         columnHeaderLayout.removeAllViews()
         columnNames = emptyList()
@@ -428,7 +427,6 @@ class DatabasesFragment : Fragment() {
     }
 
     // Add method to clear search
-
     private fun clearSearch() {
         searchQuery = null
         searchColumn = null

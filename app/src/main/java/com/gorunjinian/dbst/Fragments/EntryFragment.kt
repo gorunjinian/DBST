@@ -254,7 +254,6 @@ class EntryFragment : Fragment() {
 
     }
 
-
     @SuppressLint("SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
@@ -310,7 +309,6 @@ class EntryFragment : Fragment() {
         }
     }
 
-
     @SuppressLint("SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
@@ -341,8 +339,6 @@ class EntryFragment : Fragment() {
             }
         }.start()
     }
-
-
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
