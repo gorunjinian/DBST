@@ -6,6 +6,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -86,6 +87,11 @@ class EntryFragment : Fragment() {
         undoButton = view.findViewById(R.id.undo_button)
 
         undoButton.setOnClickListener { undoButtonAction() }
+
+        // Disable undo button by default
+        undoButton.isEnabled = false
+
+        setupFocusHandling()
 
 
         // Initialize Room Database
@@ -247,7 +253,7 @@ class EntryFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastEntryTime <= 15000) {  // within 15 seconds
+        if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
             // Cancel the countdown so it stops updating the button text
             undoCountDownTimer?.cancel()
             // Reset button text immediately and disable it
@@ -307,12 +313,11 @@ class EntryFragment : Fragment() {
 
         // Enable the undo button and set initial text
         undoButton.isEnabled = true
-        undoButton.text = "Undo (15s)"
+        undoButton.text = "Undo (30s)"
 
         // Create and start a new CountDownTimer
-        undoCountDownTimer = object : CountDownTimer(15000, 1000) {
+        undoCountDownTimer = object : CountDownTimer(30000, 1000) {
 
-            @SuppressLint("SetTextI18n")
             override fun onTick(millisUntilFinished: Long) {
                 val secondsRemaining = millisUntilFinished / 1000
                 // Update the button text with remaining seconds
@@ -406,6 +411,33 @@ class EntryFragment : Fragment() {
             rateInput.setText("0") // Rate field to default 0 for Income
             amountExchangedLayout.visibility = View.GONE
             setupTypeDropdown(getIncomeTypes(), lastSelectedType) // Load income categories
+        }
+    }
+
+    // Add this function to EntryFragment class
+    private fun setupFocusHandling() {
+        // Fix focus issues when moving from person input to amount input
+        personInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                // Explicitly set focus to amount field with a slight delay to avoid race conditions
+                amountInput.postDelayed({
+                    amountInput.requestFocus()
+                    // Select all text in the field
+                    amountInput.selectAll()
+                }, 50)
+                true
+            } else {
+                false
+            }
+        }
+
+        // Also add a focus listener to ensure text is selected when field gets focus
+        amountInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                amountInput.postDelayed({
+                    amountInput.selectAll()
+                }, 50)
+            }
         }
     }
 

@@ -346,6 +346,7 @@ class ValidityFragment : Fragment() {
 
         // Create and start a new CountDownTimer for 30 seconds
         undoCountDownTimer = object : CountDownTimer(30000, 1000) {
+
             override fun onTick(millisUntilFinished: Long) {
                 val secondsRemaining = millisUntilFinished / 1000
                 // Update the button text with remaining seconds
