@@ -8,12 +8,17 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
-
+import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.data.USDT
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,6 +34,9 @@ class TetherFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
 
+    // Database components
+    private lateinit var database: AppDatabase
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,6 +46,9 @@ class TetherFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize Database
+        database = AppDatabase.getDatabase(requireContext())
 
         // Initialize Views
         dateInput = view.findViewById(R.id.date_input)
@@ -103,20 +114,47 @@ class TetherFragment : Fragment() {
     private fun saveData() {
         val date = dateInput.text.toString()
         val person = personInput.text.toString()
-        val usdtAmount = usdtAmountInput.text.toString()
-        val cash = cashInput.text.toString()
+        val usdtAmountText = usdtAmountInput.text.toString().replace(",", "")
+        val cashText = cashInput.text.toString().replace(",", "")
         val selectedType = when (toggleGroup.checkedButtonId) {
             R.id.buy_button -> "BUY"
             R.id.sell_button -> "SELL"
             else -> ""
         }
 
-        if (date.isEmpty() || person.isEmpty() || usdtAmount.isEmpty() || cash.isEmpty() || selectedType.isEmpty()) {
+        // Validate inputs
+        if (date.isEmpty() || person.isEmpty() || usdtAmountText.isEmpty() ||
+            cashText.isEmpty() || selectedType.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        Toast.makeText(requireContext(), "Data Saved:\nType: $selectedType", Toast.LENGTH_LONG).show()
+        // Parse numeric values
+        val usdtAmount = usdtAmountText.toDouble()
+        val cashAmount = cashText.toDouble()
+
+        // Create USDT entry
+        val usdtEntry = USDT(
+            date = date,
+            person = person,
+            amountUsdt = usdtAmount,
+            amountCash = cashAmount,
+            type = selectedType
+        )
+
+        // Save to database
+        lifecycleScope.launch(Dispatchers.IO) {
+            database.appDao().insertUsdt(usdtEntry)
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    requireContext(),
+                    "USDT Transaction Saved: $selectedType",
+                    Toast.LENGTH_SHORT
+                ).show()
+                clearInputFields()
+            }
+        }
     }
 
     private fun setupKeyboardNavigation() {

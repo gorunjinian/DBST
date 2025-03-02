@@ -6,9 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [DBT::class,
-        DST::class, VBSTIN::class,
-        VBSTOUT::class],version = 6, exportSchema = false)
+    entities = [
+        DBT::class,
+        DST::class,
+        VBSTIN::class,
+        VBSTOUT::class,
+        USDT::class],
+        version = 8, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao

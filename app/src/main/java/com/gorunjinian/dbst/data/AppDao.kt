@@ -64,7 +64,7 @@ interface AppDao {
     suspend fun deleteAllVbstIn()
 
 
-    // --- VBSTOUT Queries ---
+    // VBSTOUT Queries
 
     // Insert VBSTOUT Entry
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -98,4 +98,27 @@ interface AppDao {
     // Reset all sequences method
     @Query("DELETE FROM sqlite_sequence")
     suspend fun resetAllSequences()
+
+    // USDT Queries
+
+    // Insert USDT Entry
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUsdt(entry: USDT): Long
+
+    // Get All USDT Entries (Sorted by Date Descending)
+    @Query("SELECT * FROM USDT ORDER BY date DESC")
+    fun getAllUsdt(): List<USDT>
+
+    // Delete a USDT Entry by ID
+    @Query("DELETE FROM USDT WHERE id = :id")
+    suspend fun deleteUsdt(id: Int)
+
+    // Delete All USDT Entries
+    @Query("DELETE FROM USDT")
+    suspend fun deleteAllUsdt()
+
+    // Reset USDT sequence
+    @Query("DELETE FROM sqlite_sequence WHERE name = 'USDT'")
+    suspend fun resetUsdtSequence()
+
 }

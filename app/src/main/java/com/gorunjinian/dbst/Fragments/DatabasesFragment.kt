@@ -64,6 +64,7 @@ class DatabasesFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_search -> {
@@ -153,6 +154,7 @@ class DatabasesFragment : Fragment() {
                 "DST" -> appDao.getAllExpense()
                 "VBSTIN" -> appDao.getAllVbstIn()
                 "VBSTOUT" -> appDao.getAllVbstOut()
+                "USDT" -> appDao.getAllUsdt()
                 else -> emptyList()
             }
 
@@ -286,7 +288,7 @@ class DatabasesFragment : Fragment() {
             "Databases (${filteredRecords.size}/${allRecords.size})"
     }
 
-    // Update the showDeleteConfirmationDialog method in DatabasesFragment.kt
+
     private fun showDeleteConfirmationDialog(record: Any) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Delete Record")
@@ -325,6 +327,23 @@ class DatabasesFragment : Fragment() {
                         if (remainingRecords.isEmpty()) {
                             appDao.resetVbstOutSequence()
                         }
+                    }
+                    is USDT -> {
+                        appDao.deleteUsdt(record.id)
+                        val remainingRecords = appDao.getAllUsdt()
+                        if (remainingRecords.isEmpty()) {
+                            appDao.resetUsdtSequence()
+                        }
+                    }
+                    else -> {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Unsupported record type",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        return@launch
                     }
                 }
                 withContext(Dispatchers.Main) {

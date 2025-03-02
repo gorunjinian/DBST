@@ -30,4 +30,12 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun resetVbstInSequence() = appDao.resetVbstInSequence()
     suspend fun resetVbstOutSequence() = appDao.resetVbstOutSequence()
     suspend fun resetAllSequences() = appDao.resetAllSequences()
+
+
+    // USDT queries
+    suspend fun insertUsdt(entry: USDT) = appDao.insertUsdt(entry)
+    fun getAllUsdt(): List<USDT> = appDao.getAllUsdt()
+    suspend fun deleteUsdt(id: Int) = appDao.deleteUsdt(id)
+    suspend fun deleteAllUsdt() = appDao.deleteAllUsdt()
+    suspend fun resetUsdtSequence() = appDao.resetUsdtSequence()
 }

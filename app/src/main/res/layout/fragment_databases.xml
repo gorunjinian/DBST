@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:background="?attr/colorSurface"
     android:padding="16dp">
 
     <!-- Spinner and Import Button Layout -->

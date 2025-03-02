@@ -55,6 +55,6 @@ data class USDT(
     val date: String,
     val person: String,
     val amountUsdt: Double,
-    val amountCash: Double,
+    val amountCash : Double,
     val type: String,
 )
