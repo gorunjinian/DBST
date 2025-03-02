@@ -1,5 +1,6 @@
 package com.gorunjinian.dbst.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.text.InputType
@@ -195,6 +196,7 @@ class DatabasesFragment : Fragment() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun showSearchDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_search, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -208,6 +210,11 @@ class DatabasesFragment : Fragment() {
         val btnSearch = dialogView.findViewById<MaterialButton>(R.id.btn_search)
         val btnClear = dialogView.findViewById<MaterialButton>(R.id.btn_clear)
 
+        // Completely disable dropdown auto-behavior
+        columnSelector.isFocusable = false
+        columnSelector.isClickable = true
+        columnSelector.inputType = InputType.TYPE_NULL
+
         // Get column names from the current table
         val columnNames = when (currentTable) {
             "DBT" -> listOf("id", "date", "person", "amount", "rate", "type", "totalLBP")
@@ -219,72 +226,67 @@ class DatabasesFragment : Fragment() {
         }
 
         // Set up adapter for the dropdown
-        val adapter = ArrayAdapter(requireContext(),
-            com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
             columnNames
         )
         columnSelector.setAdapter(adapter)
 
-        // Improve dropdown configuration
-        columnSelector.threshold = 1
-        columnSelector.inputType = InputType.TYPE_NULL
-        columnSelector.isFocusable = true
-        columnSelector.isFocusableInTouchMode = true
-
-        // Ensure dropdown opens on click and touch
+        // Explicitly control dropdown behavior
         columnSelector.setOnClickListener {
             columnSelector.showDropDown()
         }
 
-        // Handle item selection explicitly
-        columnSelector.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                columnSelector.setText(columnNames[position], false)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        })
-
-        // Fallback item click listener
+        // Handle item selection
         columnSelector.setOnItemClickListener { _, _, position, _ ->
             columnSelector.setText(columnNames[position], false)
+            columnSelector.clearFocus()
         }
 
-        // Show or hide clear button based on active search
-        btnClear.visibility = if (searchQuery != null && searchColumn != null) View.VISIBLE else View.GONE
-
-        // Set first item selected by default if list is not empty
-        if (!searchColumn.isNullOrEmpty() && columnNames.contains(searchColumn)) {
-            // If we have an active search, pre-populate the fields
-            columnSelector.setText(searchColumn, false)
-            searchEditText.setText(searchQuery)
-        } else if (columnNames.isNotEmpty()) {
-            columnSelector.setText(columnNames[0], false)
+        // Completely prevent focus-related dropdown triggers
+        columnSelector.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                v.clearFocus()
+                columnSelector.dismissDropDown()
+            }
         }
 
-        // Set up button actions
+        // Modify dialog to intercept outside touches
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+
+        // Explicitly handle dialog dismissal
+        dialog.setOnCancelListener {
+            columnSelector.dismissDropDown()
+        }
+
+        // Explicitly dismiss dropdown on cancel
         btnCancel.setOnClickListener {
+            columnSelector.dismissDropDown()
             dialog.dismiss()
         }
 
-        // Add clear button click listener
-        btnClear.setOnClickListener {
-            clearSearch()
-            dialog.dismiss()
+        // Prevent dropdown from showing when dialog is about to dismiss
+        dialog.window?.decorView?.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    columnSelector.dismissDropDown()
+                    false // Allow normal dialog touch handling
+                }
+                else -> false
+            }
         }
 
+        // Rest of your existing dialog setup code...
         btnSearch.setOnClickListener {
             val selectedColumn = columnSelector.text.toString()
             val searchTerm = searchEditText.text.toString()
 
             if (selectedColumn.isNotEmpty() && searchTerm.isNotEmpty()) {
-                // Perform search based on selected column and search term
                 performSearch(selectedColumn, searchTerm)
-
-                // Update action bar title to show search info
                 (activity as? AppCompatActivity)?.supportActionBar?.title =
                     "Search: $selectedColumn='$searchTerm'"
-
                 dialog.dismiss()
             } else {
                 Toast.makeText(requireContext(),
@@ -293,31 +295,13 @@ class DatabasesFragment : Fragment() {
             }
         }
 
-        // Also allow search when pressing search on keyboard
-        searchEditText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                val selectedColumn = columnSelector.text.toString()
-                val searchTerm = searchEditText.text.toString()
-
-                if (selectedColumn.isNotEmpty() && searchTerm.isNotEmpty()) {
-                    performSearch(selectedColumn, searchTerm)
-
-                    // Update action bar title to show search info
-                    (activity as? AppCompatActivity)?.supportActionBar?.title =
-                        "Search: $selectedColumn='$searchTerm'"
-
-                    dialog.dismiss()
-                    return@setOnEditorActionListener true
-                } else {
-                    Toast.makeText(requireContext(),
-                        "Please select a column and enter a search term",
-                        Toast.LENGTH_SHORT).show()
-                }
-            }
-            false
-        }
-
+        // Show the dialog
         dialog.show()
+
+        // Ensure dropdown is dismissed after dialog is shown
+        columnSelector.post {
+            columnSelector.dismissDropDown()
+        }
     }
 
     private fun loadTableData() {
