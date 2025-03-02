@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -14,6 +15,7 @@ import android.view.Window
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
@@ -48,6 +50,9 @@ class MainActivity : AppCompatActivity() {
         fab = findViewById(R.id.fab_popup)
 
         setSupportActionBar(toolbar)
+
+        // Style the toolbar icons to match the title color
+        updateToolbarIconsColor()
 
         // Set up FAB using the FabManager
         FabManager.setupFab(fab, viewPager, this)
@@ -89,6 +94,17 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun updateToolbarIconsColor() {
+        // Get the title text color (assuming it's colorOnPrimary from the theme)
+        val titleColor = ContextCompat.getColor(this, android.R.color.white)
+
+        // Apply the color to the overflow icon
+        toolbar.overflowIcon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
+
+        // Apply the color to the navigation icon (back button)
+        toolbar.navigationIcon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -102,6 +118,9 @@ class MainActivity : AppCompatActivity() {
 
         // Adjust status bar icons based on theme
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
+
+        // Update toolbar icons color to match current theme
+        updateToolbarIconsColor()
     }
 
     @SuppressLint("RestrictedApi")
@@ -110,6 +129,14 @@ class MainActivity : AppCompatActivity() {
         if (menu is androidx.appcompat.view.menu.MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
+
+        // Apply color to all menu items' icons
+        val titleColor = ContextCompat.getColor(this, android.R.color.white)
+        for (i in 0 until (menu?.size() ?: 0)) {
+            val item = menu?.getItem(i)
+            item?.icon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
+        }
+
         return true
     }
 
@@ -155,6 +182,9 @@ class MainActivity : AppCompatActivity() {
             .commit()
 
         supportActionBar?.title = title
+
+        // Update the back button color when it appears
+        updateToolbarIconsColor()
     }
 
     @Deprecated("Deprecated in Java")
@@ -162,13 +192,13 @@ class MainActivity : AppCompatActivity() {
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
 
-            // ✅ Restore UI elements when returning to the main screen
+            // Restore UI elements when returning to the main screen
             bottomNavigationView.visibility = View.VISIBLE
             viewPager.visibility = View.VISIBLE
             fullScreenContainer.visibility = View.GONE
             supportActionBar?.setDisplayHomeAsUpEnabled(false)
 
-            // ✅ Restore toolbar title
+            // Restore toolbar title
             supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
 
         } else {
