@@ -1,21 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.DBST" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color -->
         <item name="colorPrimary">@color/ColorPrimaryDark</item>
+        <item name="colorPrimaryVariant">@color/colorPrimary</item>
         <item name="colorAccent">@color/ColorAccent</item>
         <item name="colorOnSecondary">@color/colorSecondary</item>
         <item name="colorContainer">@color/ColorPrimaryLight</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="android:navigationBarColor">?attr/colorPrimaryDark</item>
 
-        <!-- Force the status bar to use colorPrimary exactly -->
+        <!-- FORCE black background in ALL Material components -->
+        <item name="android:colorBackground">@color/black</item>
+        <item name="colorSurface">@color/darkSurfaceColor</item>
+        <item name="colorOnBackground">@color/white</item>
+        <item name="colorOnSurface">@color/white</item>
+
+        <!-- Override Material3 elevation overlays which add white tint -->
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/black</item>
+
+        <!-- Status bar color -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Navigation bar color -->
+        <item name="android:navigationBarColor">?attr/colorPrimary</item>
+        <item name="android:windowLightNavigationBar" >false</item>
 
         <!-- Ensure we actually draw the system bar backgrounds -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
 
-        <!-- Disable translucency (if any) -->
+        <!-- Disable translucency -->
         <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
     </style>
 
     <style name="Toolbar" parent="Widget.AppCompat.Toolbar">
@@ -23,5 +39,4 @@
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
     </style>
-
 </resources>

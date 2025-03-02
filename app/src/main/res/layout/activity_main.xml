@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?attr/colorSurface"
+    android:background="?android:attr/colorBackground"
     tools:context=".activities.MainActivity"
     android:fitsSystemWindows="true">
 
@@ -24,14 +24,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:elevation="10dp"/>
+        android:elevation="10dp"
+        android:background="?android:attr/colorBackground"/>
 
 
     <!-- ViewPager2 Container with Floating Action Button -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="?android:attr/colorBackground">
 
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPager"
@@ -45,7 +47,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/dataset"
-            app:backgroundTint="@color/colorPrimary"
             android:layout_gravity="end|bottom"
             android:layout_margin="16dp"
             android:contentDescription="@null"
@@ -58,8 +59,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        app:itemIconTint="?attr/colorSurface"
-        app:itemTextColor="?attr/colorOnSurface"
+        app:itemIconTint="?attr/colorOnPrimary"
+        app:itemTextColor="?attr/colorOnPrimary"
         app:menu="@menu/bottom_navigation_menu"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        style="@style/BottomNavigationStyle" />
 </LinearLayout>

@@ -387,7 +387,7 @@ class EntryFragment : Fragment() {
         resetButtonStyles()
 
         // Highlight the selected button
-        selectedButton.strokeWidth = 10
+        selectedButton.strokeWidth = 12
         selectedButton.strokeColor =
             ColorStateList.valueOf(
                 MaterialColors.getColor(

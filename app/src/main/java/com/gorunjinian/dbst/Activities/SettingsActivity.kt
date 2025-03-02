@@ -2,13 +2,18 @@ package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.gorunjinian.dbst.MyApplication
@@ -230,4 +235,34 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
     }
+
+    // Add this method to SettingsActivity.kt
+
+    private fun updateSystemBars() {
+        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
+
+        // Get the primary color from the current theme
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
+        val primaryColor = typedValue.data
+
+        // Ensure window draws behind system bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // FORCE the status and navigation bar colors
+        window.statusBarColor = primaryColor
+        window.navigationBarColor = primaryColor
+
+        // Handle status bar icons based on theme (dark/light)
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = !isNightMode
+
+        // Handle navigation bar icons
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
+        }
+    }
+
+// Call this in onCreate() and onResume() of SettingsActivity.kt
 }

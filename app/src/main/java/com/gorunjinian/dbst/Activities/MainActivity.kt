@@ -6,9 +6,10 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.PorterDuff
+import android.os.Build
 import android.os.Bundle
-import android.util.TypedValue
 import android.util.Log
+import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -19,6 +20,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
@@ -46,6 +49,9 @@ class MainActivity : AppCompatActivity() {
         setTheme(R.style.Base_Theme_DBST)
         setContentView(R.layout.activity_main)
 
+        // Make sure system bars are drawn behind the app content
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         // Initialize views
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         toolbar = findViewById(R.id.toolbar)
@@ -55,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
 
+        // Update system bars and icon colors
+        updateSystemBars()
+
         // Style the toolbar icons to match the title color
         updateToolbarIconsColor()
 
@@ -63,13 +72,6 @@ class MainActivity : AppCompatActivity() {
 
         // Set up FAB using the FabManager
         FabManager.setupFab(fab, viewPager, this)
-
-        // Adjust system UI appearance (status bar icons) based on current theme
-        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            isAppearanceLightStatusBars = !isNightMode
-        }
 
         // Setup ViewPager and BottomNavigationView
         val adapter = MainPagerAdapter(this)
@@ -112,6 +114,9 @@ class MainActivity : AppCompatActivity() {
                     if (::viewPager.isInitialized) {
                         supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
                     }
+
+                    // Update system bars when returning from fragment
+                    updateSystemBars()
                 } else {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed() // Let system handle app exit
@@ -126,6 +131,32 @@ class MainActivity : AppCompatActivity() {
         dialog.setContentView(R.layout.popup_info)
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog.show()
+    }
+
+    private fun updateSystemBars() {
+        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
+
+        // Get the primary color from the current theme
+        val typedValue = TypedValue()
+        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
+        val primaryColor = typedValue.data
+
+        // Ensure window draws behind system bars
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // FORCE the status and navigation bar colors
+        window.statusBarColor = primaryColor
+        window.navigationBarColor = primaryColor
+
+        // Handle status bar icons based on theme (dark/light)
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = !isNightMode
+
+        // Handle navigation bar icons
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
+        }
     }
 
     private fun updateToolbarIconsColor() {
@@ -157,17 +188,16 @@ class MainActivity : AppCompatActivity() {
             supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
         }
 
-        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
-
-        // Adjust status bar icons based on theme
-        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = !isNightMode
-
-        // Update toolbar icons color to match current theme
+        // Update system bars and UI colors
+        updateSystemBars()
         updateToolbarIconsColor()
-
-        // Update FAB color when theme changes
         updateFabColor()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Update system bars on configuration changes (e.g., dark mode toggle)
+        updateSystemBars()
     }
 
     override fun onDestroy() {

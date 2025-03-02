@@ -6,4 +6,8 @@
     <color name="ColorPrimaryLight">#BBDEFB</color>
     <color name="ColorAccent">#FF5252</color>
     <color name="colorSecondary">#757575</color>
+
+    <!-- Dark mode specific colors -->
+    <color name="darkBackground">#FF000000</color> <!-- Pure black -->
+    <color name="darkSurfaceColor">#FF121212</color> <!-- Slightly lighter black for cards -->
 </resources>

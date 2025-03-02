@@ -166,7 +166,7 @@ class ValidityFragment : Fragment() {
 
         if (isCreditIn) {
             // For Credit IN (VBSTIN): Show validity and total fields, hide rate field.
-            creditInButton.strokeWidth = 10
+            creditInButton.strokeWidth = 12
             creditInButton.strokeColor =
                 ColorStateList.valueOf(
                     MaterialColors.getColor(creditInButton, com.google.android.material.R.attr.colorOnBackground)
@@ -177,7 +177,7 @@ class ValidityFragment : Fragment() {
             rateLayout.visibility = View.GONE
         } else {
             // For Credit OUT (VBSTOUT): Show rate field (sell rate), hide validity and total fields.
-            creditOutButton.strokeWidth = 10
+            creditOutButton.strokeWidth = 12
             creditOutButton.strokeColor =
                 ColorStateList.valueOf(
                     MaterialColors.getColor(creditOutButton, com.google.android.material.R.attr.colorOnBackground)
