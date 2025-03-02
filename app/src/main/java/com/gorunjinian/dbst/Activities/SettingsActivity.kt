@@ -165,11 +165,26 @@ class SettingsActivity : AppCompatActivity() {
             }
     }
 
+    // Update the deleteTableData method in SettingsActivity.kt
     private fun deleteTableData(tableName: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             when (tableName) {
-                "DBT" -> appDao.deleteAllIncome()
-                "DST" -> appDao.deleteAllExpense()
+                "DBT" -> {
+                    appDao.deleteAllIncome()
+                    appDao.resetDbtSequence() // Reset sequence counter after deleting all records
+                }
+                "DST" -> {
+                    appDao.deleteAllExpense()
+                    appDao.resetDstSequence() // Reset sequence counter after deleting all records
+                }
+                "VBSTIN" -> {
+                    appDao.deleteAllVbstIn()
+                    appDao.resetVbstInSequence() // Reset sequence counter after deleting all records
+                }
+                "VBSTOUT" -> {
+                    appDao.deleteAllVbstOut()
+                    appDao.resetVbstOutSequence() // Reset sequence counter after deleting all records
+                }
             }
 
             withContext(Dispatchers.Main) {

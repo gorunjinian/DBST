@@ -23,4 +23,11 @@ class AppRepository(private val appDao: AppDao) {
     fun getAllVbstOut(): List<VBSTOUT> = appDao.getAllVbstOut()
     suspend fun deleteVbstOut(id: Int) = appDao.deleteVbstOut(id)
     suspend fun deleteAllVbstOut() = appDao.deleteAllVbstOut()
+
+    // Add methods for resetting sequence counters
+    suspend fun resetDbtSequence() = appDao.resetDbtSequence()
+    suspend fun resetDstSequence() = appDao.resetDstSequence()
+    suspend fun resetVbstInSequence() = appDao.resetVbstInSequence()
+    suspend fun resetVbstOutSequence() = appDao.resetVbstOutSequence()
+    suspend fun resetAllSequences() = appDao.resetAllSequences()
 }

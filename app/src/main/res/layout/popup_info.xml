@@ -63,7 +63,6 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$1"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -81,7 +80,6 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$2"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -98,7 +96,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="$5"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -125,7 +122,6 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$10"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -143,7 +139,6 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$20"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -160,7 +155,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="$50"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
@@ -185,7 +179,6 @@
                         android:layout_gravity="center_horizontal"
                         android:minWidth="120dp"
                         android:hint="$100"
-                        app:startIconDrawable="@drawable/ic_monetization_on"
                         app:startIconTint="@color/colorPrimary"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText

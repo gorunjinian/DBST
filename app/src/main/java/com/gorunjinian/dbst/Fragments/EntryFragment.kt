@@ -2,11 +2,13 @@ package com.gorunjinian.dbst.fragments
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.*
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -126,6 +128,9 @@ class EntryFragment : Fragment() {
 
         // Set today's date
         setTodayDate()
+
+        // Setup auto-open for dropdowns
+        setupAutoOpenDropdowns()
 
         clearButton.setOnClickListener { clearInputFields() }
 
@@ -437,6 +442,27 @@ class EntryFragment : Fragment() {
                 amountInput.postDelayed({
                     amountInput.selectAll()
                 }, 50)
+            }
+        }
+    }
+
+    private fun setupAutoOpenDropdowns() {
+        // Handle keyboard to dropdown transition
+        rateInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                // Hide keyboard
+                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(rateInput.windowToken, 0)
+
+                // Post a delay to show dropdown after keyboard is hidden
+                typeDropdown.postDelayed({
+                    typeDropdown.requestFocus()
+                    typeDropdown.showDropDown()
+                }, 200)
+
+                true // consume the action
+            } else {
+                false // don't consume the action
             }
         }
     }

@@ -1,10 +1,11 @@
 package com.gorunjinian.dbst.fragments
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.*
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
@@ -12,7 +13,7 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
-import java.text.NumberFormat
+
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -54,6 +55,9 @@ class TetherFragment : Fragment() {
 
         // Automatically Set Today's Date
         setTodayDate()
+
+        // Improve keyboard navigation between fields
+        setupKeyboardNavigation()
 
         // Automatically select SELL button
         sellButton.isChecked = true
@@ -113,6 +117,39 @@ class TetherFragment : Fragment() {
         }
 
         Toast.makeText(requireContext(), "Data Saved:\nType: $selectedType", Toast.LENGTH_LONG).show()
+    }
+
+    private fun setupKeyboardNavigation() {
+        // Set proper IME options for sequential input
+        dateInput.imeOptions = EditorInfo.IME_ACTION_NEXT
+        personInput.imeOptions = EditorInfo.IME_ACTION_NEXT
+        usdtAmountInput.imeOptions = EditorInfo.IME_ACTION_NEXT
+        cashInput.imeOptions = EditorInfo.IME_ACTION_DONE
+
+        // Implement navigation between fields
+        personInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                usdtAmountInput.requestFocus()
+                true
+            } else false
+        }
+
+        usdtAmountInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                cashInput.requestFocus()
+                true
+            } else false
+        }
+
+        // When done on cash input, hide keyboard and focus save button
+        cashInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(cashInput.windowToken, 0)
+                saveButton.requestFocus()
+                true
+            } else false
+        }
     }
 
     private fun clearInputFields() {

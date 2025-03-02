@@ -81,4 +81,21 @@ interface AppDao {
     // Delete All VBSTOUT Entries
     @Query("DELETE FROM VBSTOUT")
     suspend fun deleteAllVbstOut()
+
+    // Reset sequence for specific tables
+    @Query("DELETE FROM sqlite_sequence WHERE name = 'DBT'")
+    suspend fun resetDbtSequence()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name = 'DST'")
+    suspend fun resetDstSequence()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name = 'VBSTIN'")
+    suspend fun resetVbstInSequence()
+
+    @Query("DELETE FROM sqlite_sequence WHERE name = 'VBSTOUT'")
+    suspend fun resetVbstOutSequence()
+
+    // Reset all sequences method
+    @Query("DELETE FROM sqlite_sequence")
+    suspend fun resetAllSequences()
 }
