@@ -440,18 +440,21 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    // Add method to clear search
+    // method to clear search
     private fun clearSearch() {
-        searchQuery = null
-        searchColumn = null
+        // Only proceed if there's an active search
+        if (searchQuery != null && searchColumn != null) {
+            searchQuery = null
+            searchColumn = null
 
-        // Reload the table without filters
-        adapter.updateData(allRecords)
+            // Reload the table without filters
+            adapter.updateData(allRecords)
 
-        // Reset the action bar title
-        (activity as? AppCompatActivity)?.supportActionBar?.title = "Databases"
+            // Reset the action bar title
+            (activity as? AppCompatActivity)?.supportActionBar?.title = "Databases"
 
-        Toast.makeText(requireContext(), "Search cleared", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Search cleared", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showDeleteConfirmationDialog(record: Any) {

@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst.data
 
 import android.annotation.SuppressLint
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -55,6 +56,10 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
             val textView = TextView(context).apply {
                 text = textValue
                 gravity = Gravity.CENTER
+                // Reduce text size to fit single line
+                textSize = 12f  // Smaller text size
+                maxLines = 1  // Ensure single line
+                ellipsize = TextUtils.TruncateAt.END  // Add ellipsis if too long
                 layoutParams = LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
