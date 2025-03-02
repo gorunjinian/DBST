@@ -2,6 +2,7 @@ package com.gorunjinian.dbst.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -18,8 +19,15 @@ import com.gorunjinian.dbst.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
+import android.view.LayoutInflater
+import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
+import android.widget.Toast
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+
 
 class DatabasesFragment : Fragment() {
 
@@ -53,13 +61,21 @@ class DatabasesFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_databases, container, false)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         // Inflate the menu specifically for this fragment
         inflater.inflate(R.menu.search_menu, menu)
 
         // Get the search menu item and tint it to match toolbar title
         val searchItem = menu.findItem(R.id.action_search)
-        searchItem.icon?.setTint(resources.getColor(android.R.color.white, requireContext().theme))
+        searchItem?.icon?.setTint(resources.getColor(android.R.color.white, requireContext().theme))
+
+        // Show or hide clear search option based on whether there's an active search
+        // Added null check to prevent crashes if the item doesn't exist
+        val clearItem = menu.findItem(R.id.action_clear_search)
+        if (clearItem != null) {
+            clearItem.isVisible = searchQuery != null && searchColumn != null
+        }
 
         super.onCreateOptionsMenu(menu, inflater)
     }
@@ -69,6 +85,11 @@ class DatabasesFragment : Fragment() {
         return when (item.itemId) {
             R.id.action_search -> {
                 showSearchDialog()
+                true
+            }
+            R.id.action_clear_search -> {
+                clearSearch()
+                activity?.invalidateOptionsMenu() // Refresh the options menu
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -147,32 +168,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    private fun loadTableData() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val records = when (currentTable) {
-                "DBT" -> appDao.getAllIncome()
-                "DST" -> appDao.getAllExpense()
-                "VBSTIN" -> appDao.getAllVbstIn()
-                "VBSTOUT" -> appDao.getAllVbstOut()
-                "USDT" -> appDao.getAllUsdt()
-                else -> emptyList()
-            }
-
-            // Store all records for filtering
-            allRecords = records
-
-            withContext(Dispatchers.Main) {
-                updateColumnHeaders(records)
-
-                // Apply search filter if active
-                if (searchQuery != null && searchColumn != null && records.isNotEmpty()) {
-                    applySearchFilter()
-                } else {
-                    adapter.updateData(records)
-                }
-            }
-        }
-    }
 
     private fun updateColumnHeaders(records: List<Any>) {
         columnHeaderLayout.removeAllViews()
@@ -201,93 +196,251 @@ class DatabasesFragment : Fragment() {
     }
 
     private fun showSearchDialog() {
-        if (columnNames.isEmpty()) {
-            Toast.makeText(requireContext(), "No data available to search", Toast.LENGTH_SHORT).show()
-            return
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_search, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Get references to views
+        val columnSelector = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.column_spinner)
+        val searchEditText = dialogView.findViewById<TextInputEditText>(R.id.search_edit_text)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btn_cancel)
+        val btnSearch = dialogView.findViewById<MaterialButton>(R.id.btn_search)
+        val btnClear = dialogView.findViewById<MaterialButton>(R.id.btn_clear) // This ID matches your layout
+
+        // Get column names from the current table
+        val columnNames = when (currentTable) {
+            "DBT" -> listOf("id", "date", "person", "amount", "rate", "type", "totalLBP")
+            "DST" -> listOf("id", "date", "person", "amountExpensed", "amountExchanged", "rate", "type", "exchangedLBP")
+            "VBSTIN" -> listOf("id", "date", "person", "type", "validity", "amount", "total", "rate")
+            "VBSTOUT" -> listOf("id", "date", "person", "amount", "sellrate", "type", "profit")
+            else -> emptyList()
         }
 
-        val dialogView = layoutInflater.inflate(R.layout.dialog_search, null)
-        val columnSpinner = dialogView.findViewById<Spinner>(R.id.column_spinner)
-        val searchEditText = dialogView.findViewById<EditText>(R.id.search_edit_text)
+        // Set up adapter for the dropdown
+        // With this built-in layout instead:
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, columnNames)
+        columnSelector.setAdapter(adapter)
 
-        // Set up column spinner
-        val columnAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            columnNames.map { it.replaceFirstChar { char -> char.uppercaseChar() } }
-        )
-        columnAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        columnSpinner.adapter = columnAdapter
+        // Make sure dropdown is properly configured
+        columnSelector.threshold = 1  // Show dropdown after typing 1 character
+        columnSelector.inputType = 0  // Set inputType to none to avoid keyboard
+        columnSelector.setOnClickListener { columnSelector.showDropDown() }
 
-        // Select previously chosen column if available
-        searchColumn?.let { column ->
-            val columnIndex = columnNames.indexOf(column)
-            if (columnIndex >= 0) {
-                columnSpinner.setSelection(columnIndex)
+        // Show or hide clear button based on active search
+        btnClear.visibility = if (searchQuery != null && searchColumn != null) View.VISIBLE else View.GONE
+
+        // Set first item selected by default if list is not empty
+        if (!searchColumn.isNullOrEmpty() && columnNames.contains(searchColumn)) {
+            // If we have an active search, pre-populate the fields
+            columnSelector.setText(searchColumn, false)
+            searchEditText.setText(searchQuery)
+        } else if (columnNames.isNotEmpty()) {
+            columnSelector.setText(columnNames[0], false)
+        }
+
+        // Set up button actions
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Add clear button click listener
+        btnClear.setOnClickListener {
+            clearSearch()
+            dialog.dismiss()
+        }
+
+        btnSearch.setOnClickListener {
+            val selectedColumn = columnSelector.text.toString()
+            val searchTerm = searchEditText.text.toString()
+
+            if (selectedColumn.isNotEmpty() && searchTerm.isNotEmpty()) {
+                // Perform search based on selected column and search term
+                performSearch(selectedColumn, searchTerm)
+
+                // Update action bar title to show search info
+                (activity as? AppCompatActivity)?.supportActionBar?.title =
+                    "Search: $selectedColumn='$searchTerm'"
+
+                dialog.dismiss()
+            } else {
+                Toast.makeText(requireContext(),
+                    "Please select a column and enter a search term",
+                    Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Fill in previous search query if available
-        searchQuery?.let { query ->
-            searchEditText.setText(query)
-        }
+        // Also allow search when pressing search on keyboard
+        searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val selectedColumn = columnSelector.text.toString()
+                val searchTerm = searchEditText.text.toString()
 
-        val builder = AlertDialog.Builder(requireContext())
-            .setTitle("Search ${currentTable ?: "Records"}")
-            .setView(dialogView)
-            .setPositiveButton("Search") { _, _ ->
-                val selectedColumnIndex = columnSpinner.selectedItemPosition
-                if (selectedColumnIndex >= 0) {
-                    searchColumn = columnNames[selectedColumnIndex]
-                    searchQuery = searchEditText.text.toString().trim()
+                if (selectedColumn.isNotEmpty() && searchTerm.isNotEmpty()) {
+                    performSearch(selectedColumn, searchTerm)
 
-                    if (searchQuery.isNullOrEmpty()) {
-                        Toast.makeText(requireContext(), "Please enter a search term", Toast.LENGTH_SHORT).show()
-                        return@setPositiveButton
-                    }
+                    // Update action bar title to show search info
+                    (activity as? AppCompatActivity)?.supportActionBar?.title =
+                        "Search: $selectedColumn='$searchTerm'"
 
-                    applySearchFilter()
+                    dialog.dismiss()
+                    return@setOnEditorActionListener true
+                } else {
+                    Toast.makeText(requireContext(),
+                        "Please select a column and enter a search term",
+                        Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Clear") { _, _ ->
-                searchColumn = null
-                searchQuery = null
-                adapter.updateData(allRecords)
-
-                // Update title to show search is cleared
-                (activity as? AppCompatActivity)?.supportActionBar?.title = "Databases"
-            }
-            .setNeutralButton("Cancel", null)
-
-        builder.create().show()
-    }
-
-    private fun applySearchFilter() {
-        if (searchColumn == null || searchQuery == null || allRecords.isEmpty()) {
-            return
-        }
-
-        val filteredRecords = allRecords.filter { record ->
-            // Get the specified property using reflection
-            val property = record::class.memberProperties.find { it.name == searchColumn }
-
-            if (property != null) {
-                // Get property value as string
-                val value = (property as KProperty1<Any, *>).get(record)
-                // Case-insensitive string contains
-                return@filter value.toString().contains(searchQuery!!, ignoreCase = true)
-            }
-
             false
         }
 
-        adapter.updateData(filteredRecords)
-
-        // Update title to indicate search is active
-        (activity as? AppCompatActivity)?.supportActionBar?.title =
-            "Databases (${filteredRecords.size}/${allRecords.size})"
+        dialog.show()
     }
 
+    private fun loadTableData() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val records = when (currentTable) {
+                "DBT" -> appDao.getAllIncome()
+                "DST" -> appDao.getAllExpense()
+                "VBSTIN" -> appDao.getAllVbstIn()
+                "VBSTOUT" -> appDao.getAllVbstOut()
+                "USDT" -> {
+                    // Check if this method exists in your AppDao
+                    // If not, you need to add it or handle this case differently
+                    try {
+                        appDao.getAllUsdt()
+                    } catch (e: Exception) {
+                        Log.e("DatabasesFragment", "Error loading USDT data: ${e.message}")
+                        emptyList<Any>()
+                    }
+                }
+                else -> emptyList<Any>()
+            }
+
+            // Store all records for filtering
+            allRecords = records
+
+            withContext(Dispatchers.Main) {
+                updateColumnHeaders(records)
+
+                // Apply search filter if active
+                if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                    performSearch(searchColumn!!, searchQuery!!)
+                } else {
+                    adapter.updateData(records)
+                }
+            }
+        }
+    }
+
+    // Update this method to store the search parameters
+    private fun performSearch(column: String, searchTerm: String) {
+        // Store current search parameters
+        searchColumn = column
+        searchQuery = searchTerm
+
+        if (allRecords.isEmpty()) {
+            Toast.makeText(requireContext(), "No data to search", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val results = when (currentTable) {
+                "DBT" -> {
+                    val allIncomeRecords = allRecords as List<*>
+                    allIncomeRecords.filterIsInstance<DBT>().filter { record ->
+                        when (column) {
+                            "id" -> record.id.toString() == searchTerm
+                            "date" -> record.date.contains(searchTerm, ignoreCase = true)
+                            "person" -> record.person.contains(searchTerm, ignoreCase = true)
+                            "amount" -> record.amount.toString().contains(searchTerm)
+                            "rate" -> record.rate.toString().contains(searchTerm)
+                            "type" -> record.type.contains(searchTerm, ignoreCase = true)
+                            "totalLBP" -> record.totalLBP.toString().contains(searchTerm)
+                            else -> false
+                        }
+                    }
+                }
+                "DST" -> {
+                    val allExpenseRecords = allRecords as List<*>
+                    allExpenseRecords.filterIsInstance<DST>().filter { record ->
+                        when (column) {
+                            "id" -> record.id.toString() == searchTerm
+                            "date" -> record.date.contains(searchTerm, ignoreCase = true)
+                            "person" -> record.person.contains(searchTerm, ignoreCase = true)
+                            "amountExpensed" -> record.amountExpensed.toString().contains(searchTerm)
+                            "amountExchanged" -> record.amountExchanged.toString().contains(searchTerm)
+                            "rate" -> record.rate.toString().contains(searchTerm)
+                            "type" -> record.type.contains(searchTerm, ignoreCase = true)
+                            "exchangedLBP" -> record.exchangedLBP.toString().contains(searchTerm)
+                            else -> false
+                        }
+                    }
+                }
+                "VBSTIN" -> {
+                    val allVbstInRecords = allRecords as List<*>
+                    allVbstInRecords.filterIsInstance<VBSTIN>().filter { record ->
+                        when (column) {
+                            "id" -> record.id.toString() == searchTerm
+                            "date" -> record.date.contains(searchTerm, ignoreCase = true)
+                            "person" -> record.person.contains(searchTerm, ignoreCase = true)
+                            "type" -> record.type.contains(searchTerm, ignoreCase = true)
+                            "validity" -> record.validity.contains(searchTerm, ignoreCase = true)
+                            "amount" -> record.amount.toString().contains(searchTerm)
+                            "total" -> record.total.toString().contains(searchTerm)
+                            "rate" -> record.rate.toString().contains(searchTerm)
+                            else -> false
+                        }
+                    }
+                }
+                "VBSTOUT" -> {
+                    val allVbstOutRecords = allRecords as List<*>
+                    allVbstOutRecords.filterIsInstance<VBSTOUT>().filter { record ->
+                        when (column) {
+                            "id" -> record.id.toString() == searchTerm
+                            "date" -> record.date.contains(searchTerm, ignoreCase = true)
+                            "person" -> record.person.contains(searchTerm, ignoreCase = true)
+                            "amount" -> record.amount.toString().contains(searchTerm)
+                            "sellrate" -> record.sellrate.toString().contains(searchTerm)
+                            "type" -> record.type.contains(searchTerm, ignoreCase = true)
+                            "profit" -> record.profit.toString().contains(searchTerm)
+                            else -> false
+                        }
+                    }
+                }
+                "USDT" -> {
+                    // Handle USDT entity if it exists
+                    // This would use filterIsInstance<USDT> when you have that entity
+                    emptyList<Any>()
+                }
+                else -> emptyList<Any>()
+            }
+
+            withContext(Dispatchers.Main) {
+                adapter.updateData(results)
+                if (results.isEmpty()) {
+                    Toast.makeText(requireContext(), "No results found", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "${results.size} results found", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // Add method to clear search
+
+    private fun clearSearch() {
+        searchQuery = null
+        searchColumn = null
+
+        // Reload the table without filters
+        adapter.updateData(allRecords)
+
+        // Reset the action bar title
+        (activity as? AppCompatActivity)?.supportActionBar?.title = "Databases"
+
+        Toast.makeText(requireContext(), "Search cleared", Toast.LENGTH_SHORT).show()
+    }
 
     private fun showDeleteConfirmationDialog(record: Any) {
         val builder = AlertDialog.Builder(requireContext())
