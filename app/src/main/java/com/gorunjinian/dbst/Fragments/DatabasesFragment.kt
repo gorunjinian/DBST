@@ -2,6 +2,7 @@ package com.gorunjinian.dbst.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -205,7 +206,7 @@ class DatabasesFragment : Fragment() {
         val searchEditText = dialogView.findViewById<TextInputEditText>(R.id.search_edit_text)
         val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btn_cancel)
         val btnSearch = dialogView.findViewById<MaterialButton>(R.id.btn_search)
-        val btnClear = dialogView.findViewById<MaterialButton>(R.id.btn_clear) // This ID matches your layout
+        val btnClear = dialogView.findViewById<MaterialButton>(R.id.btn_clear)
 
         // Get column names from the current table
         val columnNames = when (currentTable) {
@@ -213,18 +214,41 @@ class DatabasesFragment : Fragment() {
             "DST" -> listOf("id", "date", "person", "amountExpensed", "amountExchanged", "rate", "type", "exchangedLBP")
             "VBSTIN" -> listOf("id", "date", "person", "type", "validity", "amount", "total", "rate")
             "VBSTOUT" -> listOf("id", "date", "person", "amount", "sellrate", "type", "profit")
+            "USDT" -> listOf("id", "date", "person", "amountUsdt", "amountCash", "type")
             else -> emptyList()
         }
 
         // Set up adapter for the dropdown
-        // With this built-in layout instead:
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, columnNames)
+        val adapter = ArrayAdapter(requireContext(),
+            com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+            columnNames
+        )
         columnSelector.setAdapter(adapter)
 
-        // Make sure dropdown is properly configured
-        columnSelector.threshold = 1  // Show dropdown after typing 1 character
-        columnSelector.inputType = 0  // Set inputType to none to avoid keyboard
-        columnSelector.setOnClickListener { columnSelector.showDropDown() }
+        // Improve dropdown configuration
+        columnSelector.threshold = 1
+        columnSelector.inputType = InputType.TYPE_NULL
+        columnSelector.isFocusable = true
+        columnSelector.isFocusableInTouchMode = true
+
+        // Ensure dropdown opens on click and touch
+        columnSelector.setOnClickListener {
+            columnSelector.showDropDown()
+        }
+
+        // Handle item selection explicitly
+        columnSelector.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                columnSelector.setText(columnNames[position], false)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        })
+
+        // Fallback item click listener
+        columnSelector.setOnItemClickListener { _, _, position, _ ->
+            columnSelector.setText(columnNames[position], false)
+        }
 
         // Show or hide clear button based on active search
         btnClear.visibility = if (searchQuery != null && searchColumn != null) View.VISIBLE else View.GONE
