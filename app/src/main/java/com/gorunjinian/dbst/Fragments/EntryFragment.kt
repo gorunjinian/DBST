@@ -154,7 +154,7 @@ class EntryFragment : Fragment() {
         "Loan", "Gift", "Other", "N/A")
 
     private fun getExpenseTypes(): List<String> = listOf(
-        "FOOD", "GROCERIES", "EXCHANGE", "WELLBEING",
+        "FOOD", "GROCERIES", "EXCHANGE","WHISH TOPUP", "WELLBEING",
         "BANK TOPUP", "TECH", "DEBT", "OTHER")
 
 

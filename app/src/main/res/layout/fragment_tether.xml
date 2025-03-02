@@ -139,7 +139,7 @@
             <!-- Wish Payment Checkbox -->
             <!-- Wish Payment Checkbox -->
             <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/wish_payment_switch"
+                android:id="@+id/whish_payment_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

@@ -8,6 +8,7 @@ import android.os.CountDownTimer
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import com.google.android.material.materialswitch.MaterialSwitch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -35,6 +36,7 @@ class TetherFragment : Fragment() {
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
     private lateinit var undoButton: MaterialButton
+    private lateinit var whishSwitch: MaterialSwitch
 
     // Database components
     private lateinit var database: AppDatabase
@@ -69,6 +71,7 @@ class TetherFragment : Fragment() {
         saveButton = view.findViewById(R.id.save_button)
         clearButton = view.findViewById(R.id.clear_button)
         undoButton = view.findViewById(R.id.undo_button)
+        whishSwitch = view.findViewById(R.id.whish_payment_switch)
 
         formatNumberWithCommas(cashInput)
         formatNumberWithCommas(usdtAmountInput)
@@ -83,23 +86,16 @@ class TetherFragment : Fragment() {
         sellButton.isChecked = true
 
         // Set up Date Picker
-        dateInput.setOnClickListener {
-            showDatePicker()
-        }
+        dateInput.setOnClickListener { showDatePicker() }
 
         // Save Button Logic
-        saveButton.setOnClickListener {
-            saveData()
-        }
+        saveButton.setOnClickListener { saveData() }
 
-        clearButton.setOnClickListener {
-            clearInputFields()
-        }
+        clearButton.setOnClickListener { clearInputFields() }
 
         // Undo Button Logic
-        undoButton.setOnClickListener {
-            undoButtonAction()
-        }
+        undoButton.setOnClickListener { undoButtonAction() }
+
         // Disable undo button by default
         undoButton.isEnabled = false
     }
@@ -158,15 +154,36 @@ class TetherFragment : Fragment() {
             type = selectedType
         )
 
-        // Save to database
         lifecycleScope.launch(Dispatchers.IO) {
+            // Save USDT transaction
             val newId = database.appDao().insertUsdt(usdtEntry)
             val savedUsdtEntry = usdtEntry.copy(id = newId.toInt())
+
+            // Check if wish payment switch is on
+            val isPaidByWish = withContext(Dispatchers.Main) {
+                whishSwitch.isChecked
+            }
+
+            if (isPaidByWish) {
+                // Create corresponding expense entry
+                val expenseEntry = DST(
+                    date = date,
+                    person = person,
+                    amountExpensed = cashAmount,
+                    amountExchanged = 0.0,
+                    rate = 0.0, // Default rate
+                    type = "WHISH TOPUP"
+                )
+
+                // Insert expense entry
+                database.appDao().insertExpense(expenseEntry)
+            }
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     requireContext(),
-                    "USDT Transaction Saved: $selectedType",
+                    "USDT Transaction Saved: $selectedType" +
+                            (if (isPaidByWish) " (WISH TOPUP)" else ""),
                     Toast.LENGTH_SHORT
                 ).show()
                 clearInputFields()
