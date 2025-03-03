@@ -1033,13 +1033,15 @@ class DatabasesFragment : Fragment() {
             allRecords = records
 
             withContext(Dispatchers.Main) {
+                // First update the adapter with the data to set the entity type
+                adapter.updateData(records)
+
+                // Now that the entity type is set, update column headers
                 updateColumnHeaders(records)
 
                 // Apply search filter if active
                 if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
                     performSearch(searchColumn!!, searchQuery!!)
-                } else {
-                    adapter.updateData(records)
                 }
             }
         }
