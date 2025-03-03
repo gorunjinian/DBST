@@ -126,6 +126,7 @@ class DatabasesFragment : Fragment() {
     }
 
     private fun setupAdapterCallbacks() {
+
         // Setup long-press deletion
         adapter.onRecordLongClickListener = { record ->
             showDeleteConfirmationDialog(record)
@@ -1268,65 +1269,111 @@ class DatabasesFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun showDeleteConfirmationDialog(record: Any) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Delete Record")
-        builder.setMessage("Are you sure you want to delete this record?")
-        builder.setPositiveButton("Delete") { dialog, _ ->
+        // Inflate custom dialog layout
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_delete_confirmation, null)
+
+        // Create dialog with MaterialAlertDialogBuilder for consistent styling
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set up UI elements
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialog_title)
+        val dialogMessage = dialogView.findViewById<TextView>(R.id.dialog_message)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btn_cancel)
+        val btnDelete = dialogView.findViewById<MaterialButton>(R.id.btn_delete)
+
+        // Customize text based on record type
+        val recordType = when (record) {
+            is DBT -> "Income"
+            is DST -> "Expense"
+            is VBSTIN -> "Credit IN"
+            is VBSTOUT -> "Credit OUT"
+            is USDT -> "USDT"
+            else -> "Record"
+        }
+
+        dialogTitle.text = "Delete $recordType"
+        dialogMessage.text = "Are you sure you want to delete this $recordType record? This action cannot be undone."
+
+        // Set up button actions
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnDelete.setOnClickListener {
             deleteRecord(record)
             dialog.dismiss()
         }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.dismiss()
+
+        // Show dialog with rounded corners
+        dialog.window?.apply {
+            setBackgroundDrawableResource(R.drawable.rounded_dialog_background)
         }
-        builder.create().show()
+        dialog.show()
     }
 
+    // Helper function to delete the record based on its type
     private fun deleteRecord(record: Any) {
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                when (record) {
-                    is DBT -> {
-                        appDao.deleteIncome(record.id)
-                        val remainingRecords = appDao.getAllIncome()
-                        if (remainingRecords.isEmpty()) appDao.resetDbtSequence()
+            when (record) {
+                is DBT -> {
+                    appDao.deleteIncome(record.id)
+                    // Only reset sequence if all records are deleted
+                    val remainingRecords = appDao.getAllIncome()
+                    if (remainingRecords.isEmpty()) {
+                        appDao.resetDbtSequence()
                     }
-                    is DST -> {
-                        appDao.deleteExpense(record.id)
-                        val remainingRecords = appDao.getAllExpense()
-                        if (remainingRecords.isEmpty()) appDao.resetDstSequence()
-                    }
-                    is VBSTIN -> {
-                        appDao.deleteVbstIn(record.id)
-                        val remainingRecords = appDao.getAllVbstIn()
-                        if (remainingRecords.isEmpty()) appDao.resetVbstInSequence()
-                    }
-                    is VBSTOUT -> {
-                        appDao.deleteVbstOut(record.id)
-                        val remainingRecords = appDao.getAllVbstOut()
-                        if (remainingRecords.isEmpty()) appDao.resetVbstOutSequence()
-                    }
-                    is USDT -> {
-                        appDao.deleteUsdt(record.id)
-                        val remainingRecords = appDao.getAllUsdt()
-                        if (remainingRecords.isEmpty()) appDao.resetUsdtSequence()
-                    }
-                    else -> throw IllegalArgumentException("Unsupported record type")
                 }
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
-                    loadTableData()
+                is DST -> {
+                    appDao.deleteExpense(record.id)
+                    // Only reset sequence if all records are deleted
+                    val remainingRecords = appDao.getAllExpense()
+                    if (remainingRecords.isEmpty()) {
+                        appDao.resetDstSequence()
+                    }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Error deleting record: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                is VBSTIN -> {
+                    appDao.deleteVbstIn(record.id)
+                    // Only reset sequence if all records are deleted
+                    val remainingRecords = appDao.getAllVbstIn()
+                    if (remainingRecords.isEmpty()) {
+                        appDao.resetVbstInSequence()
+                    }
                 }
+                is VBSTOUT -> {
+                    appDao.deleteVbstOut(record.id)
+                    // Only reset sequence if all records are deleted
+                    val remainingRecords = appDao.getAllVbstOut()
+                    if (remainingRecords.isEmpty()) {
+                        appDao.resetVbstOutSequence()
+                    }
+                }
+                is USDT -> {
+                    appDao.deleteUsdt(record.id)
+                    val remainingRecords = appDao.getAllUsdt()
+                    if (remainingRecords.isEmpty()) {
+                        appDao.resetUsdtSequence()
+                    }
+                }
+                else -> {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Unsupported record type",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
+                loadTableData() // Refresh data
             }
         }
     }
+
 }
