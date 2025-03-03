@@ -176,12 +176,65 @@ class DatabasesFragment : Fragment() {
         if (records.isNotEmpty()) {
             val firstRecord = records.first()
 
+            // Determine entity type
+            val entityType = firstRecord.javaClass.simpleName
+
             // Use reflection to obtain property names from the first record
             val props = firstRecord::class.memberProperties.toList()
             columnNames = props.map { it.name }
 
             props.forEach { prop ->
-                val headerText = prop.name.replaceFirstChar { it.uppercaseChar() }
+                // Use the custom mapping for header text
+                val headerText = when (entityType) {
+                    "DBT" -> when (prop.name) {
+                        "date" -> "Date"
+                        "person" -> "Person"
+                        "amount" -> "Amount"
+                        "rate" -> "Rate"
+                        "type" -> "Type"
+                        "totalLBP" -> "Tot LBP"
+                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                    }
+                    "DST" -> when (prop.name) {
+                        "date" -> "Date"
+                        "person" -> "Person"
+                        "amountExpensed" -> "Expd"
+                        "amountExchanged" -> "Exch"
+                        "rate" -> "Rate"
+                        "type" -> "Type"
+                        "exchangedLBP" -> "Tot LBP"
+                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                    }
+                    "VBSTIN" -> when (prop.name) {
+                        "date" -> "Date"
+                        "person" -> "Person"
+                        "type" -> "Type"
+                        "validity" -> "Validity"
+                        "amount" -> "Amount"
+                        "total" -> "Total"
+                        "rate" -> "Rate"
+                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                    }
+                    "VBSTOUT" -> when (prop.name) {
+                        "date" -> "Date"
+                        "person" -> "Person"
+                        "amount" -> "Amount $"
+                        "sellrate" -> "Sell R"
+                        "type" -> "Type"
+                        "profit" -> "Profit"
+                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                    }
+                    "USDT" -> when (prop.name) {
+                        "date" -> "Date"
+                        "person" -> "Person"
+                        "amountUsdt" -> "USDT"
+                        "amountCash" -> "Cash"
+                        "type" -> "Type"
+                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                    }
+                    else -> prop.name.replaceFirstChar { it.uppercaseChar() }
+                }
+
                 val textView = TextView(requireContext()).apply {
                     text = headerText
                     textSize = 14f

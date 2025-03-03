@@ -18,6 +18,8 @@ import kotlin.reflect.full.memberProperties
 class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
 
     private var dataList: List<Any> = emptyList()
+    // Track the entity type to use for column name mapping
+    private var entityType: String = ""
 
     // Long press callback to notify the host fragment
     var onRecordLongClickListener: ((Any) -> Unit)? = null
@@ -25,6 +27,19 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
     @SuppressLint("NotifyDataSetChanged")
     fun updateData(data: List<Any>) {
         dataList = data
+
+        // Determine entity type from the first item if available
+        if (data.isNotEmpty()) {
+            entityType = when (data[0].javaClass.simpleName) {
+                "DBT" -> "DBT"
+                "DST" -> "DST"
+                "VBSTIN" -> "VBSTIN"
+                "VBSTOUT" -> "VBSTOUT"
+                "USDT" -> "USDT"
+                else -> ""
+            }
+        }
+
         notifyDataSetChanged()
     }
 
@@ -80,4 +95,57 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
     }
 
     override fun getItemCount(): Int = dataList.size
+
+    // Helper function to get the display name for a property
+    fun getDisplayNameForProperty(propertyName: String): String {
+        return when (entityType) {
+            "DBT" -> when (propertyName) {
+                "date" -> "Date"
+                "person" -> "Person"
+                "amount" -> "Amount"
+                "rate" -> "Rate"
+                "type" -> "Type"
+                "totalLBP" -> "Tot LBP"
+                else -> propertyName.replaceFirstChar { it.uppercase() }
+            }
+            "DST" -> when (propertyName) {
+                "date" -> "Date"
+                "person" -> "Person"
+                "amountExpensed" -> "Expd"
+                "amountExchanged" -> "Exch"
+                "rate" -> "Rate"
+                "type" -> "Type"
+                "exchangedLBP" -> "Tot LBP"
+                else -> propertyName.replaceFirstChar { it.uppercase() }
+            }
+            "VBSTIN" -> when (propertyName) {
+                "date" -> "Date"
+                "person" -> "Person"
+                "type" -> "Type"
+                "validity" -> "Validity"
+                "amount" -> "Amount"
+                "total" -> "Total"
+                "rate" -> "Rate"
+                else -> propertyName.replaceFirstChar { it.uppercase() }
+            }
+            "VBSTOUT" -> when (propertyName) {
+                "date" -> "Date"
+                "person" -> "Person"
+                "amount" -> "Amount $"
+                "sellrate" -> "Sell R"
+                "type" -> "Type"
+                "profit" -> "Profit"
+                else -> propertyName.replaceFirstChar { it.uppercase() }
+            }
+            "USDT" -> when (propertyName) {
+                "date" -> "Date"
+                "person" -> "Person"
+                "amountUsdt" -> "USDT"
+                "amountCash" -> "Cash"
+                "type" -> "Type"
+                else -> propertyName.replaceFirstChar { it.uppercase() }
+            }
+            else -> propertyName.replaceFirstChar { it.uppercase() }
+        }
+    }
 }
