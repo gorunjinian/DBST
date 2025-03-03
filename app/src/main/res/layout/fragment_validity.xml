@@ -112,8 +112,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/type_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:endIconMode="dropdown_menu"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_marginTop="8dp">
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/type_dropdown"
@@ -134,9 +133,8 @@
                 android:id="@+id/validity_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Validity"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:endIconMode="dropdown_menu"
+                android:hint="@string/validity_hint"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_marginTop="8dp">
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/validity_dropdown"
