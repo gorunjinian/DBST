@@ -1,27 +1,22 @@
 package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.PorterDuff
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.view.Window
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
@@ -125,14 +120,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun showPopup() {
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.popup_info)
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        dialog.show()
-    }
-
     private fun updateSystemBars() {
         val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
@@ -154,9 +141,7 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.isAppearanceLightStatusBars = !isNightMode
 
         // Handle navigation bar icons
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
-        }
+        windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
     }
 
     private fun updateToolbarIconsColor() {
