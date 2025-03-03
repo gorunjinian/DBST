@@ -450,11 +450,7 @@ class DatabasesFragment : Fragment() {
             is VBSTIN -> showEditVbstInDialog(record)
             is VBSTOUT -> showEditVbstOutDialog(record)
             is USDT -> showEditUsdtDialog(record)
-            else -> Toast.makeText(
-                requireContext(),
-                "Editing not supported for this record type",
-                Toast.LENGTH_SHORT
-            ).show()
+            else -> Toast.makeText(requireContext(), "Edit not supported for this record type", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -976,10 +972,131 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    // Placeholder method for USDT editing
+    @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun showEditUsdtDialog(record: USDT) {
-        // Implement similar to the other edit dialogs
-        Toast.makeText(requireContext(), "USDT editing to be implemented", Toast.LENGTH_SHORT).show()
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_usdt, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Get references to all views
+        val dateInput = dialogView.findViewById<TextInputEditText>(R.id.date_input)
+        val personInput = dialogView.findViewById<TextInputEditText>(R.id.person_input)
+        val typeDropdown = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.type_dropdown)
+        val amountUsdtInput = dialogView.findViewById<TextInputEditText>(R.id.amount_usdt_input)
+        val amountCashInput = dialogView.findViewById<TextInputEditText>(R.id.amount_cash_input)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btn_cancel)
+        val btnSave = dialogView.findViewById<MaterialButton>(R.id.btn_save)
+
+        // Get references to TextInputLayouts for hints
+        val dateLayout = dialogView.findViewById<TextInputLayout>(R.id.date_layout)
+        val personLayout = dialogView.findViewById<TextInputLayout>(R.id.person_layout)
+        val typeLayout = dialogView.findViewById<TextInputLayout>(R.id.type_layout)
+        val amountUsdtLayout = dialogView.findViewById<TextInputLayout>(R.id.amount_usdt_layout)
+        val amountCashLayout = dialogView.findViewById<TextInputLayout>(R.id.amount_cash_layout)
+
+        // Update dialog title
+        dialogView.findViewById<TextView>(R.id.dialog_title).text = "Edit USDT Record"
+
+        // Use adapter's naming method to set field labels
+        val tempAdapter = DatabaseAdapter().apply {
+            updateData(listOf(record))
+        }
+
+        // Set field labels using the adapter
+        dateLayout.hint = tempAdapter.getDisplayNameForProperty("date")
+        personLayout.hint = tempAdapter.getDisplayNameForProperty("person")
+        typeLayout.hint = tempAdapter.getDisplayNameForProperty("type")
+        amountUsdtLayout.hint = tempAdapter.getDisplayNameForProperty("amountUsdt")
+        amountCashLayout.hint = tempAdapter.getDisplayNameForProperty("amountCash")
+
+        // Set up type dropdown
+        val typeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line,
+            listOf("BUY", "SELL"))
+        typeDropdown.setAdapter(typeAdapter)
+
+        // Ensure clicking the dropdown shows the list
+        typeDropdown.setOnClickListener { typeDropdown.showDropDown() }
+
+        // Apply number formatting to numeric fields
+        formatNumberWithCommas(amountUsdtInput)
+        formatNumberWithCommas(amountCashInput)
+
+        // Set up date picker
+        setupDatePicker(dateInput)
+
+        // Populate dialog with the record values
+        dateInput.setText(record.date)
+        personInput.setText(record.person)
+        typeDropdown.setText(record.type, false)
+        amountUsdtInput.setText(record.amountUsdt.toString())
+        amountCashInput.setText(record.amountCash.toString())
+
+        // Set up button actions
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnSave.setOnClickListener {
+            if (validateAndSaveUsdt(record, dateInput, personInput, typeDropdown,
+                    amountUsdtInput, amountCashInput)) {
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun validateAndSaveUsdt(
+        record: USDT,
+        dateInput: TextInputEditText,
+        personInput: TextInputEditText,
+        typeDropdown: MaterialAutoCompleteTextView,
+        amountUsdtInput: TextInputEditText,
+        amountCashInput: TextInputEditText
+    ): Boolean {
+        // Get values
+        val date = dateInput.text.toString()
+        val person = personInput.text.toString()
+        val type = typeDropdown.text.toString()
+        val amountUsdtStr = amountUsdtInput.text.toString().replace(",", "")
+        val amountCashStr = amountCashInput.text.toString().replace(",", "")
+
+        // Validate inputs
+        if (date.isEmpty() || person.isEmpty() || type.isEmpty() ||
+            amountUsdtStr.isEmpty() || amountCashStr.isEmpty()) {
+            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        try {
+            // Parse values
+            val amountUsdt = amountUsdtStr.toDouble()
+            val amountCash = amountCashStr.toDouble()
+
+            // Create updated record
+            val updatedRecord = USDT(
+                id = record.id,
+                date = date,
+                person = person,
+                amountUsdt = amountUsdt,
+                amountCash = amountCash,
+                type = type
+            )
+
+            // Save to database
+            lifecycleScope.launch(Dispatchers.IO) {
+                appDao.insertUsdt(updatedRecord)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
+                    loadTableData() // Refresh data
+                }
+            }
+            return true
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
+            return false
+        }
     }
 
     private fun setupDatePicker(dateInput: TextInputEditText) {
