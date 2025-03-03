@@ -24,6 +24,7 @@ viewpager2 = "1.1.0"
 roomRuntime = "2.6.1"
 roomKtx = "2.6.1"
 adapters = "8.8.2"
+uiAndroid = "1.7.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref ="roomRuntime"}
 adapters = { group = "com.android.databinding", name = "adapters", version.ref = "adapters" }
 opencsv-opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsvVersion" }
+androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", version.ref = "uiAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

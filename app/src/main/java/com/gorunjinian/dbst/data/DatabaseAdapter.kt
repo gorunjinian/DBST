@@ -21,8 +21,11 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
     // Track the entity type to use for column name mapping
     private var entityType: String = ""
 
-    // Long press callback to notify the host fragment
     var onRecordLongClickListener: ((Any) -> Unit)? = null
+
+    // Add this to DatabaseAdapter class
+    var onRecordClickListener: ((Any) -> Unit)? = null
+
 
     @SuppressLint("NotifyDataSetChanged")
     fun updateData(data: List<Any>) {
@@ -60,6 +63,12 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         val formatter = NumberFormat.getNumberInstance(Locale.US)
         // Clear any previous dynamic views
         holder.rowContainer.removeAllViews()
+
+        // In onBindViewHolder of DatabaseAdapter
+        holder.itemView.setOnClickListener {
+            onRecordClickListener?.invoke(dataList[position])
+        }
+
 
         val item = dataList[position]
 

@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.adapters)
     implementation(libs.opencsv.opencsv)
+    implementation(libs.androidx.ui.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

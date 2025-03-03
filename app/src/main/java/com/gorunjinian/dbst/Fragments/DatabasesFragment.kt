@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst.fragments
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.text.InputType
@@ -21,14 +22,17 @@ import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.KProperty1
 import kotlinx.coroutines.withContext
 import kotlin.reflect.full.memberProperties
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
+import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 
 
 class DatabasesFragment : Fragment() {
@@ -122,6 +126,11 @@ class DatabasesFragment : Fragment() {
         // Set long-press deletion callback
         adapter.onRecordLongClickListener = { record ->
             showDeleteConfirmationDialog(record)
+        }
+
+        // Add click listener to show details
+        adapter.onRecordClickListener = { record ->
+            showRecordDetailsDialog(record)
         }
 
         // Load Table Names
@@ -409,6 +418,280 @@ class DatabasesFragment : Fragment() {
         columnSelector.post {
             columnSelector.dismissDropDown()
         }
+    }
+
+    private fun showRecordDetailsDialog(record: Any) {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_record_details)
+
+        // Apply rounded background
+        val background = ContextCompat.getDrawable(requireContext(), R.drawable.rounded_popup)
+        dialog.window?.setBackgroundDrawable(background)
+
+        // Set dialog width
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        // Initialize views
+        val detailsContainer = dialog.findViewById<LinearLayout>(R.id.details_container)
+        val btnClose = dialog.findViewById<MaterialButton>(R.id.btn_close)
+        val btnEdit = dialog.findViewById<MaterialButton>(R.id.btn_edit)
+
+        // Populate details
+        populateRecordDetails(detailsContainer, record)
+
+        // Set button click listeners
+        btnClose.setOnClickListener { dialog.dismiss() }
+        btnEdit.setOnClickListener {
+            dialog.dismiss()
+            showEditRecordDialog(record)
+        }
+
+        dialog.show()
+    }
+
+    private fun populateRecordDetails(container: LinearLayout, record: Any) {
+        container.removeAllViews()
+
+        // Get properties using reflection with proper casting
+        @Suppress("UNCHECKED_CAST")
+        val props = record::class.memberProperties.toList() as List<KProperty1<Any, *>>
+
+        // Sort properties in desired order
+        val priorityOrder = listOf(
+            "id", "date", "person",
+            "amount", "amountExpensed", "amountExchanged", "amountUsdt", "amountCash",
+            "rate", "sellrate",
+            "type", "validity",
+            "totalLBP", "exchangedLBP", "profit", "total"
+        )
+
+        val sortedProps = props.sortedBy { prop ->
+            val index = priorityOrder.indexOf(prop.name)
+            if (index >= 0) index else Int.MAX_VALUE
+        }
+
+        // Create layout for each property
+        sortedProps.forEach { prop ->
+            val fieldName = prop.name
+            // This line now works with the proper casting
+            val fieldValue = prop.get(record)?.toString() ?: ""
+
+            // Get display name for the field
+            val displayName = when (record) {
+                is DBT -> when (fieldName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amount" -> "Amount"
+                    "rate" -> "Rate"
+                    "type" -> "Type"
+                    "totalLBP" -> "Total LBP"
+                    else -> fieldName.replaceFirstChar { it.uppercase() }
+                }
+                is DST -> when (fieldName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amountExpensed" -> "Amount Expensed"
+                    "amountExchanged" -> "Amount Exchanged"
+                    "rate" -> "Rate"
+                    "type" -> "Type"
+                    "exchangedLBP" -> "Exchanged LBP"
+                    else -> fieldName.replaceFirstChar { it.uppercase() }
+                }
+                // Add cases for other entity types
+                else -> fieldName.replaceFirstChar { it.uppercase() }
+            }
+
+            // Create field layout
+            val fieldLayout = layoutInflater.inflate(R.layout.item_record_field, container, false)
+            val labelView = fieldLayout.findViewById<TextView>(R.id.field_label)
+            val valueView = fieldLayout.findViewById<TextView>(R.id.field_value)
+
+            labelView.text = displayName
+            valueView.text = fieldValue
+
+            container.addView(fieldLayout)
+        }
+    }
+
+    private fun showEditRecordDialog(record: Any) {
+        // Determine record type and show appropriate edit dialog
+        when (record) {
+            is DBT -> showEditIncomeDialog(record)
+            is DST -> showEditExpenseDialog(record)
+//            is VBSTIN -> showEditVbstInDialog(record)
+//            is VBSTOUT -> showEditVbstOutDialog(record)
+//            is USDT -> showEditUsdtDialog(record)
+            else -> Toast.makeText(requireContext(), "Editing not supported for this record type", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showEditExpenseDialog(record: DST) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_expense, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setTitle("Edit Expense Record")
+            .create()
+
+        // Initialize input fields
+        val dateInput = dialogView.findViewById<TextInputEditText>(R.id.edit_date)
+        val personInput = dialogView.findViewById<TextInputEditText>(R.id.edit_person)
+        val amountExpensedInput = dialogView.findViewById<TextInputEditText>(R.id.edit_amount_expensed)
+        val amountExchangedInput = dialogView.findViewById<TextInputEditText>(R.id.edit_amount_exchanged)
+        val rateInput = dialogView.findViewById<TextInputEditText>(R.id.edit_rate)
+        val typeInput = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.edit_type)
+
+        formatNumberWithCommas(amountExpensedInput)
+        formatNumberWithCommas(amountExchangedInput)
+        formatNumberWithCommas(rateInput)
+
+        // Set up type dropdown
+        val typeAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            listOf("FOOD", "GROCERIES", "EXCHANGE", "WELLBEING", "BANK TOPUP", "TECH", "DEBT", "OTHER")
+        )
+        typeInput.setAdapter(typeAdapter)
+
+        // Fill fields with record data
+        dateInput.setText(record.date)
+        personInput.setText(record.person)
+        amountExpensedInput.setText(record.amountExpensed.toString())
+        amountExchangedInput.setText(record.amountExchanged.toString())
+        rateInput.setText(record.rate.toString())
+        typeInput.setText(record.type, false)
+
+        // Set up buttons
+        val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
+        val btnSave = dialogView.findViewById<Button>(R.id.btn_save)
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnSave.setOnClickListener {
+            // Validate inputs
+            val date = dateInput.text.toString()
+            val person = personInput.text.toString()
+            val amountExpensedText = amountExpensedInput.text.toString()
+            val amountExchangedText = amountExchangedInput.text.toString()
+            val rateText = rateInput.text.toString()
+            val type = typeInput.text.toString()
+
+            if (date.isEmpty() || person.isEmpty() || amountExpensedText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+                Toast.makeText(requireContext(), "Please fill in all required fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val amountExpensed = amountExpensedText.toDoubleOrNull() ?: 0.0
+            val amountExchanged = amountExchangedText.toDoubleOrNull() ?: 0.0
+            val rate = rateText.toDoubleOrNull() ?: 0.0
+            val exchangedLBP = amountExchanged * rate
+
+            // Create updated record
+            val updatedRecord = record.copy(
+                date = date,
+                person = person,
+                amountExpensed = amountExpensed,
+                amountExchanged = amountExchanged,
+                rate = rate,
+                type = type,
+                exchangedLBP = exchangedLBP
+            )
+
+            // Save to database
+            lifecycleScope.launch(Dispatchers.IO) {
+                appDao.insertExpense(updatedRecord)
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Expense record updated", Toast.LENGTH_SHORT).show()
+                    loadTableData() // Refresh the data
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showEditIncomeDialog(record: DBT) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_income, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setTitle("Edit Income Record")
+            .create()
+
+        // Initialize input fields
+        val dateInput = dialogView.findViewById<TextInputEditText>(R.id.edit_date)
+        val personInput = dialogView.findViewById<TextInputEditText>(R.id.edit_person)
+        val amountInput = dialogView.findViewById<TextInputEditText>(R.id.edit_amount)
+        val rateInput = dialogView.findViewById<TextInputEditText>(R.id.edit_rate)
+        val typeInput = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.edit_type)
+
+        formatNumberWithCommas(amountInput)
+        formatNumberWithCommas(rateInput)
+
+        // Set up type dropdown
+        val typeAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            listOf("Income", "Buy", "Return", "Profit", "Validity", "Loan", "Gift", "Other", "N/A")
+        )
+        typeInput.setAdapter(typeAdapter)
+
+        // Fill fields with record data
+        dateInput.setText(record.date)
+        personInput.setText(record.person)
+        amountInput.setText(record.amount.toString())
+        rateInput.setText(record.rate.toString())
+        typeInput.setText(record.type, false)
+
+        // Set up buttons
+        val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
+        val btnSave = dialogView.findViewById<Button>(R.id.btn_save)
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnSave.setOnClickListener {
+            // Validate inputs
+            val date = dateInput.text.toString()
+            val person = personInput.text.toString()
+            val amountText = amountInput.text.toString()
+            val rateText = rateInput.text.toString()
+            val type = typeInput.text.toString()
+
+            if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+                Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val amount = amountText.toDoubleOrNull() ?: 0.0
+            val rate = rateText.toDoubleOrNull() ?: 0.0
+            val totalLBP = amount * rate
+
+            // Create updated record
+            val updatedRecord = record.copy(
+                date = date,
+                person = person,
+                amount = amount,
+                rate = rate,
+                type = type,
+                totalLBP = totalLBP
+            )
+
+            // Save to database
+            lifecycleScope.launch(Dispatchers.IO) {
+                appDao.insertIncome(updatedRecord)
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Record updated", Toast.LENGTH_SHORT).show()
+                    loadTableData() // Refresh the data
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.show()
     }
 
     private fun loadTableData() {
