@@ -6,13 +6,19 @@ import android.text.TextWatcher
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.textfield.TextInputEditText
+import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.data.DatabaseInitializer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.text.NumberFormat
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 class MyApplication : Application() {
 
     var isAppInBackground = true
     private var lastPausedTime: Long = 0
+    private val applicationScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -21,6 +27,16 @@ class MyApplication : Application() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         if (prefs.getBoolean("dynamic_theming", false)) {
             DynamicColors.applyToActivitiesIfAvailable(this)
+        }
+
+        // Initialize the database with CSV data
+        initializeDatabase()
+    }
+
+    private fun initializeDatabase() {
+        applicationScope.launch {
+            val database = AppDatabase.getDatabase(applicationContext)
+            DatabaseInitializer.initializeDbIfNeeded(applicationContext, database)
         }
     }
 

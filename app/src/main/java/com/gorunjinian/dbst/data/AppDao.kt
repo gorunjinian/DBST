@@ -16,13 +16,13 @@ interface AppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExpense(entry: DST): Long
 
-    // Get All Income Entries (Sorted by Date Descending)
-    @Query("SELECT * FROM DBT ORDER BY date DESC")
-    fun getAllIncome(): List<DBT>  // Removed `suspend`, since Room handles it in a background thread.
+    // Get All Income Entries (Sorted by id Descending)
+    @Query("SELECT * FROM DBT ORDER BY id DESC")
+    fun getAllIncome(): List<DBT>
 
     // Get All Expense Entries (Sorted by Date Descending)
-    @Query("SELECT * FROM DST ORDER BY date DESC")
-    fun getAllExpense(): List<DST>  // Removed `suspend`
+    @Query("SELECT * FROM DST ORDER BY id DESC")
+    fun getAllExpense(): List<DST>
 
     // Dynamically get all table names in the database
     @RawQuery
@@ -43,6 +43,14 @@ interface AppDao {
     // Delete All Expense Entries
     @Query("DELETE FROM DST")
     suspend fun deleteAllExpense()
+
+    // Get the maximum ID in the DBT table
+    @Query("SELECT MAX(id) FROM DBT")
+    suspend fun getMaxDbtId(): Int
+
+    // Reset sequence to continue from a specific value
+    @Query("UPDATE sqlite_sequence SET seq = :maxId WHERE name = 'DBT'")
+    suspend fun resetDbtSequenceTo(maxId: Int)
 
 
     // VBSTIN Queries

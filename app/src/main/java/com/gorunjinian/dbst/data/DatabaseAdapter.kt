@@ -1,7 +1,6 @@
 package com.gorunjinian.dbst.data
 
 import android.annotation.SuppressLint
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -54,43 +53,100 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         return ViewHolder(view)
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18s")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val context = holder.itemView.context
         val formatter = NumberFormat.getNumberInstance(Locale.US)
         // Clear any previous dynamic views
         holder.rowContainer.removeAllViews()
 
+        val item = dataList[position]
+
+        // Get properties using reflection
         @Suppress("UNCHECKED_CAST")
-        val props = dataList[position]::class.memberProperties.toList() as List<KProperty1<Any, *>>
-        props.forEach { prop: KProperty1<Any, *> ->
-            val textValue = when (val value = prop.get(dataList[position])) {
-                is Number -> formatter.format(value)
-                else -> value?.toString() ?: ""
-            }
-            val textView = TextView(context).apply {
-                text = textValue
-                gravity = Gravity.CENTER
-                // Reduce text size to fit single line
-                textSize = 12f  // Smaller text size
-                maxLines = 1  // Ensure single line
-                ellipsize = TextUtils.TruncateAt.END  // Add ellipsis if too long
-                layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-                ).apply {
-                    marginStart = 4
-                    marginEnd = 4
+        val memberProps = item::class.memberProperties.toList() as List<KProperty1<Any, *>>
+
+        // Convert to a map of property names to values
+        val propMap = mutableMapOf<String, Any?>()
+        memberProps.forEach { prop ->
+            propMap[prop.name] = prop.get(item)
+        }
+
+        // Define column order (same as in fragment)
+        val priorityOrder = listOf(
+            "id", "date", "person",
+            "amount", "amountExpensed", "amountExchanged", "amountUsdt", "amountCash",
+            "rate", "sellrate",
+            "type", "validity",
+            "totalLBP", "exchangedLBP", "profit", "total"
+        )
+
+        // Create text views for each property in the correct order
+        priorityOrder.forEach { propName ->
+            if (propMap.containsKey(propName)) {
+                val value = propMap[propName]
+                val textValue = when (value) {
+                    is Number -> formatter.format(value)
+                    else -> value?.toString() ?: ""
                 }
+
+                val textView = TextView(context).apply {
+                    text = textValue
+                    gravity = Gravity.CENTER
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                    ).apply {
+                        marginStart = 4
+                        marginEnd = 4
+                    }
+                }
+                holder.rowContainer.addView(textView)
             }
-            holder.rowContainer.addView(textView)
         }
 
         // Set long press listener to notify the host fragment about this record
         holder.itemView.setOnLongClickListener {
             onRecordLongClickListener?.invoke(dataList[position])
             true
+        }
+    }
+
+    // Add this function to sort properties in the desired order
+    private fun sortProperties(props: List<KProperty1<Any, *>>): List<KProperty1<Any, *>> {
+        // Define column ordering priority
+        val priorityOrder = listOf(
+            "id",      // Keep ID first for reference
+            "date",    // Date second
+            "person",  // Person third
+
+            // Amount variations - add all possible amount-related field names
+            "amount",
+            "amountExpensed",
+            "amountExchanged",
+            "amountUsdt",
+            "amountCash",
+
+            // Rate variations
+            "rate",
+            "sellrate",
+
+            // Type usually comes after amounts
+            "type",
+            "validity",
+
+            // Calculated fields usually come last
+            "totalLBP",
+            "exchangedLBP",
+            "profit",
+            "total"
+        )
+
+        return props.sortedBy { prop ->
+            val index = priorityOrder.indexOf(prop.name)
+            // If property name is in our priority list, use its index, otherwise put it at the end
+            if (index >= 0) index else Int.MAX_VALUE
         }
     }
 

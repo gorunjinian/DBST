@@ -171,80 +171,65 @@ class DatabasesFragment : Fragment() {
 
     private fun updateColumnHeaders(records: List<Any>) {
         columnHeaderLayout.removeAllViews()
-        columnNames = emptyList()
 
-        if (records.isNotEmpty()) {
-            val firstRecord = records.first()
+        if (records.isEmpty()) {
+            columnNames = emptyList()
+            return
+        }
 
-            // Determine entity type
-            val entityType = firstRecord.javaClass.simpleName
+        // Get the properties from the first record
+        val firstRecord = records.first()
+        val props = firstRecord::class.memberProperties.map { it.name }
 
-            // Use reflection to obtain property names from the first record
-            val props = firstRecord::class.memberProperties.toList()
-            columnNames = props.map { it.name }
+        // Define the desired column order (same as we used for the data)
+        val priorityOrder = listOf(
+            "id",      // Keep ID first for reference
+            "date",    // Date second
+            "person",  // Person third
 
-            props.forEach { prop ->
-                // Use the custom mapping for header text
-                val headerText = when (entityType) {
-                    "DBT" -> when (prop.name) {
-                        "date" -> "Date"
-                        "person" -> "Person"
-                        "amount" -> "Amount"
-                        "rate" -> "Rate"
-                        "type" -> "Type"
-                        "totalLBP" -> "Tot LBP"
-                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                    }
-                    "DST" -> when (prop.name) {
-                        "date" -> "Date"
-                        "person" -> "Person"
-                        "amountExpensed" -> "Expd"
-                        "amountExchanged" -> "Exch"
-                        "rate" -> "Rate"
-                        "type" -> "Type"
-                        "exchangedLBP" -> "Tot LBP"
-                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                    }
-                    "VBSTIN" -> when (prop.name) {
-                        "date" -> "Date"
-                        "person" -> "Person"
-                        "type" -> "Type"
-                        "validity" -> "Validity"
-                        "amount" -> "Amount"
-                        "total" -> "Total"
-                        "rate" -> "Rate"
-                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                    }
-                    "VBSTOUT" -> when (prop.name) {
-                        "date" -> "Date"
-                        "person" -> "Person"
-                        "amount" -> "Amount $"
-                        "sellrate" -> "Sell R"
-                        "type" -> "Type"
-                        "profit" -> "Profit"
-                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                    }
-                    "USDT" -> when (prop.name) {
-                        "date" -> "Date"
-                        "person" -> "Person"
-                        "amountUsdt" -> "USDT"
-                        "amountCash" -> "Cash"
-                        "type" -> "Type"
-                        else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                    }
-                    else -> prop.name.replaceFirstChar { it.uppercaseChar() }
-                }
+            // Amount variations
+            "amount",
+            "amountExpensed",
+            "amountExchanged",
+            "amountUsdt",
+            "amountCash",
 
-                val textView = TextView(requireContext()).apply {
-                    text = headerText
-                    textSize = 14f
-                    setTextColor(resources.getColor(R.color.white, requireContext().theme))
-                    setPadding(8, 8, 8, 8)
-                    layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
-                    gravity = Gravity.CENTER
-                }
-                columnHeaderLayout.addView(textView)
+            // Rate variations
+            "rate",
+            "sellrate",
+
+            // Type usually comes after amounts
+            "type",
+            "validity",
+
+            // Calculated fields usually come last
+            "totalLBP",
+            "exchangedLBP",
+            "profit",
+            "total"
+        )
+
+        // Sort the property names based on the priority order
+        val sortedProps = props.sortedBy { propName ->
+            val index = priorityOrder.indexOf(propName)
+            if (index >= 0) index else Int.MAX_VALUE
+        }
+
+        // Store the sorted column names for search functionality
+        columnNames = sortedProps
+
+        // Create and add header views in the sorted order
+        sortedProps.forEach { propName ->
+            val headerText = propName.replaceFirstChar { it.uppercaseChar() }
+            val textView = TextView(requireContext()).apply {
+                text = headerText
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.white, requireContext().theme))
+                setPadding(8, 8, 8, 8)
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
+                gravity = Gravity.CENTER
             }
+            columnHeaderLayout.addView(textView)
         }
     }
 
