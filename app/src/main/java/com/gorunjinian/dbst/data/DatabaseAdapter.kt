@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst.data
 
 import android.annotation.SuppressLint
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -98,9 +99,11 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         1f
                     ).apply {
-                        marginStart = 4
-                        marginEnd = 4
+                        marginStart = 2
+                        marginEnd = 2
                     }
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
                 }
                 holder.rowContainer.addView(textView)
             }
@@ -113,46 +116,10 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         }
     }
 
-    // Add this function to sort properties in the desired order
-    private fun sortProperties(props: List<KProperty1<Any, *>>): List<KProperty1<Any, *>> {
-        // Define column ordering priority
-        val priorityOrder = listOf(
-            "id",      // Keep ID first for reference
-            "date",    // Date second
-            "person",  // Person third
-
-            // Amount variations - add all possible amount-related field names
-            "amount",
-            "amountExpensed",
-            "amountExchanged",
-            "amountUsdt",
-            "amountCash",
-
-            // Rate variations
-            "rate",
-            "sellrate",
-
-            // Type usually comes after amounts
-            "type",
-            "validity",
-
-            // Calculated fields usually come last
-            "totalLBP",
-            "exchangedLBP",
-            "profit",
-            "total"
-        )
-
-        return props.sortedBy { prop ->
-            val index = priorityOrder.indexOf(prop.name)
-            // If property name is in our priority list, use its index, otherwise put it at the end
-            if (index >= 0) index else Int.MAX_VALUE
-        }
-    }
 
     override fun getItemCount(): Int = dataList.size
 
-    // Helper function to get the display name for a property
+
     fun getDisplayNameForProperty(propertyName: String): String {
         return when (entityType) {
             "DBT" -> when (propertyName) {
@@ -161,7 +128,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
                 "amount" -> "Amount"
                 "rate" -> "Rate"
                 "type" -> "Type"
-                "totalLBP" -> "Tot LBP"
+                "totalLBP" -> "Tot"
                 else -> propertyName.replaceFirstChar { it.uppercase() }
             }
             "DST" -> when (propertyName) {

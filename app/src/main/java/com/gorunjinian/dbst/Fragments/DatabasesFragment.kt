@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.text.InputType
+import android.text.TextUtils
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -218,9 +219,69 @@ class DatabasesFragment : Fragment() {
         // Store the sorted column names for search functionality
         columnNames = sortedProps
 
+        // Get entity type for display name mapping
+        val entityType = when {
+            records.first() is DBT -> "DBT"
+            records.first() is DST -> "DST"
+            records.first() is VBSTIN -> "VBSTIN"
+            records.first() is VBSTOUT -> "VBSTOUT"
+            records.first() is USDT -> "USDT"
+            else -> ""
+        }
+
         // Create and add header views in the sorted order
         sortedProps.forEach { propName ->
-            val headerText = propName.replaceFirstChar { it.uppercaseChar() }
+            // Get friendly display name based on entity type and property name
+            val headerText = when (entityType) {
+                "DBT" -> when (propName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amount" -> "Amount"
+                    "rate" -> "Rate"
+                    "type" -> "Type"
+                    "totalLBP" -> "Tot LBP"
+                    else -> propName.replaceFirstChar { it.uppercaseChar() }
+                }
+                "DST" -> when (propName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amountExpensed" -> "Expd"
+                    "amountExchanged" -> "Exch"
+                    "rate" -> "Rate"
+                    "type" -> "Type"
+                    "exchangedLBP" -> "Tot LBP"
+                    else -> propName.replaceFirstChar { it.uppercaseChar() }
+                }
+                "VBSTIN" -> when (propName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "type" -> "Type"
+                    "validity" -> "Validity"
+                    "amount" -> "Amount"
+                    "total" -> "Total"
+                    "rate" -> "Rate"
+                    else -> propName.replaceFirstChar { it.uppercaseChar() }
+                }
+                "VBSTOUT" -> when (propName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amount" -> "Amount $"
+                    "sellrate" -> "Sell R"
+                    "type" -> "Type"
+                    "profit" -> "Profit"
+                    else -> propName.replaceFirstChar { it.uppercaseChar() }
+                }
+                "USDT" -> when (propName) {
+                    "date" -> "Date"
+                    "person" -> "Person"
+                    "amountUsdt" -> "USDT"
+                    "amountCash" -> "Cash"
+                    "type" -> "Type"
+                    else -> propName.replaceFirstChar { it.uppercaseChar() }
+                }
+                else -> propName.replaceFirstChar { it.uppercaseChar() }
+            }
+
             val textView = TextView(requireContext()).apply {
                 text = headerText
                 textSize = 14f
@@ -228,6 +289,8 @@ class DatabasesFragment : Fragment() {
                 setPadding(8, 8, 8, 8)
                 layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
                 gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
             }
             columnHeaderLayout.addView(textView)
         }
