@@ -37,4 +37,5 @@
     <string name="person_hint">Person</string>
     <string name="paid_by_wish">Paid by wish?</string>
     <string name="validity_hint">Validity</string>
+    <string name="amount_hint">Amount</string>
 </resources>

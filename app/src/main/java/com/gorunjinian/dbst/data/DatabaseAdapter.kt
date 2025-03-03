@@ -94,8 +94,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         // Create text views for each property in the correct order
         priorityOrder.forEach { propName ->
             if (propMap.containsKey(propName)) {
-                val value = propMap[propName]
-                val textValue = when (value) {
+                val textValue = when (val value = propMap[propName]) {
                     is Number -> formatter.format(value)
                     else -> value?.toString() ?: ""
                 }
