@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         updateFabColor()
 
         // Set up FAB using the FabManager
-        FabManager.setupFab(fab, viewPager, this)
+        FabManager.setupFab(fab, this)
 
         // Setup ViewPager and BottomNavigationView
         val adapter = MainPagerAdapter(this)

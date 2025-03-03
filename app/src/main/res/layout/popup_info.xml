@@ -1,273 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/rounded_popup"
+    android:orientation="vertical"
     android:clipToPadding="false"
-    android:overScrollMode="never"
     android:paddingStart="16dp"
     android:paddingTop="24dp"
     android:paddingEnd="16dp"
     android:paddingBottom="24dp">
 
+    <!-- ViewPager2 for horizontal page scrolling -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Space between ViewPager and buttons -->
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <!-- Button Container -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:clipToPadding="false">
 
-        <!-- Title -->
-        <TextView
+        <!-- Save Button with elevation -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_popup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Cash Counter"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
+            android:text="Save"
+            android:textColor="@android:color/white"
+            app:icon="@drawable/tick"
+            app:iconGravity="textStart"
+            app:cornerRadius="28dp"
+            android:paddingVertical="12dp"
+            android:elevation="2dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#4CAF50"/>
 
-        <!-- Material Card for Denominations -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Close Button with outline style -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/close_popup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardBackgroundColor="?attr/colorSurface"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingTop="20dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="20dp">
-
-
-
-                <!-- First Row: $1, $2, $5 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:layout_marginBottom="16dp">
-
-                    <!-- $1 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:hint="$1"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- $2 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:hint="$2"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- $5 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:hint="$5"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_5"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
-
-                <!-- Second Row: $10, $20, $50 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:layout_marginBottom="16dp">
-
-                    <!-- $10 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:hint="$10"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_10"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- $20 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:hint="$20"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_20"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- $50 Bill Input -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:hint="$50"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_50"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
-
-                <!-- Third Row: $100 (Centered under $20 field) -->
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp">
-
-                    <!-- $100 Bill Input (Fixed width to match $20 field) -->
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:minWidth="120dp"
-                        android:hint="$100"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_100"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="number"
-                            android:textAlignment="center"/>
-                    </com.google.android.material.textfield.TextInputLayout>
-                </FrameLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?android:attr/listDivider"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="16dp"/>
-
-                <!-- Total Amount Display in separate card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    android:layout_marginBottom="8dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Total Amount"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnPrimaryContainer"/>
-
-                        <TextView
-                            android:id="@+id/total_amount"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="$0"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textColor="?attr/colorOnPrimaryContainer"
-                            android:textStyle="bold"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Button Container -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:clipToPadding="false">
-
-            <!-- Save Button with elevation -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/save_popup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Save"
-                android:textColor="@android:color/white"
-                app:icon="@drawable/tick"
-                app:iconGravity="textStart"
-                app:cornerRadius="28dp"
-                android:paddingVertical="12dp"
-                android:elevation="2dp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#4CAF50"/>
-
-            <!-- Close Button with outline style -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/close_popup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/close_button_text"
-                app:cornerRadius="28dp"
-                android:paddingVertical="12dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                app:strokeColor="#F44336"
-                android:textColor="#F44336"
-                app:icon="@drawable/clear"
-                app:iconTint="#F44336"
-                app:iconGravity="textStart"/>
-        </LinearLayout>
+            android:text="@string/close_button_text"
+            app:cornerRadius="28dp"
+            android:paddingVertical="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="#F44336"
+            android:textColor="#F44336"
+            app:icon="@drawable/clear"
+            app:iconTint="#F44336"
+            app:iconGravity="textStart"/>
     </LinearLayout>
-</ScrollView>
+</LinearLayout>

@@ -7,7 +7,6 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.data.AppDatabase
-import com.gorunjinian.dbst.data.DatabaseInitializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.text.NumberFormat

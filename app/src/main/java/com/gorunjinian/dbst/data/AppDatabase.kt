@@ -12,7 +12,7 @@ import androidx.room.RoomDatabase
         VBSTIN::class,
         VBSTOUT::class,
         USDT::class],
-        version = 9, exportSchema = false)
+        version = 10, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao
