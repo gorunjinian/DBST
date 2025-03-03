@@ -409,15 +409,6 @@ class DatabasesFragment : Fragment() {
             if (index >= 0) index else Int.MAX_VALUE
         }
 
-        // Get entity type for the adapter
-        val entityType = when (record) {
-            is DBT -> "DBT"
-            is DST -> "DST"
-            is VBSTIN -> "VBSTIN"
-            is VBSTOUT -> "VBSTOUT"
-            is USDT -> "USDT"
-            else -> ""
-        }
 
         // Use adapter to get display names
         val tempAdapter = DatabaseAdapter().apply {
@@ -1141,10 +1132,10 @@ class DatabasesFragment : Fragment() {
                         appDao.getAllUsdt()
                     } catch (e: Exception) {
                         Log.e("DatabasesFragment", "Error loading USDT data: ${e.message}")
-                        emptyList<Any>()
+                        emptyList()
                     }
                 }
-                else -> emptyList<Any>()
+                else -> emptyList()
             }
 
             // Store all records for filtering
@@ -1248,7 +1239,7 @@ class DatabasesFragment : Fragment() {
                         }
                     }
                 }
-                else -> emptyList<Any>()
+                else -> emptyList()
             }
 
             withContext(Dispatchers.Main) {
