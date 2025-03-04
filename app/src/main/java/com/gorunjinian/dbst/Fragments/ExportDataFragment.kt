@@ -233,14 +233,28 @@ class ExportDataFragment : Fragment() {
                     withContext(Dispatchers.IO) {
                         fileWriter.append("\"${entry.date}\",")
                     }
-                    fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
-                    fileWriter.append("${entry.amountExpensed},")
-                    fileWriter.append("${entry.amountExchanged},")
-                    fileWriter.append("${entry.rate},")
-                    fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
-                    fileWriter.append("${entry.exchangedLBP}\n")
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amountExpensed},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amountExchanged},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.rate},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.exchangedLBP}\n")
+                    }
                 }
-                fileWriter.append("\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("\n")
+                }
             }
 
             // Export VBSTIN data if selected
@@ -249,57 +263,117 @@ class ExportDataFragment : Fragment() {
                 withContext(Dispatchers.IO) {
                     fileWriter.append("=== VALIDITY IN DATA (VBSTIN) ===\n")
                 }
-                fileWriter.append("ID,Date,Person,Type,Validity,Amount,Total,Rate\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("ID,Date,Person,Type,Validity,Amount,Total,Rate\n")
+                }
 
                 for (entry in vbstInEntries) {
-                    fileWriter.append("${entry.id},")
-                    fileWriter.append("\"${entry.date}\",")
-                    fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
-                    fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
-                    fileWriter.append("\"${entry.validity}\",")
-                    fileWriter.append("${entry.amount},")
-                    fileWriter.append("${entry.total},")
-                    fileWriter.append("${entry.rate}\n")
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.id},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.date}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.validity}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amount},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.total},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.rate}\n")
+                    }
                 }
-                fileWriter.append("\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("\n")
+                }
             }
 
             // Export VBSTOUT data if selected
             if (checkboxValidityOut.isChecked) {
                 val vbstOutEntries = appDao.getAllVbstOut()
-                fileWriter.append("=== VALIDITY OUT DATA (VBSTOUT) ===\n")
-                fileWriter.append("ID,Date,Person,Amount,SellRate,Type,Profit\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("=== VALIDITY OUT DATA (VBSTOUT) ===\n")
+                }
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("ID,Date,Person,Amount,SellRate,Type,Profit\n")
+                }
 
                 for (entry in vbstOutEntries) {
-                    fileWriter.append("${entry.id},")
-                    fileWriter.append("\"${entry.date}\",")
-                    fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
-                    fileWriter.append("${entry.amount},")
-                    fileWriter.append("${entry.sellrate},")
-                    fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
-                    fileWriter.append("${entry.profit}\n")
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.id},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.date}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amount},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.sellrate},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.profit}\n")
+                    }
                 }
-                fileWriter.append("\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("\n")
+                }
             }
 
             // Export USDT data if selected
             if (checkboxUsdt.isChecked) {
                 val usdtEntries = appDao.getAllUsdt()
-                fileWriter.append("=== USDT DATA ===\n")
-                fileWriter.append("ID,Date,Person,AmountUsdt,AmountCash,Type\n")
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("=== USDT DATA ===\n")
+                }
+                withContext(Dispatchers.IO) {
+                    fileWriter.append("ID,Date,Person,AmountUsdt,AmountCash,Type\n")
+                }
 
                 for (entry in usdtEntries) {
-                    fileWriter.append("${entry.id},")
-                    fileWriter.append("\"${entry.date}\",")
-                    fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
-                    fileWriter.append("${entry.amountUsdt},")
-                    fileWriter.append("${entry.amountCash},")
-                    fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\"\n")
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.id},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.date}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.person.replace("\"", "\"\"")}\",")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amountUsdt},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("${entry.amountCash},")
+                    }
+                    withContext(Dispatchers.IO) {
+                        fileWriter.append("\"${entry.type.replace("\"", "\"\"")}\"\n")
+                    }
                 }
             }
 
-            fileWriter.flush()
-            fileWriter.close()
+            withContext(Dispatchers.IO) {
+                fileWriter.flush()
+            }
+            withContext(Dispatchers.IO) {
+                fileWriter.close()
+            }
         } catch (e: Exception) {
             Log.e("ExportDataFragment", "CSV Export error: ${e.message}", e)
             throw e
@@ -415,16 +489,22 @@ class ExportDataFragment : Fragment() {
             val summaryJson = calculateFinancialSummary()
             rootJson.put("financial_summary", summaryJson)
 
-            fileWriter.write(rootJson.toString(4))  // Pretty print with 4-space indentation
-            fileWriter.flush()
-            fileWriter.close()
+            withContext(Dispatchers.IO) {
+                fileWriter.write(rootJson.toString(4))
+            }  // Pretty print with 4-space indentation
+            withContext(Dispatchers.IO) {
+                fileWriter.flush()
+            }
+            withContext(Dispatchers.IO) {
+                fileWriter.close()
+            }
         } catch (e: Exception) {
             Log.e("ExportDataFragment", "JSON Export error: ${e.message}", e)
             throw e
         }
     }
 
-    private suspend fun calculateFinancialSummary(): JSONObject {
+    private fun calculateFinancialSummary(): JSONObject {
         val summaryJson = JSONObject()
 
         // Total Income
