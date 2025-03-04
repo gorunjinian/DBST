@@ -136,7 +136,7 @@
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Wish Payment Checkbox -->
+            <!-- Whish Payment Checkbox -->
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/whish_payment_switch"
                 android:layout_width="match_parent"
