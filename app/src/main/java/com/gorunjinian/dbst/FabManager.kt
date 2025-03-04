@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -17,9 +16,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-// Tab indicators removed per user request
 
-@SuppressLint("StaticFieldLeak")
+@SuppressLint("StaticFieldLeak", "DefaultLocale", "SetTextI18n")
 object FabManager {
 
     private lateinit var inputFields: List<EditText>
@@ -34,7 +32,6 @@ object FabManager {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showPopup(context: Context) {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
@@ -49,7 +46,7 @@ object FabManager {
         dialog.window?.setDimAmount(0.8f) // Add dim effect to background
 
         // Set up ViewPager and TabLayout
-        setupPager(dialog, context)
+        setupPager(dialog)
 
         // Set up the Save and Close buttons
         val saveButton: Button = dialog.findViewById(R.id.save_popup)
@@ -69,7 +66,7 @@ object FabManager {
         dialog.show()
     }
 
-    private fun setupPager(dialog: Dialog, context: Context) {
+    private fun setupPager(dialog: Dialog) {
         // Initialize ViewPager2
         viewPager = dialog.findViewById(R.id.view_pager)
 
@@ -88,17 +85,17 @@ object FabManager {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 when (position) {
-                    0 -> initCashCounterPage(dialog)
-                    1 -> initAssetManagementPage(dialog)
+                    0 -> initCashCounterPage()
+                    1 -> initAssetManagementPage()
                 }
             }
         })
 
         // Initialize the first page
-        initCashCounterPage(dialog)
+        initCashCounterPage()
     }
 
-    private fun initCashCounterPage(dialog: Dialog) {
+    private fun initCashCounterPage() {
         // Find the root view of the cash counter page
         val cashCounterView = findViewPagerChildAt(0)
 
@@ -131,7 +128,7 @@ object FabManager {
         }
     }
 
-    private fun initAssetManagementPage(dialog: Dialog) {
+    private fun initAssetManagementPage() {
         // Find the root view of the asset management page
         val assetManagementView = findViewPagerChildAt(1)
 
@@ -142,7 +139,6 @@ object FabManager {
         }
     }
 
-    @SuppressLint("DefaultLocale", "SetTextI18n")
     private fun updateTotal(values: List<Int>) {
         var total = 0
         inputFields.forEachIndexed { index, editText ->
@@ -158,9 +154,7 @@ object FabManager {
         totalAmountEditText.text = "$" + String.format("%,d", total) // Format with commas
     }
 
-    /**
-     * Helper method to find child views inside ViewPager2
-     */
+     //Helper method to find child views inside ViewPager2
     private fun findViewPagerChildAt(position: Int): View? {
         if (position < 0 || !::viewPager.isInitialized) return null
 

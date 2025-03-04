@@ -158,5 +158,7 @@ class MyApplication : Application() {
         }
 
         fun clearInputFields() {}
+
+        private fun setupDatePicker() {}
     }
 }
