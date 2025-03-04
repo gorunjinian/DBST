@@ -41,8 +41,9 @@ import java.util.*
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-@SuppressLint("ClickableViewAccessibility","SetTextI18s",
-            "SetTextI18p", "SetTextI18n", "DefaultLocale")
+@SuppressLint(
+    "ClickableViewAccessibility","SetTextI18s", "SetTextI18p", "SetTextI18n", "DefaultLocale"
+)
 class DatabasesFragment : Fragment() {
 
     // ViewModels
