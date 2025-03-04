@@ -48,7 +48,7 @@
         android:layout_marginTop="16dp"
         android:hint="Enter search term"
         app:endIconMode="clear_text"
-        app:startIconDrawable="@drawable/search"
+        app:startIconDrawable="@drawable/ic_search"
         app:layout_constraintTop_toBottomOf="@id/column_selector_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

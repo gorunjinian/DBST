@@ -5,24 +5,24 @@
     <item
         android:id="@+id/nav_databases"
         android:title="@string/databases_fragment_toolbar_title"
-        android:icon="@drawable/database"
+        android:icon="@drawable/ic_database"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_yearly_view"
         android:title="@string/yearlyview_fragment_toolbar_title"
-        android:icon="@drawable/dashboard"
+        android:icon="@drawable/ic_dashboard"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_export_data"
         android:title="@string/exportdata_fragment_toolbar_title"
-        android:icon="@drawable/fileexport"
+        android:icon="@drawable/ic_fileexport"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/nav_settings"
         android:title="@string/settings_activity_toolbar_title"
-        android:icon="@drawable/settings"
+        android:icon="@drawable/ic_settings"
         app:showAsAction="never" />
 </menu>

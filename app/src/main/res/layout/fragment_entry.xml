@@ -31,7 +31,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:backgroundTint="?attr/colorPrimary"
-                    app:icon="@drawable/undo"
+                    app:icon="@drawable/ic_undo"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
                     app:cornerRadius="24dp"
@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:backgroundTint="?attr/colorPrimary"
-                    app:icon="@drawable/clear"
+                    app:icon="@drawable/ic_clear"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
                     app:cornerRadius="24dp"
@@ -199,7 +199,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="Income"
-                    app:icon="@drawable/arrowdown"
+                    app:icon="@drawable/ic_arrowdown"
                     app:iconGravity="textStart"
                     android:layout_marginEnd="8dp"/>
                 <com.google.android.material.button.MaterialButton
@@ -208,7 +208,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="@string/expense_button_text"
-                    app:icon="@drawable/arrowup"
+                    app:icon="@drawable/ic_arrowup"
                     app:iconGravity="textStart"/>
             </LinearLayout>
 
@@ -218,7 +218,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/save_button_text"
-                app:icon="@drawable/tick"
+                app:icon="@drawable/ic_tick"
                 app:iconGravity="textEnd"
                 android:layout_marginTop="16dp"
                 android:layout_gravity="center"/>

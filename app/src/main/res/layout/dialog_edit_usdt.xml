@@ -75,6 +75,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
             android:focusable="false"
             android:clickable="true" />
     </com.google.android.material.textfield.TextInputLayout>

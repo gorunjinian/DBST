@@ -133,7 +133,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/currency"
+                                android:src="@drawable/ic_currency"
                                 app:tint="#FFFFFF" />
                         </com.google.android.material.card.MaterialCardView>
 
@@ -169,7 +169,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/arrowup"
+                                android:src="@drawable/ic_arrowup"
                                 app:tint="#FFFFFF" />
                         </com.google.android.material.card.MaterialCardView>
 
@@ -205,7 +205,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/fileexport"
+                                android:src="@drawable/ic_fileexport"
                                 app:tint="#FFFFFF" />
                         </com.google.android.material.card.MaterialCardView>
 
@@ -241,7 +241,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
-                                android:src="@drawable/dashboard"
+                                android:src="@drawable/ic_dashboard"
                                 app:tint="#FFFFFF" />
                         </com.google.android.material.card.MaterialCardView>
 

@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:text="Save"
             android:textColor="@android:color/white"
-            app:icon="@drawable/tick"
+            app:icon="@drawable/ic_tick"
             app:iconGravity="textStart"
             app:cornerRadius="28dp"
             android:paddingVertical="12dp"
@@ -56,7 +56,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             app:strokeColor="#F44336"
             android:textColor="#F44336"
-            app:icon="@drawable/clear"
+            app:icon="@drawable/ic_clear"
             app:iconTint="#F44336"
             app:iconGravity="textStart"/>
     </LinearLayout>

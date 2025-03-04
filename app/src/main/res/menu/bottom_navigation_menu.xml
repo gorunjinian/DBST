@@ -3,22 +3,22 @@
     tools:ignore="MenuTitle">
     <item
         android:id="@+id/entryFragment"
-        android:icon="@drawable/save"
+        android:icon="@drawable/ic_save"
         android:title="@string/entry_fragment_nav_title" />
 
     <item
         android:id="@+id/validityFragment"
-        android:icon="@drawable/validity"
+        android:icon="@drawable/ic_validity"
         android:title="@string/validity_fragment_nav_title" />
 
     <item
         android:id="@+id/tetherFragment"
-        android:icon="@drawable/currency"
+        android:icon="@drawable/ic_currency"
         android:title="@string/usdt_fragment_nav_title" />
 
     <item
         android:id="@+id/infoFragment"
-        android:icon="@drawable/dashboard"
+        android:icon="@drawable/ic_dashboard"
         android:title="@string/Info_fragment_nav_title" />
 
 </menu>

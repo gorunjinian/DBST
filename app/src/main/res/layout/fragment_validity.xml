@@ -30,7 +30,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:backgroundTint="?attr/colorPrimary"
-                    app:icon="@drawable/undo"
+                    app:icon="@drawable/ic_undo"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
                     app:cornerRadius="24dp"
@@ -60,7 +60,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:backgroundTint="?attr/colorPrimary"
-                    app:icon="@drawable/clear"
+                    app:icon="@drawable/ic_clear"
                     app:iconSize="24dp"
                     app:iconGravity="textStart"
                     app:cornerRadius="24dp"
@@ -214,7 +214,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="IN"
-                    app:icon="@drawable/arrowcircledown"
+                    app:icon="@drawable/ic_arrowcircledown"
                     app:iconGravity="textEnd"
                     android:layout_marginEnd="8dp"/>
                 <com.google.android.material.button.MaterialButton
@@ -223,7 +223,7 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="OUT"
-                    app:icon="@drawable/arrowcircleup"
+                    app:icon="@drawable/ic_arrowcircleup"
                     app:iconGravity="textEnd"/>
             </LinearLayout>
 
@@ -233,7 +233,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Save"
-                app:icon="@drawable/tick"
+                app:icon="@drawable/ic_tick"
                 app:iconGravity="textEnd"
                 android:layout_marginTop="16dp"
                 android:layout_gravity="center"/>
