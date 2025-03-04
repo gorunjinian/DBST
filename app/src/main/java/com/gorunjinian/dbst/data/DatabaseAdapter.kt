@@ -15,6 +15,8 @@ import java.util.Locale
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
+
+@SuppressLint("NotifyDataSetChanged", "SetTextI18s")
 class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
 
     private var dataList: List<Any> = emptyList()
@@ -27,7 +29,6 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
     var onRecordClickListener: ((Any) -> Unit)? = null
 
 
-    @SuppressLint("NotifyDataSetChanged")
     fun updateData(data: List<Any>) {
         dataList = data
 
@@ -57,7 +58,7 @@ class DatabaseAdapter : RecyclerView.Adapter<DatabaseAdapter.ViewHolder>() {
         return ViewHolder(view)
     }
 
-    @SuppressLint("SetTextI18s")
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val context = holder.itemView.context
         val formatter = NumberFormat.getNumberInstance(Locale.US)

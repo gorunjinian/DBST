@@ -7,12 +7,12 @@ class AppRepository(private val appDao: AppDao) {
     // all table names getter
     suspend fun getAllTableNames(query: SupportSQLiteQuery): List<String> = appDao.getAllTableNames(query)
 
-    // Income queries
+    // DBT queries
     suspend fun insertIncome(entry: DBT) = appDao.insertIncome(entry)
     fun getAllIncome(): List<DBT> = appDao.getAllIncome()
     suspend fun deleteIncome(id: Int) = appDao.deleteIncome(id)
 
-    // Expense queries
+    // DST queries
     suspend fun insertExpense(entry: DST) = appDao.insertExpense(entry)
     fun getAllExpense(): List<DST> = appDao.getAllExpense()
     suspend fun deleteExpense(id: Int) = appDao.deleteExpense(id)

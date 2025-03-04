@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+@SuppressLint("SetTextI18p", "SetTextI18n")
 class TetherFragment : Fragment() {
 
     private lateinit var dateInput: TextInputEditText
@@ -215,7 +216,6 @@ class TetherFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18p", "SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()
@@ -243,7 +243,6 @@ class TetherFragment : Fragment() {
         }.start()
     }
 
-    @SuppressLint("SetTextI18p", "SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds

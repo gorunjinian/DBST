@@ -30,6 +30,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+@SuppressLint("SetTextI18s", "SetTextI18n")
 class ValidityFragment : Fragment() {
 
     private lateinit var dateInput: TextInputEditText
@@ -290,7 +291,6 @@ class ValidityFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
@@ -343,7 +343,6 @@ class ValidityFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18s", "SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()
