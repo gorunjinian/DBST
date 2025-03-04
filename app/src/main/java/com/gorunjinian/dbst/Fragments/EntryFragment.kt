@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+@SuppressLint("SetTextI18n")
 class EntryFragment : Fragment() {
 
     //inputs
@@ -157,7 +158,6 @@ class EntryFragment : Fragment() {
         "FOOD", "GROCERIES", "EXCHANGE","WHISH TOPUP", "WELLBEING",
         "BANK TOPUP", "TECH", "DEBT", "OTHER")
 
-
     private fun resetButtonStyles() {
         incomeButton.strokeWidth = 0
         expenseButton.strokeWidth = 0
@@ -254,7 +254,6 @@ class EntryFragment : Fragment() {
 
     }
 
-    @SuppressLint("SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
@@ -309,7 +308,6 @@ class EntryFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()

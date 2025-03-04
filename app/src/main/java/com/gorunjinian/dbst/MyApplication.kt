@@ -156,5 +156,7 @@ class MyApplication : Application() {
 
             return (currentTime - lastAuthenticatedTime) > fingerprintDelayMillis
         }
+
+        fun clearInputFields() {}
     }
 }
