@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
@@ -21,6 +22,8 @@ import com.google.android.material.textfield.TextInputLayout
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
+import com.gorunjinian.dbst.viewmodels.ValidityViewModel
+import com.gorunjinian.dbst.viewmodels.ViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,9 +48,9 @@ class ValidityFragment : Fragment() {
     private lateinit var totalLayout: TextInputLayout
     private lateinit var rateLayout: TextInputLayout
 
-    // Database components
-    private lateinit var database: AppDatabase
-    private lateinit var appDao: AppDao
+    // ViewModel components
+    private lateinit var viewModel: ValidityViewModel
+    private lateinit var repository: AppRepository
 
     // Undo tracking variables
     private var undoCountDownTimer: CountDownTimer? = null
@@ -84,10 +87,26 @@ class ValidityFragment : Fragment() {
         totalLayout = view.findViewById(R.id.total_layout)
         rateLayout = view.findViewById(R.id.rate_layout)
 
+        // Initialize Repository and ViewModel
+        val database = AppDatabase.getDatabase(requireContext())
+        val appDao = database.appDao()
+        repository = AppRepository(appDao)
+        viewModel = ViewModelProvider(this, ViewModelFactory(repository))[ValidityViewModel::class.java]
 
-        // Initialize Database and DAO
-        database = AppDatabase.getDatabase(requireContext())
-        appDao = database.appDao()
+        // Observe LiveData from ViewModel
+        viewModel.lastInsertedVbstIn.observe(viewLifecycleOwner) { entry ->
+            lastEntry = entry
+            lastEntryType = "credit_in"
+            lastEntryTime = System.currentTimeMillis()
+            startUndoCountdown()
+        }
+
+        viewModel.lastInsertedVbstOut.observe(viewLifecycleOwner) { entry ->
+            lastEntry = entry
+            lastEntryType = "credit_out"
+            lastEntryTime = System.currentTimeMillis()
+            startUndoCountdown()
+        }
 
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(totalInput)
@@ -236,7 +255,7 @@ class ValidityFragment : Fragment() {
         // Parse numerical values
         val amount = amountStr.replace(",", "").toDouble()
         if (creditInButton.strokeWidth > 0) {
-            // Save record into VBSTIN table.
+            // Save record into VBSTIN table using ViewModel
             val total = totalStr.replace(",", "").toDouble()
             // VBSTIN computes rate automatically as total/amount.
             val vbstin = VBSTIN(
@@ -247,21 +266,13 @@ class ValidityFragment : Fragment() {
                 amount = amount,
                 total = total
             )
-            lifecycleScope.launch {
-                val newId = appDao.insertVbstIn(vbstin)
-                val savedVbstin = vbstin.copy(id = newId.toInt())
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Credit IN entry saved", Toast.LENGTH_SHORT).show()
-                    clearInputFields()
-                }
-                // Track the last entry for undo
-                lastEntryTime = System.currentTimeMillis()
-                lastEntryType = "credit_in"
-                lastEntry = savedVbstin
-                startUndoCountdown()
-            }
+
+            viewModel.insertVbstIn(vbstin)
+            Toast.makeText(requireContext(), "Credit IN entry saved", Toast.LENGTH_SHORT).show()
+            clearInputFields()
+
         } else if (creditOutButton.strokeWidth > 0) {
-            // Save record into VBSTOUT table.
+            // Save record into VBSTOUT table using ViewModel
             val sellrate = rateStr.replace(",", "").toDouble()
             val profit = 0.0 // Set profit to 0.0 or compute as needed
             val vbstout = VBSTOUT(
@@ -272,19 +283,10 @@ class ValidityFragment : Fragment() {
                 type = type,
                 profit = profit
             )
-            lifecycleScope.launch {
-                val newId = appDao.insertVbstOut(vbstout)
-                val savedVbstout = vbstout.copy(id = newId.toInt())
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Credit OUT entry saved", Toast.LENGTH_SHORT).show()
-                    clearInputFields()
-                }
-                // Track the last entry for undo
-                lastEntryTime = System.currentTimeMillis()
-                lastEntryType = "credit_out"
-                lastEntry = savedVbstout
-                startUndoCountdown()
-            }
+
+            viewModel.insertVbstOut(vbstout)
+            Toast.makeText(requireContext(), "Credit OUT entry saved", Toast.LENGTH_SHORT).show()
+            clearInputFields()
         }
     }
 
@@ -302,7 +304,7 @@ class ValidityFragment : Fragment() {
                 when (lastEntryType) {
                     "credit_in" -> {
                         (lastEntry as? VBSTIN)?.let { vbstin ->
-                            appDao.deleteVbstIn(vbstin.id)
+                            viewModel.deleteVbstIn(vbstin)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit IN
                                 selectCreditType(isCreditIn = true)
@@ -317,7 +319,7 @@ class ValidityFragment : Fragment() {
                     }
                     "credit_out" -> {
                         (lastEntry as? VBSTOUT)?.let { vbstout ->
-                            appDao.deleteVbstOut(vbstout.id)
+                            viewModel.deleteVbstOut(vbstout)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit OUT
                                 selectCreditType(isCreditIn = false)
@@ -341,7 +343,7 @@ class ValidityFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18s", "SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()

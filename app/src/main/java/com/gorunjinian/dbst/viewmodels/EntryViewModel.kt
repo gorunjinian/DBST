@@ -4,6 +4,7 @@ import androidx.lifecycle.*
 import com.gorunjinian.dbst.data.DBT
 import com.gorunjinian.dbst.data.DST
 import com.gorunjinian.dbst.data.AppRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class EntryViewModel(private val repository: AppRepository) : ViewModel() {
@@ -14,49 +15,44 @@ class EntryViewModel(private val repository: AppRepository) : ViewModel() {
     private val _expenseEntries = MutableLiveData<List<DST>>()
     val expenseEntries: LiveData<List<DST>> get() = _expenseEntries
 
-    fun insertIncome(entry: DBT) = viewModelScope.launch {
-        repository.insertIncome(entry)
-        _incomeEntries.postValue(repository.getAllIncome())
+    fun insertIncome(entry: DBT) = viewModelScope.launch(Dispatchers.IO) {
+        val newId = repository.insertIncome(entry)
+        val savedEntry = entry.copy(id = newId.toInt())
+        _lastInsertedIncome.postValue(savedEntry)
+        loadIncome()
     }
 
-    fun insertExpense(entry: DST) = viewModelScope.launch {
-        repository.insertExpense(entry)
-        _expenseEntries.postValue(repository.getAllExpense())
+    fun insertExpense(entry: DST) = viewModelScope.launch(Dispatchers.IO) {
+        val newId = repository.insertExpense(entry)
+        val savedEntry = entry.copy(id = newId.toInt())
+        _lastInsertedExpense.postValue(savedEntry)
+        loadExpense()
     }
 
-    fun loadIncome() = viewModelScope.launch {
-        _incomeEntries.postValue(repository.getAllIncome())
+    fun loadIncome() = viewModelScope.launch(Dispatchers.IO) {
+        val incomeList = repository.getAllIncome()
+        _incomeEntries.postValue(incomeList)
     }
 
-    fun loadExpense() = viewModelScope.launch {
-        _expenseEntries.postValue(repository.getAllExpense())
+    fun loadExpense() = viewModelScope.launch(Dispatchers.IO) {
+        val expenseList = repository.getAllExpense()
+        _expenseEntries.postValue(expenseList)
     }
 
-    fun deleteIncome(entry: DBT) = viewModelScope.launch {
-        repository.deleteIncome(entry.id) // Pass only the ID
-        _incomeEntries.postValue(repository.getAllIncome())
+    fun deleteIncome(entry: DBT) = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteIncome(entry.id)
+        loadIncome()
     }
 
-    fun deleteExpense(entry: DST) = viewModelScope.launch {
-        repository.deleteExpense(entry.id) // Pass only the ID
-        _expenseEntries.postValue(repository.getAllExpense())
+    fun deleteExpense(entry: DST) = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteExpense(entry.id)
+        loadExpense()
     }
 
-    fun getTotalLBP(): LiveData<Double> {
-        val total = MutableLiveData<Double>()
-        viewModelScope.launch {
-            val incomeEntries = repository.getAllIncome()
-            total.postValue(incomeEntries.sumOf { it.totalLBP }) // Sum of all totalLBP values
-        }
-        return total
-    }
+    // Last inserted entries for undo functionality
+    private val _lastInsertedIncome = MutableLiveData<DBT>()
+    val lastInsertedIncome: LiveData<DBT> get() = _lastInsertedIncome
 
-    fun getTotalExchangedLBP(): LiveData<Double> {
-        val total = MutableLiveData<Double>()
-        viewModelScope.launch {
-            val expenseEntries = repository.getAllExpense()
-            total.postValue(expenseEntries.sumOf { it.exchangedLBP }) // Sum of exchangedLBP from all expenses
-        }
-        return total
-    }
+    private val _lastInsertedExpense = MutableLiveData<DST>()
+    val lastInsertedExpense: LiveData<DST> get() = _lastInsertedExpense
 }

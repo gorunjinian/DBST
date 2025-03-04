@@ -28,6 +28,7 @@ import com.gorunjinian.dbst.fragments.DatabasesFragment
 import com.gorunjinian.dbst.fragments.ExportDataFragment
 import com.gorunjinian.dbst.fragments.YearlyViewFragment
 import com.gorunjinian.dbst.FabManager
+import com.gorunjinian.dbst.MyApplication
 
 class MainActivity : AppCompatActivity() {
 
@@ -167,6 +168,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        val app = application as MyApplication
+        if (app.isReopenFromBackground()) {
+            app.showBiometricPromptIfNeeded(this) {
+                // This is called if authentication is cancelled or fails
+                // You might want to finish() the activity in some cases
+                finish()
+            }
+        }
+        app.isAppInBackground = false
 
         // Ensure viewPager is initialized before accessing it
         if (::viewPager.isInitialized) {

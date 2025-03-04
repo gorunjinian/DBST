@@ -9,13 +9,13 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextUtils
 import android.text.TextWatcher
-import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,6 +29,10 @@ import com.google.android.material.textfield.TextInputLayout
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
+import com.gorunjinian.dbst.viewmodels.EntryViewModel
+import com.gorunjinian.dbst.viewmodels.TetherViewModel
+import com.gorunjinian.dbst.viewmodels.ValidityViewModel
+import com.gorunjinian.dbst.viewmodels.ViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,10 +41,16 @@ import java.util.*
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
+@SuppressLint("ClickableViewAccessibility","SetTextI18s",
+            "SetTextI18p", "SetTextI18n", "DefaultLocale")
 class DatabasesFragment : Fragment() {
 
-    private lateinit var database: AppDatabase
-    private lateinit var appDao: AppDao
+    // ViewModels
+    private lateinit var entryViewModel: EntryViewModel
+    private lateinit var validityViewModel: ValidityViewModel
+    private lateinit var tetherViewModel: TetherViewModel
+    private lateinit var repository: AppRepository
+
     private lateinit var tableSpinner: MaterialAutoCompleteTextView
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: DatabaseAdapter
@@ -81,6 +91,7 @@ class DatabasesFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+
     @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
@@ -100,9 +111,15 @@ class DatabasesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Database and DAO
-        database = AppDatabase.getDatabase(requireContext())
-        appDao = database.appDao()
+        // Initialize Database, Repository and ViewModels
+        val database = AppDatabase.getDatabase(requireContext())
+        val appDao = database.appDao()
+        repository = AppRepository(appDao)
+
+        // Initialize ViewModels
+        entryViewModel = ViewModelProvider(this, ViewModelFactory(repository))[EntryViewModel::class.java]
+        validityViewModel = ViewModelProvider(this, ViewModelFactory(repository))[ValidityViewModel::class.java]
+        tetherViewModel = ViewModelProvider(this, ViewModelFactory(repository))[TetherViewModel::class.java]
 
         // UI Elements
         tableSpinner = view.findViewById(R.id.table_spinner)
@@ -146,7 +163,11 @@ class DatabasesFragment : Fragment() {
                         "AND name NOT LIKE 'sqlite_sequence' " +
                         "AND name NOT LIKE 'room_master_table'"
             )
+            // Use appDao directly just for this method
+            val database = AppDatabase.getDatabase(requireContext())
+            val appDao = database.appDao()
             availableTables = appDao.getAllTableNames(rawQuery)
+
             withContext(Dispatchers.Main) {
                 if (availableTables.isEmpty()) {
                     Toast.makeText(requireContext(), "No tables found!", Toast.LENGTH_SHORT).show()
@@ -230,7 +251,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun showSearchDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_search, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -295,7 +315,6 @@ class DatabasesFragment : Fragment() {
         dialog.show()
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun configureSearchDropdown(
         columnSelector: MaterialAutoCompleteTextView,
         dialog: AlertDialog
@@ -353,6 +372,76 @@ class DatabasesFragment : Fragment() {
             "VBSTOUT" -> listOf("id", "date", "person", "amount", "sellrate", "type", "profit")
             "USDT" -> listOf("id", "date", "person", "amountUsdt", "amountCash", "type")
             else -> emptyList()
+        }
+    }
+
+    private fun loadTableData() {
+        when (currentTable) {
+            "DBT" -> {
+                entryViewModel.loadIncome()
+                entryViewModel.incomeEntries.observe(viewLifecycleOwner) { records ->
+                    allRecords = records
+                    adapter.updateData(records)
+                    updateColumnHeaders(records)
+
+                    // Apply search filter if active
+                    if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                        performSearch(searchColumn!!, searchQuery!!)
+                    }
+                }
+            }
+            "DST" -> {
+                entryViewModel.loadExpense()
+                entryViewModel.expenseEntries.observe(viewLifecycleOwner) { records ->
+                    allRecords = records
+                    adapter.updateData(records)
+                    updateColumnHeaders(records)
+
+                    // Apply search filter if active
+                    if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                        performSearch(searchColumn!!, searchQuery!!)
+                    }
+                }
+            }
+            "VBSTIN" -> {
+                validityViewModel.loadVbstIn()
+                validityViewModel.vbstInEntries.observe(viewLifecycleOwner) { records ->
+                    allRecords = records
+                    adapter.updateData(records)
+                    updateColumnHeaders(records)
+
+                    // Apply search filter if active
+                    if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                        performSearch(searchColumn!!, searchQuery!!)
+                    }
+                }
+            }
+            "VBSTOUT" -> {
+                validityViewModel.loadVbstOut()
+                validityViewModel.vbstOutEntries.observe(viewLifecycleOwner) { records ->
+                    allRecords = records
+                    adapter.updateData(records)
+                    updateColumnHeaders(records)
+
+                    // Apply search filter if active
+                    if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                        performSearch(searchColumn!!, searchQuery!!)
+                    }
+                }
+            }
+            "USDT" -> {
+                tetherViewModel.loadUsdt()
+                tetherViewModel.usdtEntries.observe(viewLifecycleOwner) { records ->
+                    allRecords = records
+                    adapter.updateData(records)
+                    updateColumnHeaders(records)
+
+                    // Apply search filter if active
+                    if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
+                        performSearch(searchColumn!!, searchQuery!!)
+                    }
+                }
+            }
         }
     }
 
@@ -446,7 +535,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showEditIncomeDialog(record: DBT) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_income, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -534,14 +622,9 @@ class DatabasesFragment : Fragment() {
                 totalLBP = totalLBP
             )
 
-            // Save to database
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDao.insertIncome(updatedRecord)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Income record updated", Toast.LENGTH_SHORT).show()
-                    loadTableData()
-                }
-            }
+            // Save to database using ViewModel
+            entryViewModel.insertIncome(updatedRecord)
+            Toast.makeText(requireContext(), "Income record updated", Toast.LENGTH_SHORT).show()
             return true
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
@@ -549,7 +632,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showEditExpenseDialog(record: DST) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_edit_expense, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -647,14 +729,9 @@ class DatabasesFragment : Fragment() {
                 exchangedLBP = exchangedLBP
             )
 
-            // Save to database
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDao.insertExpense(updatedRecord)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Expense record updated", Toast.LENGTH_SHORT).show()
-                    loadTableData()
-                }
-            }
+            // Save to database using ViewModel
+            entryViewModel.insertExpense(updatedRecord)
+            Toast.makeText(requireContext(), "Expense record updated", Toast.LENGTH_SHORT).show()
             return true
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
@@ -662,7 +739,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18s", "SetTextI18n")
     private fun showEditVbstInDialog(record: VBSTIN) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_vbstin, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -784,14 +860,9 @@ class DatabasesFragment : Fragment() {
                 total = total
             )
 
-            // Save to database
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDao.insertVbstIn(updatedRecord)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
-                    loadTableData() // Refresh data
-                }
-            }
+            // Save to database using ViewModel
+            validityViewModel.insertVbstIn(updatedRecord)
+            Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
             return true
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
@@ -799,7 +870,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun showEditVbstOutDialog(record: VBSTOUT) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_vbstout, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -949,14 +1019,9 @@ class DatabasesFragment : Fragment() {
                 profit = profit
             )
 
-            // Save to database
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDao.insertVbstOut(updatedRecord)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
-                    loadTableData() // Refresh data
-                }
-            }
+            // Save to database using ViewModel
+            validityViewModel.insertVbstOut(updatedRecord)
+            Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
             return true
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
@@ -964,7 +1029,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun showEditUsdtDialog(record: USDT) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_usdt, null)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -1076,14 +1140,9 @@ class DatabasesFragment : Fragment() {
                 type = type
             )
 
-            // Save to database
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDao.insertUsdt(updatedRecord)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
-                    loadTableData() // Refresh data
-                }
-            }
+            // Save to database using ViewModel
+            tetherViewModel.insertUsdt(updatedRecord)
+            Toast.makeText(requireContext(), "Record updated successfully", Toast.LENGTH_SHORT).show()
             return true
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show()
@@ -1117,42 +1176,6 @@ class DatabasesFragment : Fragment() {
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
             ).show()
-        }
-    }
-
-    private fun loadTableData() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val records = when (currentTable) {
-                "DBT" -> appDao.getAllIncome()
-                "DST" -> appDao.getAllExpense()
-                "VBSTIN" -> appDao.getAllVbstIn()
-                "VBSTOUT" -> appDao.getAllVbstOut()
-                "USDT" -> {
-                    try {
-                        appDao.getAllUsdt()
-                    } catch (e: Exception) {
-                        Log.e("DatabasesFragment", "Error loading USDT data: ${e.message}")
-                        emptyList()
-                    }
-                }
-                else -> emptyList()
-            }
-
-            // Store all records for filtering
-            allRecords = records
-
-            withContext(Dispatchers.Main) {
-                // First update the adapter with the data to set the entity type
-                adapter.updateData(records)
-
-                // Now that the entity type is set, update column headers
-                updateColumnHeaders(records)
-
-                // Apply search filter if active
-                if (!searchQuery.isNullOrEmpty() && !searchColumn.isNullOrEmpty() && records.isNotEmpty()) {
-                    performSearch(searchColumn!!, searchQuery!!)
-                }
-            }
         }
     }
 
@@ -1260,7 +1283,6 @@ class DatabasesFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showDeleteConfirmationDialog(record: Any) {
         // Inflate custom dialog layout
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_delete_confirmation, null)
@@ -1308,63 +1330,17 @@ class DatabasesFragment : Fragment() {
 
     // Helper function to delete the record based on its type
     private fun deleteRecord(record: Any) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            when (record) {
-                is DBT -> {
-                    appDao.deleteIncome(record.id)
-                    // Only reset sequence if all records are deleted
-                    val remainingRecords = appDao.getAllIncome()
-                    if (remainingRecords.isEmpty()) {
-                        appDao.resetDbtSequence()
-                    }
-                }
-                is DST -> {
-                    appDao.deleteExpense(record.id)
-                    // Only reset sequence if all records are deleted
-                    val remainingRecords = appDao.getAllExpense()
-                    if (remainingRecords.isEmpty()) {
-                        appDao.resetDstSequence()
-                    }
-                }
-                is VBSTIN -> {
-                    appDao.deleteVbstIn(record.id)
-                    // Only reset sequence if all records are deleted
-                    val remainingRecords = appDao.getAllVbstIn()
-                    if (remainingRecords.isEmpty()) {
-                        appDao.resetVbstInSequence()
-                    }
-                }
-                is VBSTOUT -> {
-                    appDao.deleteVbstOut(record.id)
-                    // Only reset sequence if all records are deleted
-                    val remainingRecords = appDao.getAllVbstOut()
-                    if (remainingRecords.isEmpty()) {
-                        appDao.resetVbstOutSequence()
-                    }
-                }
-                is USDT -> {
-                    appDao.deleteUsdt(record.id)
-                    val remainingRecords = appDao.getAllUsdt()
-                    if (remainingRecords.isEmpty()) {
-                        appDao.resetUsdtSequence()
-                    }
-                }
-                else -> {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            requireContext(),
-                            "Unsupported record type",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    return@launch
-                }
-            }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
-                loadTableData() // Refresh data
+        when (record) {
+            is DBT -> entryViewModel.deleteIncome(record)
+            is DST -> entryViewModel.deleteExpense(record)
+            is VBSTIN -> validityViewModel.deleteVbstIn(record)
+            is VBSTOUT -> validityViewModel.deleteVbstOut(record)
+            is USDT -> tetherViewModel.deleteUsdt(record)
+            else -> {
+                Toast.makeText(requireContext(), "Unsupported record type", Toast.LENGTH_SHORT).show()
+                return
             }
         }
+        Toast.makeText(requireContext(), "Record deleted", Toast.LENGTH_SHORT).show()
     }
-
 }

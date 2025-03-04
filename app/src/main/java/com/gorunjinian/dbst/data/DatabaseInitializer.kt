@@ -1,8 +1,7 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.data
 
 import android.content.Context
 import android.util.Log
-import com.gorunjinian.dbst.data.*
 import com.opencsv.CSVReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

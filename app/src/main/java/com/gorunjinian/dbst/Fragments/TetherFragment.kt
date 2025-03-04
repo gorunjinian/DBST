@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager
 import com.google.android.material.materialswitch.MaterialSwitch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -18,6 +19,8 @@ import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.MyApplication.Companion.formatNumberWithCommas
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.data.*
+import com.gorunjinian.dbst.viewmodels.TetherViewModel
+import com.gorunjinian.dbst.viewmodels.ViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,9 +41,9 @@ class TetherFragment : Fragment() {
     private lateinit var undoButton: MaterialButton
     private lateinit var whishSwitch: MaterialSwitch
 
-    // Database components
-    private lateinit var database: AppDatabase
-
+    // ViewModel components
+    private lateinit var viewModel: TetherViewModel
+    private lateinit var repository: AppRepository
 
     // Undo tracking variables
     private var undoCountDownTimer: CountDownTimer? = null
@@ -57,8 +60,18 @@ class TetherFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Database
-        database = AppDatabase.getDatabase(requireContext())
+        // Initialize Repository and ViewModel
+        val database = AppDatabase.getDatabase(requireContext())
+        val appDao = database.appDao()
+        repository = AppRepository(appDao)
+        viewModel = ViewModelProvider(this, ViewModelFactory(repository))[TetherViewModel::class.java]
+
+        // Observe LiveData from ViewModel
+        viewModel.lastInsertedUsdt.observe(viewLifecycleOwner) { entry ->
+            lastEntry = entry
+            lastEntryTime = System.currentTimeMillis()
+            startUndoCountdown()
+        }
 
         // Initialize Views
         dateInput = view.findViewById(R.id.date_input)
@@ -154,48 +167,19 @@ class TetherFragment : Fragment() {
             type = selectedType
         )
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            // Save USDT transaction
-            val newId = database.appDao().insertUsdt(usdtEntry)
-            val savedUsdtEntry = usdtEntry.copy(id = newId.toInt())
+        // Check if wish payment switch is on
+        val isPaidByWhish = whishSwitch.isChecked
 
-            // Check if wish payment switch is on
-            val isPaidByWish = withContext(Dispatchers.Main) {
-                whishSwitch.isChecked
-            }
+        // Save using ViewModel
+        viewModel.insertUsdtWithWhishOption(usdtEntry, isPaidByWhish)
 
-            if (isPaidByWish) {
-                // Create corresponding expense entry
-                val expenseEntry = DST(
-                    date = date,
-                    person = person,
-                    amountExpensed = cashAmount,
-                    amountExchanged = 0.0,
-                    rate = 0.0, // Default rate
-                    type = "WHISH TOPUP"
-                )
-
-                // Insert expense entry
-                database.appDao().insertExpense(expenseEntry)
-            }
-
-            withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    requireContext(),
-                    "USDT Transaction Saved: $selectedType" +
-                            (if (isPaidByWish) " (WISH TOPUP)" else ""),
-                    Toast.LENGTH_SHORT
-                ).show()
-                clearInputFields()
-
-                // Track the last entry for undo
-                lastEntryTime = System.currentTimeMillis()
-                lastEntry = savedUsdtEntry
-
-                // Start the undo countdown
-                startUndoCountdown()
-            }
-        }
+        Toast.makeText(
+            requireContext(),
+            "USDT Transaction Saved: $selectedType" +
+                    (if (isPaidByWhish) " (WISH TOPUP)" else ""),
+            Toast.LENGTH_SHORT
+        ).show()
+        clearInputFields()
     }
 
     private fun setupKeyboardNavigation() {
@@ -231,7 +215,7 @@ class TetherFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18p", "SetTextI18n")
     private fun startUndoCountdown() {
         // Cancel any previous countdown
         undoCountDownTimer?.cancel()
@@ -259,7 +243,7 @@ class TetherFragment : Fragment() {
         }.start()
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18p", "SetTextI18n")
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
@@ -269,9 +253,10 @@ class TetherFragment : Fragment() {
             undoButton.text = "Undo"
             undoButton.isEnabled = false
 
-            lifecycleScope.launch(Dispatchers.IO) {
+            lifecycleScope.launch {
                 lastEntry?.let { usdtEntry ->
-                    database.appDao().deleteUsdt(usdtEntry.id)
+                    // Use ViewModel to delete
+                    viewModel.deleteUsdt(usdtEntry)
 
                     withContext(Dispatchers.Main) {
                         // Repopulate fields

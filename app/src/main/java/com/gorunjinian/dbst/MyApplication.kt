@@ -1,12 +1,16 @@
 package com.gorunjinian.dbst
 
 import android.app.Application
+import androidx.fragment.app.FragmentActivity
 import android.text.Editable
 import android.text.TextWatcher
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.data.DatabaseInitializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.text.NumberFormat
@@ -47,19 +51,46 @@ class MyApplication : Application() {
         return isAppInBackground
     }
 
-    fun shouldAuthenticate(): Boolean {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val isFingerprintEnabled = prefs.getBoolean("fingerprint_enabled", false)
-        val lastAuthenticatedTime = prefs.getLong("last_authenticated_time", 0)
-        val currentTime = System.currentTimeMillis()
-        val fingerprintDelay =
-            prefs.getInt("fingerprint_delay_value", 0) * 60 * 1000 // Convert minutes to ms
+    fun showBiometricPromptIfNeeded(activity: FragmentActivity, onCancelled: () -> Unit = {}) {
+        if (!shouldAuthenticate(this)) {
+            return
+        }
 
-        return isFingerprintEnabled && (currentTime - lastAuthenticatedTime > fingerprintDelay)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val executor = ContextCompat.getMainExecutor(this)
+
+        val biometricPrompt = BiometricPrompt(activity, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    prefs.edit().putLong("last_authenticated_time", System.currentTimeMillis())
+                        .apply()
+                    isAppInBackground = false
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    onCancelled()
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    onCancelled()
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Fingerprint Authentication")
+            .setSubtitle("Authenticate to access the app")
+            .setNegativeButtonText("Cancel")
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
     }
 
     companion object {
-         fun formatNumberWithCommas(editText: TextInputEditText) {
+
+        fun formatNumberWithCommas(editText: TextInputEditText) {
             editText.addTextChangedListener(object : TextWatcher {
                 private var current = ""
 
@@ -95,6 +126,35 @@ class MyApplication : Application() {
                     }
                 }
             })
+        }
+
+        fun shouldAuthenticate(myApplication: MyApplication): Boolean {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(myApplication)
+            val isFingerprintEnabled = prefs.getBoolean("fingerprint_enabled", false)
+
+            if (!isFingerprintEnabled) {
+                return false
+            }
+
+            // Only consider authentication when reopening from background
+            if (!myApplication.isReopenFromBackground()) {
+                return false
+            }
+
+            val lastAuthenticatedTime = prefs.getLong("last_authenticated_time", 0)
+            val currentTime = System.currentTimeMillis()
+            val fingerprintDelayIndex = prefs.getInt("fingerprint_delay_index", 0)
+
+            // If index is 0, it means "Everytime", so always authenticate when returning from background
+            if (fingerprintDelayIndex == 0) {
+                return true
+            }
+
+            // For time-based delays, check if enough time has passed since last authentication
+            val fingerprintDelayMinutes = fingerprintDelayIndex * 5 // Each index represents 5 minutes
+            val fingerprintDelayMillis = fingerprintDelayMinutes * 60 * 1000 // Convert to milliseconds
+
+            return (currentTime - lastAuthenticatedTime) > fingerprintDelayMillis
         }
     }
 }

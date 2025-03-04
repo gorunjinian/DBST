@@ -1,6 +1,11 @@
 package com.gorunjinian.dbst.data
 
+import androidx.sqlite.db.SupportSQLiteQuery
+
 class AppRepository(private val appDao: AppDao) {
+
+    // all table names getter
+    suspend fun getAllTableNames(query: SupportSQLiteQuery): List<String> = appDao.getAllTableNames(query)
 
     // Income queries
     suspend fun insertIncome(entry: DBT) = appDao.insertIncome(entry)

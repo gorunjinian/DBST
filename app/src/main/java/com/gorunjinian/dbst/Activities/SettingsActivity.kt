@@ -2,17 +2,11 @@ package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.res.Configuration
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -26,7 +20,6 @@ import kotlinx.coroutines.withContext
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var tableDeleteSpinner: Spinner
     private lateinit var deleteTableDataButton: Button
     private lateinit var appDao: AppDao
@@ -57,15 +50,12 @@ class SettingsActivity : AppCompatActivity() {
         // Load table names into spinner
         loadTableNames()
 
-        // Set up biometric authentication toggle
+        // Set up biometric authentication toggle - just update preferences
         fingerprintToggle.isChecked = prefs.getBoolean("fingerprint_enabled", false)
         setupDelaySpinner(delaySpinner, prefs)
 
         fingerprintToggle.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit().putBoolean("fingerprint_enabled", isChecked).apply()
-            if (isChecked) {
-                showBiometricPrompt()
-            }
         }
 
         val dynamicThemeToggle = findViewById<Switch>(R.id.dynamic_theme_toggle)
@@ -82,9 +72,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // Handle delete button click
-        deleteTableDataButton.setOnClickListener {
-            confirmAndDeleteTableData()
-        }
+        deleteTableDataButton.setOnClickListener { confirmAndDeleteTableData() }
     }
 
     override fun onResume() {
@@ -92,9 +80,13 @@ class SettingsActivity : AppCompatActivity() {
 
         val app = application as MyApplication
         if (app.isReopenFromBackground()) {
-            app.isAppInBackground = false
-            authenticateIfNeeded()
+            app.showBiometricPromptIfNeeded(this) {
+                // This is called if authentication is cancelled or fails
+                // You might want to finish() the activity in some cases
+                finish()
+            }
         }
+        app.isAppInBackground = false
     }
 
     override fun onPause() {
@@ -102,44 +94,6 @@ class SettingsActivity : AppCompatActivity() {
         val app = application as MyApplication
         app.isAppInBackground = true
         app.markPausedTime()
-    }
-
-    private fun authenticateIfNeeded() {
-        val app = application as MyApplication
-        if (app.shouldAuthenticate()) {
-            showBiometricPrompt()
-        }
-    }
-
-    private fun showBiometricPrompt() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val executor = ContextCompat.getMainExecutor(this)
-        biometricPrompt =
-            BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    prefs.edit().putLong("last_authenticated_time", System.currentTimeMillis())
-                        .apply()
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    finish()
-                }
-
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    finish()
-                }
-            })
-
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Fingerprint Authentication")
-            .setSubtitle("Authenticate to access settings")
-            .setNegativeButtonText("Cancel")
-            .build()
-
-        biometricPrompt.authenticate(promptInfo)
     }
 
     private fun setupDelaySpinner(spinner: Spinner, prefs: android.content.SharedPreferences) {
@@ -255,32 +209,4 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
     }
-
-    // Add this method to SettingsActivity.kt
-
-    private fun updateSystemBars() {
-        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
-
-        // Get the primary color from the current theme
-        val typedValue = TypedValue()
-        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
-        val primaryColor = typedValue.data
-
-        // Ensure window draws behind system bars
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // FORCE the status and navigation bar colors
-        window.statusBarColor = primaryColor
-        window.navigationBarColor = primaryColor
-
-        // Handle status bar icons based on theme (dark/light)
-        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = !isNightMode
-
-        // Handle navigation bar icons
-        windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
-    }
-
-// Call this in onCreate() and onResume() of SettingsActivity.kt
 }
