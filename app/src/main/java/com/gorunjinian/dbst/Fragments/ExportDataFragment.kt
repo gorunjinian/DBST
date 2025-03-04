@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
+@SuppressLint("SetTextI18n")
 class ExportDataFragment : Fragment() {
 
     // Database components
@@ -88,7 +90,6 @@ class ExportDataFragment : Fragment() {
         exportStatusText = view.findViewById(R.id.export_status_text)
     }
 
-    @SuppressLint("SetTextI18n")
     private fun exportData() {
         // Check if at least one checkbox is selected
         if (!checkboxIncome.isChecked && !checkboxExpense.isChecked &&
@@ -115,11 +116,10 @@ class ExportDataFragment : Fragment() {
                 val fileName = "DBST_Export_$timestamp.${if (radioCsv.isChecked) "csv" else "json"}"
 
                 // Get the directory for app-specific files
-                val exportDir =
-                    File(
-                        requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-                        "DBST_Exports"
-                    ).apply { mkdirs() }
+                val exportDir = File(
+                    requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                    "DBST_Exports"
+                ).apply { mkdirs() }
 
                 val exportFile = File(exportDir, fileName)
                 val fileWriter = FileWriter(exportFile)
@@ -152,6 +152,7 @@ class ExportDataFragment : Fragment() {
 
     private fun shareFile(file: File) {
         try {
+            // Get the FileProvider URI
             val uri = FileProvider.getUriForFile(
                 requireContext(),
                 "${requireContext().packageName}.fileprovider",
