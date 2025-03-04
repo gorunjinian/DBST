@@ -2,7 +2,6 @@
     <string name="app_name">DBST</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="type_hint">Type</string>
     <string name="amount_expensed_hint">Amount Expensed</string>
@@ -21,7 +20,7 @@
     <string name="import_csv_button">Import CSV</string>
     <string name="delete_table_data">Delete Table Data</string>
     <string name="select_table_to_clear">Select Table to Clear</string>
-    <string name="databases_titl_section">Databases</string>
+    <string name="databases_title_section">Databases</string>
     <string name="fingerprint_authentication_delay">Fingerprint Authentication Delay</string>
     <string name="enable_fingerprint_authentication">Enable Fingerprint Authentication</string>
     <string name="dynamic_theme">Dynamic Theme</string>
