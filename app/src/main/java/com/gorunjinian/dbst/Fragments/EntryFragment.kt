@@ -452,7 +452,7 @@ class EntryFragment : Fragment() {
                 typeDropdown.postDelayed({
                     typeDropdown.requestFocus()
                     typeDropdown.showDropDown()
-                }, 200)
+                }, 100)
 
                 true // consume the action
             } else {
