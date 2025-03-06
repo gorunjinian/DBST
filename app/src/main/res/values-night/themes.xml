@@ -10,14 +10,11 @@
 
         <!-- Force white text on primary surfaces for better visibility -->
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorOnPrimaryContainer">@android:color/white</item>
-        <item name="android:textColorPrimary">@android:color/white</item>
+
 
         <!-- FORCE black background in ALL Material components -->
         <item name="android:colorBackground">@color/black</item>
         <item name="colorSurface">@color/darkSurfaceColor</item>
-        <item name="colorOnBackground">@color/white</item>
-        <item name="colorOnSurface">@color/white</item>
 
         <!-- Override Material3 elevation overlays which add white tint -->
         <item name="elevationOverlayEnabled">false</item>

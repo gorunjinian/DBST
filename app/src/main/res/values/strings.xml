@@ -40,4 +40,5 @@
     <string name="app_version_text">DBST v1.0.0</string>
     <string name="select_delay_time_hint">Select delay time</string>
     <string name="search_string">Search</string>
+    <string name="light_mode">Light Mode</string>
 </resources>
