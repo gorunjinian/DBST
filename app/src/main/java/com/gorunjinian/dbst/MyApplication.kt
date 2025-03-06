@@ -17,6 +17,12 @@ import java.text.NumberFormat
 import java.util.Locale
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import android.app.Activity
+import android.os.Bundle
+import android.content.SharedPreferences
+import java.text.SimpleDateFormat
+import java.util.Calendar
+
 
 class MyApplication : Application() {
 
@@ -24,11 +30,47 @@ class MyApplication : Application() {
     private var lastPausedTime: Long = 0
     private val applicationScope = CoroutineScope(Dispatchers.Main)
 
+    // List to track currently active activities
+    private val activeActivities = mutableListOf<Activity>()
+
+    // SharedPreference listener to detect changes in dynamic theming
+    private val prefListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "dynamic_theming") {
+                // If dynamic theming is enabled, reapply dynamic colors
+                if (prefs.getBoolean("dynamic_theming", false)) {
+                    DynamicColors.applyToActivitiesIfAvailable(this)
+                }
+                // Recreate every active activity so the new theme is applied immediately
+                activeActivities.forEach { activity ->
+                    activity.recreate()
+                }
+            }
+        }
+
     override fun onCreate() {
         super.onCreate()
         applyDynamicThemingIfEnabled()
         initializeDatabase()
 
+        // Register the shared preference listener
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.registerOnSharedPreferenceChangeListener(prefListener)
+
+        // Track active activities via lifecycle callbacks
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                activeActivities.add(activity)
+            }
+            override fun onActivityDestroyed(activity: Activity) {
+                activeActivities.remove(activity)
+            }
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityResumed(activity: Activity) {}
+            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+        })
     }
 
     private fun applyDynamicThemingIfEnabled() {
@@ -160,8 +202,11 @@ class MyApplication : Application() {
             return (currentTime - lastAuthenticatedTime) > fingerprintDelayMillis
         }
 
-        fun clearInputFields() {}
+        fun setTodayDate(dateInput: TextInputEditText) {
+            val today = Calendar.getInstance()
+            val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            dateInput.setText(dateFormat.format(today.time))
+        }
 
-        private fun setupDatePicker() {}
     }
 }

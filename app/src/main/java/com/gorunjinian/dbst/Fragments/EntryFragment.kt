@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.content.edit
 
 @SuppressLint("SetTextI18n")
 class EntryFragment : Fragment() {
@@ -392,9 +393,9 @@ class EntryFragment : Fragment() {
 
         // Save selection in SharedPreferences
         val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
-        prefs.edit()
-            .putBoolean("is_expense_selected", isExpense)
-            .apply()
+        prefs.edit {
+            putBoolean("is_expense_selected", isExpense)
+        }
 
         // Restore last selected type (if exists)
         val lastSelectedType = prefs.getString(if (isExpense) "expense_type" else "income_type", "")
