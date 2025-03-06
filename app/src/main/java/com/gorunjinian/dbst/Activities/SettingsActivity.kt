@@ -10,6 +10,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -26,6 +27,7 @@ import kotlinx.coroutines.withContext
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var tableDeleteDropdown: MaterialAutoCompleteTextView
+    private lateinit var topAppBar: MaterialToolbar
     private lateinit var deleteTableDataButton: MaterialButton
     private lateinit var fingerprintToggle: MaterialSwitch
     private lateinit var dynamicThemeToggle: MaterialSwitch
@@ -41,10 +43,13 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+
+        // Set up the TopAppBar
+        topAppBar = findViewById(R.id.topAppBar)
+        setSupportActionBar(topAppBar)
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        toolbar.setNavigationOnClickListener { onBackPressed() }
+        topAppBar.setNavigationOnClickListener { onBackPressed() }
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
 

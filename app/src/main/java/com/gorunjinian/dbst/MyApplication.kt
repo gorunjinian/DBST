@@ -26,15 +26,16 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        applyDynamicThemingIfEnabled()
+        initializeDatabase()
 
-        // Apply dynamic theming if enabled
+    }
+
+    private fun applyDynamicThemingIfEnabled() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         if (prefs.getBoolean("dynamic_theming", false)) {
             DynamicColors.applyToActivitiesIfAvailable(this)
         }
-
-        // Initialize the database with CSV data
-        initializeDatabase()
     }
 
     private fun initializeDatabase() {
