@@ -5,8 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="?attr/colorSurface">
+    android:fitsSystemWindows="true">
 
     <!-- AppBarLayout with TopAppBar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -29,7 +28,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:layout_marginTop="?attr/actionBarSize"
         android:clipToPadding="false"
         android:padding="16dp">
 
