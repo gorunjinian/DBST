@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -21,6 +20,7 @@ import com.gorunjinian.dbst.data.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
 
 @SuppressLint("SetTextI18n","UseSwitchCompatOrMaterialCode")
@@ -31,6 +31,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var deleteTableDataButton: MaterialButton
     private lateinit var fingerprintToggle: MaterialSwitch
     private lateinit var dynamicThemeToggle: MaterialSwitch
+    private lateinit var validityTabToggle: MaterialSwitch
     private lateinit var fingerprintDelayDropdown: MaterialAutoCompleteTextView
     private lateinit var changeThemeButton: MaterialButton
     private lateinit var appInfoButton: MaterialButton
@@ -65,15 +66,21 @@ class SettingsActivity : AppCompatActivity() {
         setupDelayDropdown(prefs)
 
         fingerprintToggle.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("fingerprint_enabled", isChecked).apply()
+            prefs.edit { putBoolean("fingerprint_enabled", isChecked) }
         }
 
         // Set up dynamic theme toggle
         dynamicThemeToggle.isChecked = prefs.getBoolean("dynamic_theming", false)
         dynamicThemeToggle.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("dynamic_theming", isChecked).apply()
+            prefs.edit { putBoolean("dynamic_theming", isChecked) }
             restartActivity()
         }
+
+        validityTabToggle.isChecked = prefs.getBoolean("turn_off_validity_tab", false)
+        validityTabToggle.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit { putBoolean("turn_off_validity_tab", isChecked) }
+        }
+
 
         // Set up theme change button
         changeThemeButton.setOnClickListener {
@@ -102,6 +109,7 @@ class SettingsActivity : AppCompatActivity() {
         dynamicThemeToggle = findViewById(R.id.dynamic_theme_toggle)
         fingerprintDelayDropdown = findViewById(R.id.fingerprint_delay_dropdown)
         changeThemeButton = findViewById(R.id.change_theme_button)
+        validityTabToggle = findViewById(R.id.validity_tab_toggle)
 
         // New UI components in updated layout
         appInfoButton = findViewById(R.id.app_info_button)
@@ -140,12 +148,13 @@ class SettingsActivity : AppCompatActivity() {
         fingerprintDelayDropdown.setText(delayOptions[savedIndex], false)
 
         fingerprintDelayDropdown.setOnItemClickListener { _, _, position, _ ->
-            prefs.edit()
-                .putInt("fingerprint_delay_index", position)
-                .putInt(
-                    "fingerprint_delay_value",
-                    if (position == 0) 0 else position * 5
-                ).apply()
+            prefs.edit {
+                putInt("fingerprint_delay_index", position)
+                    .putInt(
+                        "fingerprint_delay_value",
+                        if (position == 0) 0 else position * 5
+                    )
+            }
         }
     }
 

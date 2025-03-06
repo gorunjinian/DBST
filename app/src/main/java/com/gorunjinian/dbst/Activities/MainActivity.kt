@@ -30,6 +30,7 @@ import com.gorunjinian.dbst.FabManager
 import com.gorunjinian.dbst.MyApplication
 import androidx.core.view.size
 import androidx.core.view.get
+import androidx.preference.PreferenceManager
 
 @SuppressLint("RestrictedApi")
 class MainActivity : AppCompatActivity() {
@@ -175,6 +176,11 @@ class MainActivity : AppCompatActivity() {
         // Update system bars and UI colors
         updateSystemBars()
         updateFabColor()
+
+        // hide the Validity tab button if preference is true
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val turnOffValidity = prefs.getBoolean("turn_off_validity_tab", false)
+        bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = !turnOffValidity
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
