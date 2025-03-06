@@ -64,12 +64,17 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/clear_button" />
 
-                <!-- Paid Checkbox (left-most) -->
+                <!-- Paid Checkbox (left-most) with increased size -->
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/paid_checkbox"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:text="Paid?"
+                    android:textSize="16sp"
+                    android:scaleX="1.2"
+                    android:scaleY="1.2"
+                    android:paddingStart="4dp"
+                    android:minWidth="80dp"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" />
