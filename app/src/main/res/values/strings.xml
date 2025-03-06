@@ -34,11 +34,12 @@
     <string name="close_button_text">Close</string>
     <string name="date_input_field">Date</string>
     <string name="person_hint">Person</string>
-    <string name="paid_by_wish">Paid by Whish?</string>
+    <string name="paid_by_wish">Paid By Whish</string>
     <string name="validity_hint">Validity</string>
     <string name="amount_hint">Amount</string>
     <string name="app_version_text">DBST v1.0.0</string>
     <string name="select_delay_time_hint">Select delay time</string>
     <string name="search_string">Search</string>
     <string name="light_mode">Light Mode</string>
+    <string name="paid">Paid?</string>
 </resources>
