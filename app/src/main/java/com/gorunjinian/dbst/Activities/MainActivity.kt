@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -14,12 +13,12 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.gorunjinian.dbst.R
@@ -33,7 +32,7 @@ import com.gorunjinian.dbst.MyApplication
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var toolbar: Toolbar
+    private lateinit var topAppBar: MaterialToolbar
     private lateinit var viewPager: ViewPager2
     private lateinit var fullScreenContainer: FrameLayout
     private lateinit var fab: FloatingActionButton
@@ -50,20 +49,18 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize views
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-        toolbar = findViewById(R.id.toolbar)
+        topAppBar = findViewById(R.id.topAppBar)
         viewPager = findViewById(R.id.viewPager)
         fullScreenContainer = findViewById(R.id.full_screen_container)
         fab = findViewById(R.id.fab_popup)
 
-        setSupportActionBar(toolbar)
+        // Set up the TopAppBar
+        setSupportActionBar(topAppBar)
 
         // Update system bars and icon colors
         updateSystemBars()
 
-        // Style the toolbar icons to match the title color
-        updateToolbarIconsColor()
-
-        // Set FAB color to match toolbar
+        // Update FAB color to match toolbar
         updateFabColor()
 
         // Set up FAB using the FabManager
@@ -88,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 bottomNavigationView.menu.getItem(position).isChecked = true
-                supportActionBar?.title = getToolbarTitle(position)
+                topAppBar.title = getToolbarTitle(position)
             }
         }.also {
             viewPager.registerOnPageChangeCallback(it)
@@ -108,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
                     // Restore toolbar title
                     if (::viewPager.isInitialized) {
-                        supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
+                        topAppBar.title = getToolbarTitle(viewPager.currentItem)
                     }
 
                     // Update system bars when returning from fragment
@@ -145,17 +142,6 @@ class MainActivity : AppCompatActivity() {
         windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
     }
 
-    private fun updateToolbarIconsColor() {
-        // Get the title text color (assuming it's colorOnPrimary from the theme)
-        val titleColor = ContextCompat.getColor(this, android.R.color.white)
-
-        // Apply the color to the overflow icon
-        toolbar.overflowIcon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
-
-        // Apply the color to the navigation icon (back button)
-        toolbar.navigationIcon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
-    }
-
     private fun updateFabColor() {
         // Get the toolbar color (colorPrimary)
         val typedValue = TypedValue()
@@ -173,7 +159,6 @@ class MainActivity : AppCompatActivity() {
         if (app.isReopenFromBackground()) {
             app.showBiometricPromptIfNeeded(this) {
                 // This is called if authentication is cancelled or fails
-                // You might want to finish() the activity in some cases
                 finish()
             }
         }
@@ -181,12 +166,11 @@ class MainActivity : AppCompatActivity() {
 
         // Ensure viewPager is initialized before accessing it
         if (::viewPager.isInitialized) {
-            supportActionBar?.title = getToolbarTitle(viewPager.currentItem)
+            topAppBar.title = getToolbarTitle(viewPager.currentItem)
         }
 
         // Update system bars and UI colors
         updateSystemBars()
-        updateToolbarIconsColor()
         updateFabColor()
     }
 
@@ -203,17 +187,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("RestrictedApi")
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         if (menu is androidx.appcompat.view.menu.MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
 
-        // Apply color to all menu items' icons
-        val titleColor = ContextCompat.getColor(this, android.R.color.white)
-        for (i in 0 until (menu?.size() ?: 0)) {
-            val item = menu?.getItem(i)
-            item?.icon?.setColorFilter(titleColor, PorterDuff.Mode.SRC_ATOP)
+        // Apply color to all menu items' icons - always use white for better visibility
+        val iconColor = ContextCompat.getColor(this, android.R.color.white)
+        for (i in 0 until menu.size()) {
+            val item = menu.getItem(i)
+            item.icon?.setTint(iconColor)
         }
 
         return true
@@ -260,18 +244,7 @@ class MainActivity : AppCompatActivity() {
             .setReorderingAllowed(true)
             .commit()
 
-        supportActionBar?.title = title
-
-        // Update the back button color when it appears
-        updateToolbarIconsColor()
-    }
-
-    // Deprecated method is kept for backward compatibility
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        // Forward to the new API
-        onBackPressedDispatcher.onBackPressed()
+        topAppBar.title = title
     }
 
     private fun getToolbarTitle(destinationId: Int?): String {

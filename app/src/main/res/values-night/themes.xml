@@ -3,10 +3,15 @@
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/ColorPrimaryDark</item>
         <item name="colorPrimaryVariant">@color/colorPrimary</item>
+        <item name="colorPrimaryContainer">@color/ColorPrimaryDark</item>
         <item name="colorAccent">@color/ColorAccent</item>
         <item name="colorOnSecondary">@color/colorSecondary</item>
         <item name="colorContainer">@color/ColorPrimaryLight</item>
+
+        <!-- Force white text on primary surfaces for better visibility -->
         <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorOnPrimaryContainer">@android:color/white</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
 
         <!-- FORCE black background in ALL Material components -->
         <item name="android:colorBackground">@color/black</item>
@@ -24,19 +29,34 @@
 
         <!-- Navigation bar color -->
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
-        <item name="android:windowLightNavigationBar" >false</item>
+        <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Ensure we actually draw the system bar backgrounds -->
+        <!-- AppBar and Toolbar specific settings -->
+        <item name="appBarLayoutStyle">@style/Widget.Material3.AppBarLayout</item>
+        <item name="toolbarStyle">@style/Widget.Material3.Toolbar</item>
+
+        <!-- Enable edge-to-edge layout and system bar drawing -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:enforceStatusBarContrast" >false</item>
+        <item name="android:enforceNavigationBarContrast" >false</item>
 
-        <!-- Disable translucency -->
+        <!-- Disable translucency for cleaner appearance -->
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
     </style>
 
-    <style name="Toolbar" parent="Widget.AppCompat.Toolbar">
+    <!-- Update the Toolbar style to use Material3 -->
+    <style name="Toolbar" parent="Widget.Material3.Toolbar">
         <item name="android:background">@color/ColorPrimaryDark</item>
-        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
-        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+        <item name="titleCentered">true</item>
+        <item name="titleTextColor">@android:color/white</item>
+        <item name="popupTheme">@style/ThemeOverlay.Material3.Dark</item>
+    </style>
+
+    <!-- Custom style for Bottom Navigation -->
+    <style name="BottomNavigationStyle" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="itemIconTint">@android:color/white</item>
+        <item name="itemTextColor">@android:color/white</item>
     </style>
 </resources>

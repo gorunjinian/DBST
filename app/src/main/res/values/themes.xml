@@ -1,5 +1,5 @@
+<!-- Update to themes.xml -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-
     <style name="Base.Theme.DBST" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -7,28 +7,27 @@
         <item name="colorAccent">@color/ColorAccent</item>
         <item name="colorOnSecondary">@color/colorSecondary</item>
         <item name="colorContainer">@color/ColorPrimaryLight</item>
-        <item name="colorOnPrimary">@android:color/white</item>
 
         <!-- Status bar color -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <item name="android:windowLightStatusBar">false</item>
 
+        <!-- Always use white text on primary color for better visibility -->
+        <item name="colorOnSurface">@android:color/black</item>
+        <item name="colorOnPrimaryContainer">@android:color/white</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
         <!-- Navigation bar color -->
         <item name="android:navigationBarColor">?attr/colorPrimary</item>
-        <item name="android:windowLightNavigationBar" >false</item>
+        <item name="android:windowLightNavigationBar">false</item>
 
-        <!-- Ensure we actually draw the system bar backgrounds -->
+        <!-- Enable drawing behind system bars -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:enforceStatusBarContrast" >false</item>
+        <item name="android:enforceNavigationBarContrast" >false</item>
 
         <!-- Disable translucency -->
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
     </style>
-
-    <style name="Toolbar" parent="Widget.AppCompat.Toolbar">
-        <item name="android:background">@color/colorPrimary</item>
-        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
-        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
-    </style>
-
 </resources>
