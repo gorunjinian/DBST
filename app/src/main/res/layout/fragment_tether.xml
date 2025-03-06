@@ -19,41 +19,13 @@
             android:gravity="center_horizontal"
             android:padding="8dp">
 
-            <!-- Top Row: Buy/Sell Toggle Buttons and Clear button -->
+            <!-- Top Row: Paid checkbox on left, Undo button, Clear button at right edge -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/top_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- Buy & Sell Toggle Buttons (moved to top) -->
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/toggle_group"
-                    android:layout_width="0dp"
-                    android:layout_height="54dp"
-                    app:singleSelection="true"
-                    android:layout_marginEnd="8dp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/clear_button"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buy_button"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="match_parent"
-                        android:text="@string/buy_type" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/sell_button"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="match_parent"
-                        android:text="@string/sell_type" />
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                <!-- Clear Button at Top-Right -->
+                <!-- Clear Button (right-most) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/clear_button"
                     android:layout_width="wrap_content"
@@ -71,6 +43,36 @@
                     android:contentDescription="Clear all fields"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
+
+                <!-- Undo Button (next to Clear) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/undo_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:backgroundTint="?attr/colorPrimary"
+                    app:icon="@drawable/ic_undo"
+                    app:iconSize="24dp"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="24dp"
+                    android:text="Undo"
+                    android:textSize="12sp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    android:layout_marginEnd="8dp"
+                    app:rippleColor="?attr/colorOnPrimary"
+                    android:contentDescription="Undo last entry save"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/clear_button" />
+
+                <!-- Paid Checkbox (left-most) -->
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/paid_checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="Paid?"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Date Input Field -->
@@ -136,55 +138,54 @@
                     android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Whish Payment Checkbox -->
+            <!-- Buy & Sell Toggle Buttons (moved between cash and whish) -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                android:layout_marginTop="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buy_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="64dp"
+                    android:text="@string/buy_type" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/sell_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="64dp"
+                    android:text="@string/sell_type" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <!-- Whish Payment Switch -->
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/whish_payment_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/paid_by_wish"
                 android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
-            <!-- Save and Undo Buttons Container -->
-            <LinearLayout
+            <!-- Save Button (Undo button moved to top) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/save_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_height="48dp"
+                android:text="@string/save_button_text"
+                app:icon="@drawable/ic_tick"
+                app:iconGravity="textEnd"
+                android:textSize="12sp"
+                android:paddingStart="8dp"
+                android:paddingEnd="4dp"
                 android:layout_marginTop="16dp"
-                android:layout_gravity="center"
-                android:gravity="center">
+                app:cornerRadius="24dp"/>
 
-                <!-- Save Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/save_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:text="@string/save_button_text"
-                    app:icon="@drawable/ic_tick"
-                    app:iconGravity="textEnd"
-                    android:textSize="12sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"
-                    android:layout_marginEnd="8dp"
-                    app:cornerRadius="24dp"/>
-
-                <!-- Undo Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/undo_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:backgroundTint="?attr/colorPrimary"
-                    app:icon="@drawable/ic_undo"
-                    app:iconSize="24dp"
-                    app:iconGravity="textStart"
-                    app:cornerRadius="24dp"
-                    android:text="Undo"
-                    android:textSize="12sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="4dp"
-                    app:rippleColor="?attr/colorOnPrimary"
-                    android:contentDescription="Undo last entry save"/>
-            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
