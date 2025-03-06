@@ -44,7 +44,6 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-
         // Set up the TopAppBar
         topAppBar = findViewById(R.id.topAppBar)
         setSupportActionBar(topAppBar)
@@ -76,11 +75,11 @@ class SettingsActivity : AppCompatActivity() {
             restartActivity()
         }
 
+        // Toggle for hiding the "Validity" tab
         validityTabToggle.isChecked = prefs.getBoolean("turn_off_validity_tab", false)
         validityTabToggle.setOnCheckedChangeListener { _, isChecked ->
             prefs.edit { putBoolean("turn_off_validity_tab", isChecked) }
         }
-
 
         // Set up theme change button
         changeThemeButton.setOnClickListener {
@@ -92,7 +91,7 @@ class SettingsActivity : AppCompatActivity() {
             confirmAndDeleteTableData()
         }
 
-        // Setup new buttons in About & Help section
+        // About / Help buttons
         setupAboutAndHelpButtons()
 
         // Load table names into dropdown
@@ -102,6 +101,22 @@ class SettingsActivity : AppCompatActivity() {
         setAppVersionInfo()
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        val app = application as MyApplication
+        // If the app was previously in the background, show biometric prompt if needed.
+        if (app.isAppInBackground) {
+            app.showBiometricPromptIfNeeded(this) {
+                // This is called if authentication is cancelled or fails
+                finish() // or just dismiss, depending on your UX preference
+            }
+        }
+        // No more manual override of app.isAppInBackground = false
+        // MyApplication handles it via its onActivityResumed callback.
+    }
+
+
     private fun initializeViews() {
         tableDeleteDropdown = findViewById(R.id.table_delete_dropdown)
         deleteTableDataButton = findViewById(R.id.delete_table_data_button)
@@ -110,33 +125,10 @@ class SettingsActivity : AppCompatActivity() {
         fingerprintDelayDropdown = findViewById(R.id.fingerprint_delay_dropdown)
         changeThemeButton = findViewById(R.id.change_theme_button)
         validityTabToggle = findViewById(R.id.validity_tab_toggle)
-
-        // New UI components in updated layout
         appInfoButton = findViewById(R.id.app_info_button)
         helpButton = findViewById(R.id.help_button)
         aboutDeveloperButton = findViewById(R.id.about_developer_button)
         appVersionText = findViewById(R.id.app_version_text)
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        val app = application as MyApplication
-        if (app.isReopenFromBackground()) {
-            app.showBiometricPromptIfNeeded(this) {
-                // This is called if authentication is cancelled or fails
-                // You might want to finish() the activity in some cases
-                finish()
-            }
-        }
-        app.isAppInBackground = false
-    }
-
-    override fun onPause() {
-        super.onPause()
-        val app = application as MyApplication
-        app.isAppInBackground = true
-        app.markPausedTime()
     }
 
     private fun setupDelayDropdown(prefs: android.content.SharedPreferences) {
@@ -150,12 +142,27 @@ class SettingsActivity : AppCompatActivity() {
         fingerprintDelayDropdown.setOnItemClickListener { _, _, position, _ ->
             prefs.edit {
                 putInt("fingerprint_delay_index", position)
-                    .putInt(
-                        "fingerprint_delay_value",
-                        if (position == 0) 0 else position * 5
-                    )
+                putInt("fingerprint_delay_value", if (position == 0) 0 else position * 5)
             }
         }
+    }
+
+    private fun confirmAndDeleteTableData() {
+        val selectedTable = tableDeleteDropdown.text.toString()
+
+        if (selectedTable.isEmpty()) {
+            Toast.makeText(this, "Please select a table first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Deletion")
+            .setMessage("Are you sure you want to delete all data from $selectedTable?")
+            .setPositiveButton("Yes") { _, _ ->
+                deleteTableData(selectedTable)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun deleteTableData(tableName: String) {
@@ -182,7 +189,6 @@ class SettingsActivity : AppCompatActivity() {
                     appDao.resetUsdtSequence()
                 }
                 else -> {
-                    // Generic table deletion for any other tables
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@SettingsActivity,
@@ -193,7 +199,6 @@ class SettingsActivity : AppCompatActivity() {
                     return@launch
                 }
             }
-
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@SettingsActivity,
@@ -202,24 +207,6 @@ class SettingsActivity : AppCompatActivity() {
                 ).show()
             }
         }
-    }
-
-    private fun confirmAndDeleteTableData() {
-        val selectedTable = tableDeleteDropdown.text.toString()
-
-        if (selectedTable.isEmpty()) {
-            Toast.makeText(this, "Please select a table first", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Confirm Deletion")
-            .setMessage("Are you sure you want to delete all data from $selectedTable?")
-            .setPositiveButton("Yes") { _, _ ->
-                deleteTableData(selectedTable)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     private fun restartActivity() {
@@ -268,9 +255,11 @@ class SettingsActivity : AppCompatActivity() {
     private fun showAppInfoDialog() {
         AlertDialog.Builder(this)
             .setTitle("About DBST")
-            .setMessage("DBST (Dollar Buy Sell Transactions) is a financial tracking app " +
-                    "designed to help you manage your personal finances, track income, " +
-                    "expenses, and currency exchanges.")
+            .setMessage(
+                "DBST (Dollar Buy Sell Transactions) is a financial tracking app " +
+                        "designed to help you manage personal finances, track income, " +
+                        "expenses, and currency exchanges."
+            )
             .setPositiveButton("OK", null)
             .show()
     }
@@ -278,8 +267,10 @@ class SettingsActivity : AppCompatActivity() {
     private fun showHelpDialog() {
         AlertDialog.Builder(this)
             .setTitle("Help & Support")
-            .setMessage("For assistance with using DBST, please contact the developer " +
-                    "or check the documentation in the About Developer section.")
+            .setMessage(
+                "For assistance with using DBST, please contact the developer " +
+                        "or check the documentation in the About Developer section."
+            )
             .setPositiveButton("OK", null)
             .show()
     }
@@ -287,14 +278,15 @@ class SettingsActivity : AppCompatActivity() {
     private fun showDeveloperInfoDialog() {
         AlertDialog.Builder(this)
             .setTitle("About Developer")
-            .setMessage("Developed by Gorun Jinian\n" +
-                    "Haigazian University\n" +
-                    "Spring Semester 2024-2025\n" +
-                    "Beirut, Lebanon")
+            .setMessage(
+                "Developed by Gorun Jinian\n" +
+                        "Haigazian University\n" +
+                        "Spring Semester 2024-2025\n" +
+                        "Beirut, Lebanon"
+            )
             .setPositiveButton("OK", null)
             .show()
     }
-
 
     private fun setAppVersionInfo() {
         try {

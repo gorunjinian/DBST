@@ -160,13 +160,15 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         val app = application as MyApplication
-        if (app.isReopenFromBackground()) {
+
+        // If the app is currently marked as being in the background, show biometric prompt if needed.
+        // (onActivityResumed in MyApplication hasn’t run yet, so it will still be true if we are reopening.)
+        if (app.isAppInBackground) {
             app.showBiometricPromptIfNeeded(this) {
                 // This is called if authentication is cancelled or fails
                 finish()
             }
         }
-        app.isAppInBackground = false
 
         // Ensure viewPager is initialized before accessing it
         if (::viewPager.isInitialized) {
@@ -177,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         updateSystemBars()
         updateFabColor()
 
-        // hide the Validity tab button if preference is true
+        // Hide the Validity tab button if preference is true
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val turnOffValidity = prefs.getBoolean("turn_off_validity_tab", false)
         bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = !turnOffValidity

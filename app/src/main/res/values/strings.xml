@@ -42,4 +42,5 @@
     <string name="search_string">Search</string>
     <string name="light_mode">Light Mode</string>
     <string name="paid">Paid?</string>
+    <string name="undo_last_entry_save">Undo last entry save</string>
 </resources>
