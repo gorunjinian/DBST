@@ -28,7 +28,10 @@ import com.gorunjinian.dbst.fragments.ExportDataFragment
 import com.gorunjinian.dbst.fragments.YearlyViewFragment
 import com.gorunjinian.dbst.FabManager
 import com.gorunjinian.dbst.MyApplication
+import androidx.core.view.size
+import androidx.core.view.get
 
+@SuppressLint("RestrictedApi")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -84,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         // Store callback reference to properly unregister later
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                bottomNavigationView.menu.getItem(position).isChecked = true
+                bottomNavigationView.menu[position].isChecked = true
                 topAppBar.title = getToolbarTitle(position)
             }
         }.also {
@@ -186,7 +189,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         if (menu is androidx.appcompat.view.menu.MenuBuilder) {
@@ -195,8 +197,8 @@ class MainActivity : AppCompatActivity() {
 
         // Apply color to all menu items' icons - always use white for better visibility
         val iconColor = ContextCompat.getColor(this, android.R.color.white)
-        for (i in 0 until menu.size()) {
-            val item = menu.getItem(i)
+        for (i in 0 until menu.size) {
+            val item = menu[i]
             item.icon?.setTint(iconColor)
         }
 
@@ -252,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             0, R.id.entryFragment -> "Entry"
             1, R.id.validityFragment -> "Validity"
             2, R.id.tetherFragment -> "USDT"
-            3, R.id.infoFragment -> "Info"
+            3, R.id.infoFragment -> "Dashboard"
             R.id.databasesFragment -> "Databases"
             R.id.yearlyViewFragment -> "Yearly View"
             R.id.exportDataFragment -> "Export Data"

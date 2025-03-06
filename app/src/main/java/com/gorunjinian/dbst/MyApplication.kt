@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import java.text.NumberFormat
 import java.util.Locale
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 class MyApplication : Application() {
 
@@ -63,8 +64,9 @@ class MyApplication : Application() {
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    prefs.edit().putLong("last_authenticated_time", System.currentTimeMillis())
-                        .apply()
+                    prefs.edit {
+                        putLong("last_authenticated_time", System.currentTimeMillis())
+                    }
                     isAppInBackground = false
                 }
 
