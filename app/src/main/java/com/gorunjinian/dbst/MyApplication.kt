@@ -20,6 +20,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import com.google.android.material.color.DynamicColors
 
 class MyApplication : Application() {
 
@@ -37,15 +38,27 @@ class MyApplication : Application() {
     private val applicationScope = CoroutineScope(Dispatchers.Main)
 
     // Listener to detect changes in dynamic theming or theme mode
+    // In MyApplication.kt, replace the existing prefListener with this:
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
         when (key) {
             "dynamic_theming" -> {
                 val dynamicThemingEnabled = prefs.getBoolean("dynamic_theming", false)
                 Log.d("ThemeDebug", "Dynamic theming preference changed to: $dynamicThemingEnabled")
 
-                // Always recreate activities when this preference changes
-                activeActivities.toSet().forEach { activity ->
-                    activity.recreate()
+                // First apply dynamic colors if enabled, or "unapply" them if disabled
+                if (dynamicThemingEnabled) {
+                    // Apply dynamic colors when enabled
+                    DynamicColors.applyToActivitiesIfAvailable(this)
+                }
+
+                // Always recreate activities for immediate theme application
+                val activitiesToRecreate = activeActivities.toSet()
+                activitiesToRecreate.forEach { activity ->
+                    if (!activity.isFinishing && !activity.isDestroyed) {
+                        activity.runOnUiThread {
+                            activity.recreate()
+                        }
+                    }
                 }
             }
             "theme_mode" -> {
@@ -58,7 +71,11 @@ class MyApplication : Application() {
 
                 // Recreate activities for immediate theme change
                 activeActivities.toSet().forEach { activity ->
-                    activity.recreate()
+                    if (!activity.isFinishing && !activity.isDestroyed) {
+                        activity.runOnUiThread {
+                            activity.recreate()
+                        }
+                    }
                 }
             }
         }
@@ -123,6 +140,16 @@ class MyApplication : Application() {
         applicationScope.launch {
             val database = AppDatabase.getDatabase(applicationContext)
             DatabaseInitializer.initializeDbIfNeeded(applicationContext, database)
+        }
+    }
+
+    fun updateDynamicColors() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val dynamicEnabled = prefs.getBoolean("dynamic_theming", false)
+
+        // Force activity recreation for all active activities
+        activeActivities.toSet().forEach { activity ->
+            activity.recreate()
         }
     }
 

@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
@@ -109,21 +110,20 @@ object ThemeManager {
     fun toggleDynamicColors(context: Context, enabled: Boolean): Boolean {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        // Save preference regardless of previous value
+        // Save preference
         prefs.edit {
             putBoolean(PREF_DYNAMIC_COLORS, enabled)
         }
 
-        // Check if dynamic colors are available
-        val isDynamicAvailable = isDynamicColorSupported()
-
-        if (enabled && isDynamicAvailable) {
-            // Apply dynamic colors if enabling them and they're supported
-            DynamicColors.applyToActivitiesIfAvailable(context.applicationContext as android.app.Application)
+        // Force application-wide theme reset regardless of whether enabling or disabling
+        if (context.applicationContext is Application) {
+            if (enabled && isDynamicColorSupported()) {
+                // Apply dynamic colors if enabling
+                DynamicColors.applyToActivitiesIfAvailable(context.applicationContext as Application)
+            }
         }
 
-        // Always return true to indicate the activity should be recreated
-        // This ensures theme changes are applied consistently
+        // Always return true to trigger activity recreation
         return true
     }
 

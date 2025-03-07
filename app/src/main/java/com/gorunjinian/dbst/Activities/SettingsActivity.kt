@@ -73,11 +73,12 @@ class SettingsActivity : AppCompatActivity() {
 
         // Set up dynamic theme toggle
         dynamicThemeToggle.isChecked = prefs.getBoolean("dynamic_theming", false)
+        // In your SettingsActivity.kt
         dynamicThemeToggle.setOnCheckedChangeListener { _, isChecked ->
-            // Use ThemeManager to toggle dynamic colors
-            ThemeManager.toggleDynamicColors(applicationContext, isChecked)
-
-            // No need to manually restart the activity, ThemeManager will handle that
+            val recreateNeeded = ThemeManager.toggleDynamicColors(this, isChecked)
+            if (recreateNeeded) {
+                recreate() // Immediately recreate the Settings activity
+            }
         }
 
         // Set up light mode toggle - determine current value from theme mode setting
@@ -140,6 +141,27 @@ class SettingsActivity : AppCompatActivity() {
         // MyApplication handles it via its onActivityResumed callback.
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        // Set flag for MainActivity to recreate itself when resumed
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.edit {
+            putBoolean("needs_recreation", true)
+            apply()
+        }
+    }
+
+    // Add this to your SettingsActivity.kt
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
+    override fun onBackPressed() {
+        // Set a flag in shared preferences to indicate MainActivity needs recreation
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.edit {
+            putBoolean("needs_recreation", true)
+        }
+        super.onBackPressed()
+    }
 
     private fun initializeViews() {
         tableDeleteDropdown = findViewById(R.id.table_delete_dropdown)

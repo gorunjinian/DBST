@@ -14,6 +14,7 @@ import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.get
@@ -44,10 +45,16 @@ class MainActivity : AppCompatActivity() {
     private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Apply dynamic colors if enabled before setting content view
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val dynamicEnabled = prefs.getBoolean("dynamic_theming", false)
 
-        // Make sure to apply the proper theme before setting content view
-        setTheme(R.style.Theme_DBST)
+        // Only set static theme if dynamic colors are disabled
+        if (!dynamicEnabled) {
+            setTheme(R.style.Theme_DBST)
+        }
+
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Set up edge-to-edge display
@@ -168,26 +175,27 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         val app = application as MyApplication
-
-        // Handle biometric authentication if needed
         if (app.isAppInBackground) {
             app.showBiometricPromptIfNeeded(this) {
-                // This is called if authentication is cancelled or fails
                 finish()
             }
         }
 
-        // Ensure viewPager is initialized before accessing it
-        if (::viewPager.isInitialized) {
-            topAppBar.title = getToolbarTitle(viewPager.currentItem)
+        // Check if recreation is needed due to theme changes
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        if (prefs.getBoolean("needs_recreation", false)) {
+            // Clear the flag BEFORE recreating to prevent loops
+            prefs.edit {
+                putBoolean("needs_recreation", false)
+                apply()
+            }
+
+            Log.d("ThemeDebug", "Recreating MainActivity for theme changes")
+            recreate()
+            return // Exit early to avoid updating UI twice
         }
 
-        // Check if we need to update Validity tab visibility (in case it changed in settings)
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val hideValidityTab = prefs.getBoolean("turn_off_validity_tab", false)
-        bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = !hideValidityTab
-
-        // Update UI for current theme
+        // Always update UI when resuming
         updateSystemUi()
     }
 
