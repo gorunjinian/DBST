@@ -60,7 +60,7 @@
     android:id="@+id/table_header"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/colorPrimary"
+    android:background="@color/design_default_color_primary"
     android:padding="8dp"/>
 
         <!-- RecyclerView for displaying table rows -->

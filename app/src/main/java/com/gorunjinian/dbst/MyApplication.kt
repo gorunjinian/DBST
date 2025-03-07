@@ -4,24 +4,21 @@ import android.app.Activity
 import android.app.Application
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
-import com.google.android.material.color.DynamicColors
 import com.google.android.material.textfield.TextInputEditText
 import com.gorunjinian.dbst.data.AppDatabase
 import com.gorunjinian.dbst.data.DatabaseInitializer
-import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Collections
-import java.util.Locale
-import kotlin.collections.LinkedHashSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import androidx.core.content.edit
 
 class MyApplication : Application() {
@@ -39,16 +36,30 @@ class MyApplication : Application() {
     // Scope for database initialization or other coroutines
     private val applicationScope = CoroutineScope(Dispatchers.Main)
 
-    // Listener to detect changes in dynamic theming
+    // Listener to detect changes in dynamic theming or theme mode
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-        if (key == "dynamic_theming") {
-            // If dynamic theming is enabled, reapply dynamic colors
-            if (prefs.getBoolean("dynamic_theming", false)) {
-                DynamicColors.applyToActivitiesIfAvailable(this)
+        when (key) {
+            "dynamic_theming" -> {
+                val dynamicThemingEnabled = prefs.getBoolean("dynamic_theming", false)
+                Log.d("ThemeDebug", "Dynamic theming preference changed to: $dynamicThemingEnabled")
+
+                // Always recreate activities when this preference changes
+                activeActivities.toSet().forEach { activity ->
+                    activity.recreate()
+                }
             }
-            // Recreate every active activity so the new theme is applied immediately
-            activeActivities.forEach { activity ->
-                activity.recreate()
+            "theme_mode" -> {
+                val themeMode = prefs.getString("theme_mode", ThemeManager.THEME_MODE_SYSTEM)
+                    ?: ThemeManager.THEME_MODE_SYSTEM
+                Log.d("ThemeDebug", "Theme mode preference changed to: $themeMode")
+
+                // Apply theme mode globally
+                ThemeManager.applyThemeMode(themeMode)
+
+                // Recreate activities for immediate theme change
+                activeActivities.toSet().forEach { activity ->
+                    activity.recreate()
+                }
             }
         }
     }
@@ -56,10 +67,10 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Apply dynamic theming if preference is set
-        applyDynamicThemingIfEnabled()
+        // Apply theme settings first before any activities are created
+        ThemeManager.applyThemeSettings(this)
 
-        // Initialize database
+        // Initialize the database with CSV data
         initializeDatabase()
 
         // Register the SharedPreferences listener
@@ -69,7 +80,11 @@ class MyApplication : Application() {
         // Register activity lifecycle callbacks to track foreground/background transitions
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                Log.d("ActivityLifecycle", "Activity created: ${activity.javaClass.simpleName}")
                 activeActivities.add(activity)
+
+                // Apply dynamic colors to each activity individually
+                ThemeManager.applyDynamicColorsToActivity(activity)
             }
 
             override fun onActivityDestroyed(activity: Activity) {
@@ -102,16 +117,6 @@ class MyApplication : Application() {
     }
 
     /**
-     * Applies dynamic theming if the user enabled it in preferences.
-     */
-    private fun applyDynamicThemingIfEnabled() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        if (prefs.getBoolean("dynamic_theming", false)) {
-            DynamicColors.applyToActivitiesIfAvailable(this)
-        }
-    }
-
-    /**
      * Initializes the database in a background thread.
      */
     private fun initializeDatabase() {
@@ -123,7 +128,7 @@ class MyApplication : Application() {
 
     /**
      * Shows a biometric prompt (fingerprint) if needed. Check for hardware availability
-     * and whether the user’s preference requires biometrics.
+     * and whether the user's preference requires biometrics.
      */
     fun showBiometricPromptIfNeeded(activity: FragmentActivity, onCancelled: () -> Unit = {}) {
         // 1) Check user preference and background state
@@ -149,7 +154,9 @@ class MyApplication : Application() {
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     super.onAuthenticationSucceeded(result)
-                    prefs.edit { putLong("last_authenticated_time", System.currentTimeMillis()) }
+                    prefs.edit {
+                        putLong("last_authenticated_time", System.currentTimeMillis())
+                    }
                     isAppInBackground = false
                 }
 

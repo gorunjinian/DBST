@@ -44,8 +44,7 @@
                 android:id="@+id/checkbox_expense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Expense Data (DST)"
-                android:checked="true" />
+                android:text="Expense Data (DST)" />
 
             <CheckBox
                 android:id="@+id/checkbox_validity_in"
@@ -123,6 +122,8 @@
         android:text="Export Data"
         android:layout_marginTop="24dp"
         android:paddingVertical="12dp"
+        app:icon="@drawable/ic_fileexport"
+        app:iconGravity="textStart"
         app:layout_constraintTop_toBottomOf="@id/format_options_card"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

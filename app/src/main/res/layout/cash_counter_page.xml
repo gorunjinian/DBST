@@ -56,14 +56,17 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$1"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusRight="@id/input_2"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- $2 Bill Input -->
@@ -73,14 +76,17 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$2"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusRight="@id/input_5"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- $5 Bill Input -->
@@ -89,14 +95,17 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="$5"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_5"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusDown="@id/input_10"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
@@ -115,14 +124,17 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$10"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_10"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusRight="@id/input_20"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- $20 Bill Input -->
@@ -132,14 +144,17 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:hint="$20"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_20"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusRight="@id/input_50"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- $50 Bill Input -->
@@ -148,14 +163,17 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="$50"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_50"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionNext"
+                            android:nextFocusDown="@id/input_100"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
 
@@ -172,21 +190,23 @@
                         android:layout_gravity="center_horizontal"
                         android:minWidth="120dp"
                         android:hint="$100"
-                        app:startIconTint="@color/colorPrimary"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        app:startIconTint="?attr/colorPrimary"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/input_100"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:textAlignment="center"/>
+                            android:textAlignment="center"
+                            android:selectAllOnFocus="true" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </FrameLayout>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="?android:attr/listDivider"
+                    android:background="?attr/colorOutline"
+                    android:alpha="0.4"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="16dp"/>
 

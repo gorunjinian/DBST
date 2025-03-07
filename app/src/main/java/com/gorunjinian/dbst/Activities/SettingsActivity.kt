@@ -15,12 +15,14 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.gorunjinian.dbst.MyApplication
 import com.gorunjinian.dbst.R
+import com.gorunjinian.dbst.ThemeManager
 import com.gorunjinian.dbst.data.AppDao
 import com.gorunjinian.dbst.data.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.content.edit
+import com.gorunjinian.dbst.fragments.ThemeSettingsFragment
 
 
 @SuppressLint("SetTextI18n","UseSwitchCompatOrMaterialCode")
@@ -31,6 +33,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var deleteTableDataButton: MaterialButton
     private lateinit var fingerprintToggle: MaterialSwitch
     private lateinit var dynamicThemeToggle: MaterialSwitch
+    private lateinit var lightModeToggle: MaterialSwitch
     private lateinit var validityTabToggle: MaterialSwitch
     private lateinit var fingerprintDelayDropdown: MaterialAutoCompleteTextView
     private lateinit var changeThemeButton: MaterialButton
@@ -71,8 +74,27 @@ class SettingsActivity : AppCompatActivity() {
         // Set up dynamic theme toggle
         dynamicThemeToggle.isChecked = prefs.getBoolean("dynamic_theming", false)
         dynamicThemeToggle.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean("dynamic_theming", isChecked) }
-            restartActivity()
+            // Use ThemeManager to toggle dynamic colors
+            ThemeManager.toggleDynamicColors(applicationContext, isChecked)
+
+            // No need to manually restart the activity, ThemeManager will handle that
+        }
+
+        // Set up light mode toggle - determine current value from theme mode setting
+        val currentThemeMode = prefs.getString("theme_mode", ThemeManager.THEME_MODE_SYSTEM) ?: ThemeManager.THEME_MODE_SYSTEM
+        lightModeToggle.isChecked = currentThemeMode == ThemeManager.THEME_MODE_LIGHT
+
+        lightModeToggle.setOnCheckedChangeListener { _, isChecked ->
+            // Set the theme mode based on the toggle
+            val newThemeMode = if (isChecked) ThemeManager.THEME_MODE_LIGHT else ThemeManager.THEME_MODE_DARK
+
+            // Use ThemeManager to change theme mode
+            ThemeManager.setThemeMode(applicationContext, newThemeMode)
+
+            // Save preference
+            prefs.edit { putString("theme_mode", newThemeMode) }
+
+            // No need to manually restart the activity, ThemeManager will handle that
         }
 
         // Toggle for hiding the "Validity" tab
@@ -83,7 +105,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Set up theme change button
         changeThemeButton.setOnClickListener {
-            Toast.makeText(this, "Show Color Picker Dialog", Toast.LENGTH_SHORT).show()
+            // Show theme settings fragment dialog
+            val fragment = ThemeSettingsFragment()
+            fragment.show(supportFragmentManager, "THEME_SETTINGS")
         }
 
         // Handle delete button click
@@ -122,9 +146,10 @@ class SettingsActivity : AppCompatActivity() {
         deleteTableDataButton = findViewById(R.id.delete_table_data_button)
         fingerprintToggle = findViewById(R.id.fingerprint_toggle)
         dynamicThemeToggle = findViewById(R.id.dynamic_theme_toggle)
+        lightModeToggle = findViewById(R.id.light_mode_toggle)
+        validityTabToggle = findViewById(R.id.validity_tab_toggle)
         fingerprintDelayDropdown = findViewById(R.id.fingerprint_delay_dropdown)
         changeThemeButton = findViewById(R.id.change_theme_button)
-        validityTabToggle = findViewById(R.id.validity_tab_toggle)
         appInfoButton = findViewById(R.id.app_info_button)
         helpButton = findViewById(R.id.help_button)
         aboutDeveloperButton = findViewById(R.id.about_developer_button)
@@ -207,11 +232,6 @@ class SettingsActivity : AppCompatActivity() {
                 ).show()
             }
         }
-    }
-
-    private fun restartActivity() {
-        finish()
-        startActivity(intent)
     }
 
     private fun loadTableNames() {

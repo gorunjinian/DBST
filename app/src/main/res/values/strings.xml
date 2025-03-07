@@ -40,7 +40,16 @@
     <string name="app_version_text">DBST v1.0.0</string>
     <string name="select_delay_time_hint">Select delay time</string>
     <string name="search_string">Search</string>
-    <string name="light_mode">Light Mode</string>
     <string name="paid">Paid?</string>
     <string name="undo_last_entry_save">Undo last entry save</string>
+    <string name="theme_settings">Theme Settings</string>
+    <string name="theme_mode">Theme Mode</string>
+    <string name="system_theme">System</string>
+    <string name="light_theme">Light</string>
+    <string name="dark_theme">Dark</string>
+    <string name="use_dynamic_colors">Use dynamic colors (Material You)</string>
+    <string name="dynamic_colors_not_supported">Dynamic colors not supported on this device</string>
+    <string name="apply">Apply</string>
+    <string name="cancel">Cancel</string>
+    <string name="light_mode">Light Mode</string>
 </resources>

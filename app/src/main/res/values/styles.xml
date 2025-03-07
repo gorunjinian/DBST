@@ -1,8 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Custom Hint Text (for Input Fields) -->
     <style name="CustomHintText" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">12sp</item>
         <item name="android:paddingStart">25dp</item>
+    </style>
+
+    <!-- Define Toolbar style for use in all themes -->
+    <style name="Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="titleCentered">true</item>
+        <item name="titleTextColor">?attr/colorOnPrimary</item>
+        <item name="popupTheme">@style/ThemeOverlay.Material3.Light</item>
     </style>
 
     <style name="ToolbarStyle" parent="Widget.Material3.Toolbar">

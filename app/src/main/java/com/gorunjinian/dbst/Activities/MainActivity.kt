@@ -16,21 +16,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.get
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.gorunjinian.dbst.R
+import com.gorunjinian.dbst.FabManager
 import com.gorunjinian.dbst.MainPagerAdapter
+import com.gorunjinian.dbst.MyApplication
+import com.gorunjinian.dbst.R
+import com.gorunjinian.dbst.ThemeManager
 import com.gorunjinian.dbst.fragments.DatabasesFragment
 import com.gorunjinian.dbst.fragments.ExportDataFragment
 import com.gorunjinian.dbst.fragments.YearlyViewFragment
-import com.gorunjinian.dbst.FabManager
-import com.gorunjinian.dbst.MyApplication
 import androidx.core.view.size
-import androidx.core.view.get
-import androidx.preference.PreferenceManager
 
 @SuppressLint("RestrictedApi")
 class MainActivity : AppCompatActivity() {
@@ -45,10 +46,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTheme(R.style.Base_Theme_DBST)
+        // Make sure to apply the proper theme before setting content view
+        setTheme(R.style.Theme_DBST)
         setContentView(R.layout.activity_main)
 
-        // Make sure system bars are drawn behind the app content
+        // Set up edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Initialize views
@@ -61,11 +63,8 @@ class MainActivity : AppCompatActivity() {
         // Set up the TopAppBar
         setSupportActionBar(topAppBar)
 
-        // Update system bars and icon colors
-        updateSystemBars()
-
-        // Update FAB color to match toolbar
-        updateFabColor()
+        // Update system bars and UI elements for current theme
+        updateSystemUi()
 
         // Set up FAB using the FabManager
         FabManager.setupFab(fab, this)
@@ -75,15 +74,8 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = adapter
         viewPager.isUserInputEnabled = true
 
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.entryFragment -> viewPager.currentItem = 0
-                R.id.validityFragment -> viewPager.currentItem = 1
-                R.id.tetherFragment -> viewPager.currentItem = 2
-                R.id.infoFragment -> viewPager.currentItem = 3
-            }
-            true
-        }
+        // Update the validity tab visibility based on preferences
+        setupBottomNavigation()
 
         // Store callback reference to properly unregister later
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
@@ -96,6 +88,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Handle back press with the new API (replacing deprecated onBackPressed)
+        setupBackNavigation()
+    }
+
+    private fun setupBottomNavigation() {
+        // Configure navigation item listener
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.entryFragment -> viewPager.currentItem = 0
+                R.id.validityFragment -> viewPager.currentItem = 1
+                R.id.tetherFragment -> viewPager.currentItem = 2
+                R.id.infoFragment -> viewPager.currentItem = 3
+            }
+            true
+        }
+
+        // Handle visibility of the Validity tab
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val hideValidityTab = prefs.getBoolean("turn_off_validity_tab", false)
+        if (hideValidityTab) {
+            bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = false
+        }
+    }
+
+    private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (supportFragmentManager.backStackEntryCount > 0) {
@@ -113,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // Update system bars when returning from fragment
-                    updateSystemBars()
+                    updateSystemUi()
                 } else {
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed() // Let system handle app exit
@@ -122,38 +138,30 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun updateSystemBars() {
-        val nightModeFlags = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val isNightMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES)
+    private fun updateSystemUi() {
+        // This method replaces updateSystemBars and updateFabColor with a more
+        // comprehensive approach that works with our ThemeManager
+
+        // Get current theme information
+        val isNightMode = resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
         // Get the primary color from the current theme
         val typedValue = TypedValue()
-        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
+        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
         val primaryColor = typedValue.data
 
-        // Ensure window draws behind system bars
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // FORCE the status and navigation bar colors
+        // Configure system bars
         window.statusBarColor = primaryColor
         window.navigationBarColor = primaryColor
 
-        // Handle status bar icons based on theme (dark/light)
+        // Configure system bar icons (light in dark theme, dark in light theme)
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
         windowInsetsController.isAppearanceLightStatusBars = !isNightMode
-
-        // Handle navigation bar icons
         windowInsetsController.isAppearanceLightNavigationBars = !isNightMode
-    }
 
-    private fun updateFabColor() {
-        // Get the toolbar color (colorPrimary)
-        val typedValue = TypedValue()
-        theme.resolveAttribute(android.R.attr.colorPrimary, typedValue, true)
-        val toolbarColor = typedValue.data
-
-        // Set the FAB background color to match the toolbar
-        fab.backgroundTintList = ColorStateList.valueOf(toolbarColor)
+        // Update FAB color to match the toolbar/primary color
+        fab.backgroundTintList = ColorStateList.valueOf(primaryColor)
     }
 
     override fun onResume() {
@@ -161,8 +169,7 @@ class MainActivity : AppCompatActivity() {
 
         val app = application as MyApplication
 
-        // If the app is currently marked as being in the background, show biometric prompt if needed.
-        // (onActivityResumed in MyApplication hasn’t run yet, so it will still be true if we are reopening.)
+        // Handle biometric authentication if needed
         if (app.isAppInBackground) {
             app.showBiometricPromptIfNeeded(this) {
                 // This is called if authentication is cancelled or fails
@@ -175,20 +182,19 @@ class MainActivity : AppCompatActivity() {
             topAppBar.title = getToolbarTitle(viewPager.currentItem)
         }
 
-        // Update system bars and UI colors
-        updateSystemBars()
-        updateFabColor()
-
-        // Hide the Validity tab button if preference is true
+        // Check if we need to update Validity tab visibility (in case it changed in settings)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val turnOffValidity = prefs.getBoolean("turn_off_validity_tab", false)
-        bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = !turnOffValidity
+        val hideValidityTab = prefs.getBoolean("turn_off_validity_tab", false)
+        bottomNavigationView.menu.findItem(R.id.validityFragment)?.isVisible = !hideValidityTab
+
+        // Update UI for current theme
+        updateSystemUi()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // Update system bars on configuration changes (e.g., dark mode toggle)
-        updateSystemBars()
+        // Update system UI on configuration changes (e.g., dark mode toggle)
+        updateSystemUi()
     }
 
     override fun onDestroy() {
