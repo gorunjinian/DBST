@@ -11,8 +11,9 @@ import androidx.room.RoomDatabase
         DST::class,
         VBSTIN::class,
         VBSTOUT::class,
-        USDT::class],
-        version = 11, exportSchema = false)
+        USDT::class,
+        CashCounter::class],
+        version = 12, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao

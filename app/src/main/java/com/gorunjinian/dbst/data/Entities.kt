@@ -58,3 +58,16 @@ data class USDT(
     val amountCash : Double,
     val type: String,
 )
+
+@Entity(tableName = "cash_counter")
+data class CashCounter(
+    @PrimaryKey val id: Int = 1, // Single instance approach
+    val ones: Int = 0,
+    val twos: Int = 0,
+    val fives: Int = 0,
+    val tens: Int = 0,
+    val twenties: Int = 0,
+    val fifties: Int = 0,
+    val hundreds: Int = 0,
+    val lastUpdated: Long = System.currentTimeMillis()
+)

@@ -43,4 +43,8 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun deleteUsdt(id: Int) = appDao.deleteUsdt(id)
     suspend fun deleteAllUsdt() = appDao.deleteAllUsdt()
     suspend fun resetUsdtSequence() = appDao.resetUsdtSequence()
+
+    //Cash counter
+    suspend fun getCashCounter(): CashCounter? = appDao.getCashCounter()
+    suspend fun saveCashCounter(cashCounter: CashCounter) = appDao.insertCashCounter(cashCounter)
 }

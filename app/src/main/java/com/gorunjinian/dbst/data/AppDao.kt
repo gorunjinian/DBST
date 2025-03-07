@@ -157,6 +157,13 @@ interface AppDao {
     @Query("UPDATE sqlite_sequence SET seq = :maxId WHERE name = 'USDT'")
     suspend fun resetUsdtSequenceTo(maxId: Int)
 
+    // Cash Counter queries
+
+    @Query("SELECT * FROM cash_counter WHERE id = 1")
+    suspend fun getCashCounter(): CashCounter?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCashCounter(cashCounter: CashCounter)
 
 
 }

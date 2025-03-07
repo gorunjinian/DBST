@@ -11,11 +11,19 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.data.AppRepository
+import com.gorunjinian.dbst.data.CashCounter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("StaticFieldLeak", "DefaultLocale", "SetTextI18n")
 object FabManager {
@@ -45,16 +53,23 @@ object FabManager {
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog.window?.setDimAmount(0.8f) // Add dim effect to background
 
+        // Create repository
+        val database = AppDatabase.getDatabase(context)
+        val appDao = database.appDao()
+        val repository = AppRepository(appDao)
+
         // Set up ViewPager and TabLayout
-        setupPager(dialog)
+        setupPager(dialog, repository)
 
         // Set up the Save and Close buttons
         val saveButton: Button = dialog.findViewById(R.id.save_popup)
         val closeButton: Button = dialog.findViewById(R.id.close_popup)
 
         saveButton.setOnClickListener {
-            // Save functionality will be implemented later
+            // Save denomination values when save button is pressed
+            saveDenominationValues(repository)
             dialog.dismiss()
+            Toast.makeText(context, "New values saved", Toast.LENGTH_SHORT).show()
         }
 
         closeButton.setOnClickListener {
@@ -66,7 +81,7 @@ object FabManager {
         dialog.show()
     }
 
-    private fun setupPager(dialog: Dialog) {
+    private fun setupPager(dialog: Dialog, repository: AppRepository) {
         // Initialize ViewPager2
         viewPager = dialog.findViewById(R.id.view_pager)
 
@@ -85,17 +100,17 @@ object FabManager {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 when (position) {
-                    0 -> initCashCounterPage()
+                    0 -> initCashCounterPage(repository)
                     1 -> initAssetManagementPage()
                 }
             }
         })
 
         // Initialize the first page
-        initCashCounterPage()
+        initCashCounterPage(repository)
     }
 
-    private fun initCashCounterPage() {
+    private fun initCashCounterPage(repository: AppRepository) {
         // Find the root view of the cash counter page
         val cashCounterView = findViewPagerChildAt(0)
 
@@ -125,6 +140,9 @@ object FabManager {
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 })
             }
+
+            // Load saved denomination values when the page is initialized
+            loadSavedDenominationValues(repository)
         }
     }
 
@@ -136,6 +154,58 @@ object FabManager {
             // Initialize total assets text
             totalAssetValueText = assetManagementView.findViewById(R.id.total_asset_value)
             // The assets and total are currently static
+        }
+    }
+
+    private fun saveDenominationValues(repository: AppRepository) {
+
+        // Parse values, explicitly converting empty string to 0
+        val ones = inputFields[0].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val twos = inputFields[1].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val fives = inputFields[2].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val tens = inputFields[3].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val twenties = inputFields[4].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val fifties = inputFields[5].text.toString().let { it.ifEmpty { "0" } }.toInt()
+        val hundreds = inputFields[6].text.toString().let { it.ifEmpty { "0" } }.toInt()
+
+        // Create entity and save to database
+        val cashCounter = CashCounter(
+            id = 1, // Always use ID 1 for the single instance
+            ones = ones,
+            twos = twos,
+            fives = fives,
+            tens = tens,
+            twenties = twenties,
+            fifties = fifties,
+            hundreds = hundreds
+        )
+
+        // Launch coroutine to save data using the repository instance
+        CoroutineScope(Dispatchers.IO).launch {
+            repository.saveCashCounter(cashCounter)
+        }
+    }
+
+    private fun loadSavedDenominationValues(repository: AppRepository) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val cashCounter = withContext(Dispatchers.IO) {
+                repository.getCashCounter()
+            }
+
+            // If data exists, populate the input fields
+            cashCounter?.let { counter ->
+                inputFields[0].setText(counter.ones.toString())
+                inputFields[1].setText(counter.twos.toString())
+                inputFields[2].setText(counter.fives.toString())
+                inputFields[3].setText(counter.tens.toString())
+                inputFields[4].setText(counter.twenties.toString())
+                inputFields[5].setText(counter.fifties.toString())
+                inputFields[6].setText(counter.hundreds.toString())
+
+                // Update the total
+                val denominationValues = listOf(1, 2, 5, 10, 20, 50, 100)
+                updateTotal(denominationValues)
+            }
         }
     }
 

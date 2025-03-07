@@ -63,6 +63,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -83,6 +84,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -102,6 +104,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -131,6 +134,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -151,6 +155,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -170,6 +175,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true"
                             android:imeOptions="actionNext"
@@ -197,6 +203,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
+                            android:textSize="28sp"
                             android:textAlignment="center"
                             android:selectAllOnFocus="true" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -222,24 +229,64 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
+                        android:orientation="horizontal"
                         android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="match_parent"
+                        <!-- Left Side: Total Amount -->
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Total Amount"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnPrimaryContainer"/>
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/total_amount"
-                            android:layout_width="match_parent"
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Total Amount"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"/>
+
+                            <TextView
+                                android:id="@+id/total_amount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="$0"
+                                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold"/>
+                        </LinearLayout>
+
+                        <!-- Vertical Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="?attr/colorOutline"
+                            android:alpha="0.4"
+                            android:layout_marginHorizontal="16dp"/>
+
+                        <!-- Right Side: Correct Amount -->
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="$0"
-                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                            android:textColor="?attr/colorOnPrimaryContainer"
-                            android:textStyle="bold"/>
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Correct Amount"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"/>
+
+                            <TextView
+                                android:id="@+id/correct_amount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="$0"
+                                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                                android:textColor="?attr/colorOnPrimaryContainer"
+                                android:textStyle="bold"/>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
