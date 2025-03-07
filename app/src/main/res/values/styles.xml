@@ -37,4 +37,5 @@
         <item name="itemIconTint">?attr/colorOnPrimary</item>
         <item name="itemTextColor">?attr/colorOnPrimary</item>
     </style>
+
 </resources>
