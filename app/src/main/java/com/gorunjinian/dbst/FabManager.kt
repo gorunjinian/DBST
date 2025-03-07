@@ -69,7 +69,7 @@ object FabManager {
             // Save denomination values when save button is pressed
             saveDenominationValues(repository)
             dialog.dismiss()
-            Toast.makeText(context, "New values saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Cash Counter saved", Toast.LENGTH_SHORT).show()
         }
 
         closeButton.setOnClickListener {
@@ -88,7 +88,8 @@ object FabManager {
         // Create page layouts
         val layouts = listOf(
             R.layout.cash_counter_page,
-            R.layout.asset_management_page
+            R.layout.asset_management_page,
+            R.layout.collecting_page
         )
 
         // Setup adapter
@@ -102,6 +103,7 @@ object FabManager {
                 when (position) {
                     0 -> initCashCounterPage(repository)
                     1 -> initAssetManagementPage()
+                    2 -> initCollectingPage()
                 }
             }
         })
@@ -147,6 +149,12 @@ object FabManager {
     }
 
     private fun initAssetManagementPage() {
+        // Find the root view of the asset management page
+        val collectingPageView = findViewPagerChildAt(2)
+
+    }
+
+    private fun initCollectingPage() {
         // Find the root view of the asset management page
         val assetManagementView = findViewPagerChildAt(1)
 

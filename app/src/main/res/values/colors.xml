@@ -2,7 +2,7 @@
 <resources>
     <!-- Base colors (used when dynamic colors are not available) -->
     <color name="seed">#1976D2</color> <!-- Primary seed color (blue) -->
-
+    <color name="red">#FF0000</color>
     <!-- Light theme colors -->
     <color name="md_theme_light_primary">#0061A4</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>

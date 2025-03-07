@@ -71,3 +71,17 @@ data class CashCounter(
     val hundreds: Int = 0,
     val lastUpdated: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "user_givens")
+data class UserGivens(
+    @PrimaryKey val id: Int = 1,
+    val usdLbpBmr: Int = 0,
+    val usdLbpVld: Int = 0,
+    val usdLbpSr: Int = 0,
+    val vldPrice: Int = 0,
+    val vldProfit: Double = 0.00,
+    val whishBalance: Int = 0,
+    val cashLbpBalance: Int = 0,
+    val bankBalance: Int = 0,
+    val lastUpdated: Long = System.currentTimeMillis()
+)

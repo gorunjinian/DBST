@@ -165,5 +165,13 @@ interface AppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCashCounter(cashCounter: CashCounter)
 
+    //user Given queries
+
+    @Query("SELECT * FROM user_givens WHERE id = 1")
+    suspend fun getUserGivens(): UserGivens?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserGivens(userGivens: UserGivens)
+
 
 }
