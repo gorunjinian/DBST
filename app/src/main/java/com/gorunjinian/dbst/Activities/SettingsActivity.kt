@@ -1,11 +1,16 @@
 package com.gorunjinian.dbst.activities
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.*
+import android.os.Handler
+import android.os.Looper
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -18,15 +23,15 @@ import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.ThemeManager
 import com.gorunjinian.dbst.data.AppDao
 import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.fragments.ThemeSettingsFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.core.content.edit
-import com.gorunjinian.dbst.fragments.ThemeSettingsFragment
 
-
-@SuppressLint("SetTextI18n","UseSwitchCompatOrMaterialCode")
 class SettingsActivity : AppCompatActivity() {
+
+    // Add this as a class property to properly track theme change processing
+    private var isProcessingThemeChange = false
 
     private lateinit var tableDeleteDropdown: MaterialAutoCompleteTextView
     private lateinit var topAppBar: MaterialToolbar
@@ -44,6 +49,14 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var appDao: AppDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply theme first based on dynamic colors preference
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val dynamicEnabled = prefs.getBoolean("dynamic_theming", false)
+
+        if (!dynamicEnabled) {
+            setTheme(R.style.Theme_DBST)
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
@@ -54,8 +67,6 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         topAppBar.setNavigationOnClickListener { onBackPressed() }
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-
         // Initialize Database
         val database = AppDatabase.getDatabase(this)
         appDao = database.appDao()
@@ -63,46 +74,30 @@ class SettingsActivity : AppCompatActivity() {
         // Initialize Views
         initializeViews()
 
+        // First, set toggle state WITHOUT triggering the listener
+        isProcessingThemeChange = true
+        dynamicThemeToggle.isChecked = dynamicEnabled
+        isProcessingThemeChange = false
+
+        // Setup dynamic theme toggle
+        setupDynamicThemeToggle(prefs)
+
         // Set up biometric authentication toggle
         fingerprintToggle.isChecked = prefs.getBoolean("fingerprint_enabled", false)
         setupDelayDropdown(prefs)
 
         fingerprintToggle.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean("fingerprint_enabled", isChecked) }
-        }
-
-        // Set up dynamic theme toggle
-        dynamicThemeToggle.isChecked = prefs.getBoolean("dynamic_theming", false)
-        // In your SettingsActivity.kt
-        dynamicThemeToggle.setOnCheckedChangeListener { _, isChecked ->
-            val recreateNeeded = ThemeManager.toggleDynamicColors(this, isChecked)
-            if (recreateNeeded) {
-                recreate() // Immediately recreate the Settings activity
+            prefs.edit {
+                putBoolean("fingerprint_enabled", isChecked)
+                apply()
             }
         }
 
-        // Set up light mode toggle - determine current value from theme mode setting
-        val currentThemeMode = prefs.getString("theme_mode", ThemeManager.THEME_MODE_SYSTEM) ?: ThemeManager.THEME_MODE_SYSTEM
-        lightModeToggle.isChecked = currentThemeMode == ThemeManager.THEME_MODE_LIGHT
-
-        lightModeToggle.setOnCheckedChangeListener { _, isChecked ->
-            // Set the theme mode based on the toggle
-            val newThemeMode = if (isChecked) ThemeManager.THEME_MODE_LIGHT else ThemeManager.THEME_MODE_DARK
-
-            // Use ThemeManager to change theme mode
-            ThemeManager.setThemeMode(applicationContext, newThemeMode)
-
-            // Save preference
-            prefs.edit { putString("theme_mode", newThemeMode) }
-
-            // No need to manually restart the activity, ThemeManager will handle that
-        }
+        // Set up light mode toggle based on current theme mode
+        setupLightModeToggle(prefs)
 
         // Toggle for hiding the "Validity" tab
-        validityTabToggle.isChecked = prefs.getBoolean("turn_off_validity_tab", false)
-        validityTabToggle.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit { putBoolean("turn_off_validity_tab", isChecked) }
-        }
+        setupValidityTabToggle(prefs)
 
         // Set up theme change button
         changeThemeButton.setOnClickListener {
@@ -126,19 +121,92 @@ class SettingsActivity : AppCompatActivity() {
         setAppVersionInfo()
     }
 
+    private fun setupDynamicThemeToggle(prefs: android.content.SharedPreferences) {
+        dynamicThemeToggle.setOnCheckedChangeListener { _, isChecked ->
+            // Prevent multiple simultaneous theme changes
+            if (isProcessingThemeChange) return@setOnCheckedChangeListener
+
+            isProcessingThemeChange = true
+
+            // Update the preference immediately
+            prefs.edit {
+                putBoolean("dynamic_theming", isChecked)
+                apply()
+            }
+
+            // Use Handler for reliable execution after UI operations
+            Handler(Looper.getMainLooper()).postDelayed({
+                // Reset the lock before recreating to avoid issues
+                isProcessingThemeChange = false
+
+                // Always set the recreation flag for MainActivity
+                prefs.edit {
+                    putBoolean("needs_recreation", true)
+                    apply()
+                }
+
+                // Recreate this activity to apply theme change
+                recreate()
+            }, 200) // Slightly longer delay to ensure UI has time to settle
+        }
+    }
+
+    private fun setupLightModeToggle(prefs: android.content.SharedPreferences) {
+        // Determine current mode
+        val currentThemeMode = prefs.getString("theme_mode", ThemeManager.THEME_MODE_SYSTEM)
+            ?: ThemeManager.THEME_MODE_SYSTEM
+
+        // Set initial state
+        lightModeToggle.isChecked = currentThemeMode == ThemeManager.THEME_MODE_LIGHT
+
+        lightModeToggle.setOnCheckedChangeListener { _, isChecked ->
+            // Set the theme mode based on the toggle
+            val newThemeMode = if (isChecked) ThemeManager.THEME_MODE_LIGHT else ThemeManager.THEME_MODE_DARK
+
+            // Use ThemeManager to change theme mode
+            ThemeManager.setThemeMode(applicationContext, newThemeMode)
+
+            // Save preference
+            prefs.edit {
+                putString("theme_mode", newThemeMode)
+                apply()
+            }
+
+            // Set flag for MainActivity to recreate
+            prefs.edit {
+                putBoolean("needs_recreation", true)
+                apply()
+            }
+        }
+    }
+
+    private fun setupValidityTabToggle(prefs: android.content.SharedPreferences) {
+        validityTabToggle.isChecked = prefs.getBoolean("turn_off_validity_tab", false)
+        validityTabToggle.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit {
+                putBoolean("turn_off_validity_tab", isChecked)
+                apply()
+            }
+
+            // Set flag for MainActivity to recreate to update tab visibility
+            prefs.edit {
+                putBoolean("needs_recreation", true)
+                apply()
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
         val app = application as MyApplication
-        // If the app was previously in the background, show biometric prompt if needed.
+        // If the app was previously in background, show biometric prompt if needed
         if (app.isAppInBackground) {
             app.showBiometricPromptIfNeeded(this) {
                 // This is called if authentication is cancelled or fails
-                finish() // or just dismiss, depending on your UX preference
+                finish()
             }
         }
-        // No more manual override of app.isAppInBackground = false
-        // MyApplication handles it via its onActivityResumed callback.
     }
 
     override fun onPause() {
@@ -152,13 +220,13 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    // Add this to your SettingsActivity.kt
-    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
+    @Deprecated("Use onBackPressedDispatcher instead")
     override fun onBackPressed() {
         // Set a flag in shared preferences to indicate MainActivity needs recreation
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         prefs.edit {
             putBoolean("needs_recreation", true)
+            apply()
         }
         super.onBackPressed()
     }
@@ -190,6 +258,7 @@ class SettingsActivity : AppCompatActivity() {
             prefs.edit {
                 putInt("fingerprint_delay_index", position)
                 putInt("fingerprint_delay_value", if (position == 0) 0 else position * 5)
+                apply()
             }
         }
     }
@@ -330,6 +399,7 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setAppVersionInfo() {
         try {
             val pInfo = packageManager.getPackageInfo(packageName, 0)

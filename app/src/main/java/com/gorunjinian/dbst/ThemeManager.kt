@@ -103,9 +103,6 @@ object ThemeManager {
 
     /**
      * Toggles dynamic colors and applies the change immediately
-     * @param context The context to apply the change to
-     * @param enabled Whether dynamic colors should be enabled
-     * @return An activity instance that should be recreated
      */
     fun toggleDynamicColors(context: Context, enabled: Boolean): Boolean {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -113,17 +110,19 @@ object ThemeManager {
         // Save preference
         prefs.edit {
             putBoolean(PREF_DYNAMIC_COLORS, enabled)
+            apply() // Make sure it's applied immediately
         }
 
-        // Force application-wide theme reset regardless of whether enabling or disabling
-        if (context.applicationContext is Application) {
-            if (enabled && isDynamicColorSupported()) {
-                // Apply dynamic colors if enabling
-                DynamicColors.applyToActivitiesIfAvailable(context.applicationContext as Application)
+        // For immediate effect in the current activity:
+        if (context is Activity) {
+            // Need to explicitly set theme based on new setting
+            if (!enabled) {
+                // When turning OFF dynamic colors, apply the static theme
+                context.setTheme(R.style.Theme_DBST)
             }
         }
 
-        // Always return true to trigger activity recreation
+        // Always return true to indicate the activity should be recreated
         return true
     }
 
