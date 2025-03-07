@@ -332,6 +332,7 @@ class SettingsActivity : AppCompatActivity() {
                         "AND name NOT LIKE 'android_metadata' " +
                         "AND name NOT LIKE 'sqlite_sequence' " +
                         "AND name NOT LIKE 'cash_counter' " +
+                        "AND name NOT LIKE 'user_givens' " +
                         "AND name NOT LIKE 'room_master_table'"
             )
             val availableTables = appDao.getAllTableNames(rawQuery)

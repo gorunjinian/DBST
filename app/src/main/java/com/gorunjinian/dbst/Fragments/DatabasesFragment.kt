@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
+import androidx.core.content.edit
 
 @SuppressLint(
     "ClickableViewAccessibility","SetTextI18s", "SetTextI18p", "SetTextI18n", "DefaultLocale"
@@ -162,6 +163,8 @@ class DatabasesFragment : Fragment() {
                 "SELECT name FROM sqlite_master WHERE type='table' " +
                         "AND name NOT LIKE 'android_metadata' " +
                         "AND name NOT LIKE 'sqlite_sequence' " +
+                        "AND name NOT LIKE 'cash_counter' " +
+                        "AND name NOT LIKE 'user_givens' " +
                         "AND name NOT LIKE 'room_master_table'"
             )
             // Use appDao directly just for this method
@@ -195,7 +198,7 @@ class DatabasesFragment : Fragment() {
 
         tableSpinner.setOnItemClickListener { _, _, position, _ ->
             currentTable = availableTables[position]
-            prefs.edit().putString("last_table", currentTable).apply()
+            prefs.edit { putString("last_table", currentTable) }
 
             // Reset search when changing tables
             searchColumn = null

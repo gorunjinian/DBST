@@ -414,7 +414,6 @@ class EntryFragment : Fragment() {
         }
     }
 
-    // Add this function to EntryFragment class
     private fun setupFocusHandling() {
         // Fix focus issues when moving from person input to amount input
         personInput.setOnEditorActionListener { _, actionId, _ ->
