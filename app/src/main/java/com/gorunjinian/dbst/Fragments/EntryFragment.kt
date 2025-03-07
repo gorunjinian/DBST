@@ -3,10 +3,11 @@ package com.gorunjinian.dbst.fragments
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
@@ -14,7 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.color.MaterialColors
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -25,13 +26,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.*
-import androidx.core.content.edit
+import java.util.Calendar
+import java.util.Locale
 
 @SuppressLint("SetTextI18n")
 class EntryFragment : Fragment() {
 
-    //inputs
+    // Inputs
     private lateinit var dateInput: TextInputEditText
     private lateinit var personInput: TextInputEditText
     private lateinit var amountInput: TextInputEditText
@@ -39,11 +40,11 @@ class EntryFragment : Fragment() {
     private lateinit var rateInput: TextInputEditText
     private lateinit var typeDropdown: MaterialAutoCompleteTextView
 
-    //layouts
+    // Layouts
     private lateinit var amountExchangedLayout: TextInputLayout
     private lateinit var amountLayout: TextInputLayout
 
-    //buttons
+    // Buttons
     private lateinit var incomeButton: MaterialButton
     private lateinit var expenseButton: MaterialButton
     private lateinit var saveButton: MaterialButton
@@ -51,18 +52,18 @@ class EntryFragment : Fragment() {
     private lateinit var undoButton: MaterialButton
     private var undoCountDownTimer: CountDownTimer? = null
 
-
-    //database components
+    // DB
     private lateinit var database: AppDatabase
     private lateinit var appDao: AppDao
-    private var lastEntryTime: Long = 0L
-    private var lastEntryType: String? = null  // "income" or "expense"
-    private var lastEntry: Any? = null         // holds the last inserted DBT or DST instance
 
+    // Undo tracking
+    private var lastEntryTime: Long = 0L
+    private var lastEntryType: String? = null
+    private var lastEntry: Any? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true) // Enable menu options for this fragment
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -90,95 +91,120 @@ class EntryFragment : Fragment() {
         clearButton = view.findViewById(R.id.clear_button)
         undoButton = view.findViewById(R.id.undo_button)
 
-        undoButton.setOnClickListener { undoButtonAction() }
+        // DB
+        database = AppDatabase.getDatabase(requireContext())
+        appDao = database.appDao()
 
-        // Disable undo button by default
+        undoButton.setOnClickListener { undoButtonAction() }
         undoButton.isEnabled = false
 
         setupFocusHandling()
 
+        // Setup toggle group
+        val toggleGroup: MaterialButtonToggleGroup = view.findViewById(R.id.toggle_group)
+        // Force expense by default
+        toggleGroup.check(R.id.expense_button)
+        // Listen for toggles
+        toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.income_button -> selectButton(isExpense = false)
+                    R.id.expense_button -> selectButton(isExpense = true)
+                }
+            }
+        }
+        // Manually set up the initial UI for expense
+        selectButton(isExpense = true)
 
-        // Initialize Room Database
-        database = AppDatabase.getDatabase(requireContext())
-        appDao = database.appDao()
-
-        // Restore previously selected button (Income/Expense)
-        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
-        val isExpenseSelected = prefs.getBoolean("is_expense_selected", true)
-        val lastSelectedType =
-            prefs.getString(if (isExpenseSelected) "expense_type" else "income_type", "")
-
-
-        // Set up default dropdown options based on selection
-        setupTypeDropdown(
-            if (isExpenseSelected) getExpenseTypes() else getIncomeTypes(),
-            lastSelectedType
-        )
-
+        // Comma formatting
         formatNumberWithCommas(amountInput)
         formatNumberWithCommas(amountExchangedInput)
         formatNumberWithCommas(rateInput)
 
-        // Ensure clicking the field shows the dropdown
+        // Show dropdown on click
         typeDropdown.setOnClickListener { typeDropdown.showDropDown() }
 
-        // Restore button selection
-        selectButton(if (isExpenseSelected) expenseButton else incomeButton, isExpenseSelected)
-
-        // Set up Date Picker
+        // Date
         dateInput.setOnClickListener { showDatePicker() }
-
-        // Set today's date
         setTodayDate()
 
-        // Setup auto-open for dropdowns
+        // Next fields
         setupAutoOpenDropdowns()
 
         clearButton.setOnClickListener { clearInputFields() }
 
-        // Set up Button Click Listeners
-        incomeButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = false) }
-        expenseButton.setOnClickListener { selectButton(it as MaterialButton, isExpense = true) }
-
-        // Save Button Logic
+        // Save
         saveButton.setOnClickListener {
-            if (expenseButton.strokeWidth > 0) {
-                saveExpense()
-            } else {
-                saveIncome()
-            }
+            if (expenseButton.isChecked) saveExpense() else saveIncome()
         }
-
     }
 
+    // List of Income types
     private fun getIncomeTypes(): List<String> = listOf(
-        "Income", "Buy", "Return", "Profit", "Validity",
-        "Loan", "Gift", "Other", "N/A")
+        "Income", "Buy", "Return", "Profit",
+        "Validity", "Loan", "Gift", "Other", "N/A"
+    )
 
+    // List of Expense types
     private fun getExpenseTypes(): List<String> = listOf(
-        "FOOD", "GROCERIES", "EXCHANGE","WHISH TOPUP", "WELLBEING",
-        "BANK TOPUP", "TECH", "DEBT", "OTHER")
+        "FOOD", "GROCERIES", "EXCHANGE", "WHISH TOPUP",
+        "WELLBEING", "BANK TOPUP", "TECH", "DEBT", "OTHER"
+    )
 
-    private fun resetButtonStyles() {
-        incomeButton.strokeWidth = 0
-        expenseButton.strokeWidth = 0
+    /**
+     * Switching layout to Income or Expense
+     * We ensure the 'type' field is automatically cleared here.
+     */
+    private fun selectButton(isExpense: Boolean) {
+        // Clear whatever was selected in the type dropdown
+        typeDropdown.setText("", false)
+
+        if (isExpense) {
+            amountLayout.hint = "Amount Expensed"
+            amountExchangedLayout.visibility = View.VISIBLE
+            amountExchangedInput.setText("0")
+
+            setupTypeDropdown(getExpenseTypes())
+        } else {
+            amountLayout.hint = "Amount"
+            amountExchangedLayout.visibility = View.GONE
+
+            // For example, reset the rate if you like
+            rateInput.setText("0")
+
+            setupTypeDropdown(getIncomeTypes())
+        }
+    }
+
+    /**
+     * Setup the adapter for the type dropdown.
+     * Notice we only pass the list, no "previous" type since we want it empty now.
+     */
+    private fun setupTypeDropdown(types: List<String>) {
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            types
+        )
+        typeDropdown.setAdapter(adapter)
     }
 
     private fun saveIncome() {
-        // Validate inputs
         val date = dateInput.text.toString()
         val person = personInput.text.toString()
         val amountText = amountInput.text.toString()
         val rateText = rateInput.text.toString()
         val type = typeDropdown.text.toString()
 
-        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() ||
+            rateText.isEmpty() || type.isEmpty()
+        ) {
             Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
         val amount = amountText.replace(",", "").toDouble()
-        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0 // Default rate to 1.0 if null
+        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0
         val totalLBP = amount * rate
 
         lifecycleScope.launch {
@@ -190,27 +216,21 @@ class EntryFragment : Fragment() {
                 type = type,
                 totalLBP = totalLBP
             )
-            // Capture the generated id
             val newId = appDao.insertIncome(incomeEntry)
-            // Update the entry with the generated id
             val savedIncomeEntry = incomeEntry.copy(id = newId.toInt())
+
             Toast.makeText(requireContext(), "Income Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
 
-            // Track the last inserted entry for undo
+            // For "undo"
             lastEntryTime = System.currentTimeMillis()
             lastEntryType = "income"
             lastEntry = savedIncomeEntry
-
-            // Start the 15 second countdown
             startUndoCountdown()
         }
-
-
     }
 
     private fun saveExpense() {
-        // Validate inputs
         val date = dateInput.text.toString()
         val person = personInput.text.toString()
         val amountText = amountInput.text.toString()
@@ -218,15 +238,19 @@ class EntryFragment : Fragment() {
         val type = typeDropdown.text.toString()
         val amountExchangedText = amountExchangedInput.text.toString()
 
-        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() || rateText.isEmpty() || type.isEmpty()) {
+        if (date.isEmpty() || person.isEmpty() || amountText.isEmpty() ||
+            rateText.isEmpty() || type.isEmpty()
+        ) {
             Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
             return
         }
 
         val amountExpensed = amountText.replace(",", "").toDouble()
-        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0 // Default rate to 1.0 if null
-        val amountExchanged = if (amountExchangedText.isNotEmpty()) amountExchangedText.replace(",", "").toDouble() else 0.0
-        val exchangedLBP = amountExchanged * rate // Correctly calculate exchangedLBP
+        val rate = rateText.replace(",", "").toDoubleOrNull() ?: 1.0
+        val amountExchanged = if (amountExchangedText.isNotEmpty()) {
+            amountExchangedText.replace(",", "").toDouble()
+        } else 0.0
+        val exchangedLBP = amountExchanged * rate
 
         lifecycleScope.launch {
             val expenseEntry = DST(
@@ -240,39 +264,32 @@ class EntryFragment : Fragment() {
             )
             val newId = appDao.insertExpense(expenseEntry)
             val savedExpenseEntry = expenseEntry.copy(id = newId.toInt())
+
             Toast.makeText(requireContext(), "Expense Entry Saved!", Toast.LENGTH_SHORT).show()
             clearInputFields()
 
-            // Track the last inserted entry for undo
+            // For "undo"
             lastEntryTime = System.currentTimeMillis()
             lastEntryType = "expense"
             lastEntry = savedExpenseEntry
-
-            // Start the 15 second countdown
             startUndoCountdown()
         }
-
-
     }
 
     private fun undoButtonAction() {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastEntryTime <= 30000) {  // within 30 seconds
-            // Cancel the countdown so it stops updating the button text
+        if (currentTime - lastEntryTime <= 30000) {
             undoCountDownTimer?.cancel()
-            // Reset button text immediately and disable it
             undoButton.text = "Undo"
             undoButton.isEnabled = false
 
             lifecycleScope.launch {
                 when (lastEntryType) {
                     "income" -> {
-                        lastEntry?.let { entry ->
-                            val incomeEntry = entry as DBT
+                        (lastEntry as? DBT)?.let { incomeEntry ->
                             appDao.deleteIncome(incomeEntry.id)
-                            // Switch UI to Income mode and repopulate fields
                             withContext(Dispatchers.Main) {
-                                selectButton(incomeButton, isExpense = false)
+                                selectButton(isExpense = false)
                                 dateInput.setText(incomeEntry.date)
                                 personInput.setText(incomeEntry.person)
                                 amountInput.setText(incomeEntry.amount.toString())
@@ -282,12 +299,10 @@ class EntryFragment : Fragment() {
                         }
                     }
                     "expense" -> {
-                        lastEntry?.let { entry ->
-                            val expenseEntry = entry as DST
+                        (lastEntry as? DST)?.let { expenseEntry ->
                             appDao.deleteExpense(expenseEntry.id)
-                            // Switch UI to Expense mode and repopulate fields
                             withContext(Dispatchers.Main) {
-                                selectButton(expenseButton, isExpense = true)
+                                selectButton(isExpense = true)
                                 dateInput.setText(expenseEntry.date)
                                 personInput.setText(expenseEntry.person)
                                 amountInput.setText(expenseEntry.amountExpensed.toString())
@@ -298,7 +313,6 @@ class EntryFragment : Fragment() {
                         }
                     }
                 }
-                // Clear the tracking variables after undoing
                 lastEntryTime = 0L
                 lastEntryType = null
                 lastEntry = null
@@ -310,28 +324,18 @@ class EntryFragment : Fragment() {
     }
 
     private fun startUndoCountdown() {
-        // Cancel any previous countdown
         undoCountDownTimer?.cancel()
-
-        // Enable the undo button and set initial text
         undoButton.isEnabled = true
         undoButton.text = "Undo (30s)"
 
-        // Create and start a new CountDownTimer
         undoCountDownTimer = object : CountDownTimer(30000, 1000) {
-
             override fun onTick(millisUntilFinished: Long) {
                 val secondsRemaining = millisUntilFinished / 1000
-                // Update the button text with remaining seconds
                 undoButton.text = "Undo (${secondsRemaining}s)"
             }
-
-            @SuppressLint("SetTextI18n")
             override fun onFinish() {
-                // Once finished, reset the button text and disable it
                 undoButton.text = "Undo"
                 undoButton.isEnabled = false
-                // Optionally, reset tracking for last entry if needed
                 lastEntryTime = 0L
                 lastEntryType = null
                 lastEntry = null
@@ -364,64 +368,11 @@ class EntryFragment : Fragment() {
         typeDropdown.text?.clear()
     }
 
-    private fun setupTypeDropdown(types: List<String>, selectedValue: String?) {
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            types
-        )
-        typeDropdown.setAdapter(adapter)
-
-        if (!selectedValue.isNullOrEmpty()) {
-            typeDropdown.setText(selectedValue, false)
-        }
-    }
-
-    private fun selectButton(selectedButton: MaterialButton, isExpense: Boolean) {
-        // Reset button styles
-        resetButtonStyles()
-
-        // Highlight the selected button
-        selectedButton.strokeWidth = 12
-        selectedButton.strokeColor =
-            ColorStateList.valueOf(
-                MaterialColors.getColor(
-                    selectedButton,
-                    com.google.android.material.R.attr.colorOnBackground
-                )
-            )
-
-        // Save selection in SharedPreferences
-        val prefs = requireActivity().getSharedPreferences("app_prefs", 0)
-        prefs.edit {
-            putBoolean("is_expense_selected", isExpense)
-        }
-
-        // Restore last selected type (if exists)
-        val lastSelectedType = prefs.getString(if (isExpense) "expense_type" else "income_type", "")
-
-        // Update UI based on selection
-        if (isExpense) {
-            amountLayout.hint = "Amount Expensed"
-            amountExchangedLayout.visibility = View.VISIBLE
-            amountExchangedInput.setText("0") // Reset Amount Exchanged to default
-            setupTypeDropdown(getExpenseTypes(), lastSelectedType) // Load expense categories
-        } else {
-            amountLayout.hint = "Amount"
-            rateInput.setText("0") // Rate field to default 0 for Income
-            amountExchangedLayout.visibility = View.GONE
-            setupTypeDropdown(getIncomeTypes(), lastSelectedType) // Load income categories
-        }
-    }
-
     private fun setupFocusHandling() {
-        // Fix focus issues when moving from person input to amount input
         personInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                // Explicitly set focus to amount field with a slight delay to avoid race conditions
                 amountInput.postDelayed({
                     amountInput.requestFocus()
-                    // Select all text in the field
                     amountInput.selectAll()
                 }, 50)
                 true
@@ -430,7 +381,6 @@ class EntryFragment : Fragment() {
             }
         }
 
-        // Also add a focus listener to ensure text is selected when field gets focus
         amountInput.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 amountInput.postDelayed({
@@ -441,22 +391,18 @@ class EntryFragment : Fragment() {
     }
 
     private fun setupAutoOpenDropdowns() {
-        // Handle keyboard to dropdown transition
         rateInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                // Hide keyboard
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(rateInput.windowToken, 0)
 
-                // Post a delay to show dropdown after keyboard is hidden
                 typeDropdown.postDelayed({
                     typeDropdown.requestFocus()
                     typeDropdown.showDropDown()
                 }, 100)
-
-                true // consume the action
+                true
             } else {
-                false // don't consume the action
+                false
             }
         }
     }

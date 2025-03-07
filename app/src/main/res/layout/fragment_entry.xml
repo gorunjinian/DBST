@@ -186,36 +186,39 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Income & Expense Buttons -->
-            <LinearLayout
-                android:id="@+id/button_layout"
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                app:singleSelection="true"
+                android:gravity="center">
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/income_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Income"
+                    android:text="@string/income_button_text"
+                    android:layout_height="64dp"
                     app:icon="@drawable/ic_arrowdown"
                     app:iconGravity="textStart"
-                    android:layout_marginEnd="8dp"/>
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/expense_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"
+                    android:layout_height="64dp"
                     android:text="@string/expense_button_text"
                     app:icon="@drawable/ic_arrowup"
-                    app:iconGravity="textStart"/>
-            </LinearLayout>
+                    app:iconGravity="textStart"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            </com.google.android.material.button.MaterialButtonToggleGroup>
 
             <!-- Save Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/save_button"
-                android:layout_width="wrap_content"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:text="@string/save_button_text"
                 app:icon="@drawable/ic_tick"
