@@ -53,4 +53,5 @@
     <string name="cancel">Cancel</string>
     <string name="light_mode">Light Mode</string>
     <string name="income_button_text">Income</string>
+    <string name="save_and_send"><![CDATA[Save & Send]]></string>
 </resources>

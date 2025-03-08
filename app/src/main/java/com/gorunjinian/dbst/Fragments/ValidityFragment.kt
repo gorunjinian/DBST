@@ -3,20 +3,26 @@ package com.gorunjinian.dbst.fragments
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.res.ColorStateList
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.telephony.SmsManager
+import android.telephony.SubscriptionManager
+import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -31,8 +37,14 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 @SuppressLint("SetTextI18s", "SetTextI18n")
 class ValidityFragment : Fragment() {
+
+    companion object {
+        private const val PERMISSION_REQUEST_SMS = 101
+        private const val MAX_CREDIT_PER_SMS = 3.0
+    }
 
     private lateinit var dateInput: TextInputEditText
     private lateinit var personInput: TextInputEditText
@@ -50,6 +62,8 @@ class ValidityFragment : Fragment() {
     private lateinit var totalLayout: TextInputLayout
     private lateinit var rateLayout: TextInputLayout
     private lateinit var creditTypeToggle: MaterialButtonToggleGroup
+    private lateinit var saveSendButton: MaterialButton
+    private var currentAmount: Double = 0.0
 
     // ViewModel components
     private lateinit var viewModel: ValidityViewModel
@@ -85,6 +99,7 @@ class ValidityFragment : Fragment() {
         creditInButton = view.findViewById(R.id.credit_in_button)
         creditOutButton = view.findViewById(R.id.credit_out_button)
         creditTypeToggle = view.findViewById(R.id.credit_type_toggle)
+        saveSendButton = view.findViewById(R.id.save_send_button)
 
         // Initialize additional layouts
         validityLayout = view.findViewById(R.id.validity_layout)
@@ -139,6 +154,24 @@ class ValidityFragment : Fragment() {
 
         // Clear button functionality
         clearButton.setOnClickListener { clearInputFields() }
+
+        saveSendButton.setOnClickListener {
+            // Get the current amount value for later use in SMS
+            val amountStr = amountInput.text.toString().replace(",", "")
+            if (amountStr.isNotEmpty()) {
+                currentAmount = amountStr.toDouble()
+                // First check for SMS permission
+                if (hasSmsSendPermission()) {
+                    // Show SMS dialog if we have permission
+                    showSendSmsDialog()
+                } else {
+                    // Request SMS permission
+                    requestSmsSendPermission()
+                }
+            } else {
+                Toast.makeText(requireContext(), "Please enter an amount", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         creditTypeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
@@ -201,6 +234,9 @@ class ValidityFragment : Fragment() {
             validityLayout.visibility = View.VISIBLE
             totalLayout.visibility = View.VISIBLE
             rateLayout.visibility = View.GONE
+
+            // Hide Save & Send button for Credit IN
+            saveSendButton.visibility = View.GONE
         } else {
             // Only update the toggle if it doesn't match current selection
             if (creditTypeToggle.checkedButtonId != R.id.credit_out_button) {
@@ -211,6 +247,9 @@ class ValidityFragment : Fragment() {
             validityLayout.visibility = View.GONE
             totalLayout.visibility = View.GONE
             rateLayout.visibility = View.VISIBLE
+
+            // Show Save & Send button for Credit OUT
+            saveSendButton.visibility = View.VISIBLE
         }
     }
 
@@ -382,18 +421,10 @@ class ValidityFragment : Fragment() {
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(personInput.windowToken, 0)
 
-                // Post a shorter delay to show type dropdown after keyboard is hidden
-                // Shorter delay makes the UI feel more responsive
+                // Post a delay to show type dropdown after keyboard is hidden
                 typeDropdown.postDelayed({
                     typeDropdown.requestFocus()
-
-                    // Check if the dropdown is already shown - if not, show it
-                    if (!typeDropdown.isPopupShowing) {
-                        typeDropdown.showDropDown()
-                    }
-
-                    // Force the dropdown to appear below the field, away from the rounded navigation bar
-                    typeDropdown.dropDownVerticalOffset = -typeDropdown.height
+                    typeDropdown.showDropDown()
                 }, 150)
 
                 true // consume the action
@@ -405,31 +436,11 @@ class ValidityFragment : Fragment() {
         // For Credit IN mode: Handle transition from type dropdown to validity dropdown
         typeDropdown.setOnItemClickListener { _, _, _, _ ->
             // Only show validity dropdown when Credit IN is selected
-            if (creditInButton.strokeWidth > 0) {
+            if (creditTypeToggle.checkedButtonId == R.id.credit_in_button) {
                 validityDropdown.postDelayed({
                     validityDropdown.requestFocus()
-
-                    // Check if the dropdown is already shown - if not, show it
-                    if (!validityDropdown.isPopupShowing) {
-                        validityDropdown.showDropDown()
-                    }
-
-                    // Force the dropdown to appear below the field, away from the rounded navigation bar
-                    validityDropdown.dropDownVerticalOffset = -validityDropdown.height
+                    validityDropdown.showDropDown()
                 }, 150)
-            }
-        }
-
-        // Add touch feedback for the dropdowns to improve UX
-        typeDropdown.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                typeDropdown.background.state = intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
-            }
-        }
-
-        validityDropdown.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                validityDropdown.background.state = intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
             }
         }
     }
@@ -441,5 +452,216 @@ class ValidityFragment : Fragment() {
         typeDropdown.text?.clear()
         totalInput.text?.clear()
         validityDropdown.text?.clear()
+    }
+
+    private fun hasSmsSendPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            android.Manifest.permission.SEND_SMS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestSmsSendPermission() {
+        ActivityCompat.requestPermissions(
+            requireActivity(),
+            arrayOf(android.Manifest.permission.SEND_SMS),
+            PERMISSION_REQUEST_SMS
+        )
+    }
+
+    // Handle permission result
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == PERMISSION_REQUEST_SMS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, show SMS dialog
+                showSendSmsDialog()
+            } else {
+                // Permission denied
+                Toast.makeText(
+                    requireContext(),
+                    "SMS permission denied. Cannot send SMS.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    private fun showSendSmsDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_send_sms, null)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Get references to views
+        val phoneNumberInput = dialogView.findViewById<TextInputEditText>(R.id.phone_number_input)
+        val simDropdown = dialogView.findViewById<MaterialAutoCompleteTextView>(R.id.sim_dropdown)
+        val smsSummary = dialogView.findViewById<TextView>(R.id.sms_summary)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btn_cancel)
+        val btnSend = dialogView.findViewById<MaterialButton>(R.id.btn_send)
+
+        // Get available SIMs
+        val simOptions = getAvailableSims()
+        val simAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            simOptions
+        )
+        simDropdown.setAdapter(simAdapter)
+
+        // Set default SIM if available
+        if (simOptions.isNotEmpty()) {
+            simDropdown.setText(simOptions[0], false)
+        }
+
+        // Update SMS summary text
+        updateSmsSummary(smsSummary, currentAmount)
+
+        // Set up button actions
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        btnSend.setOnClickListener {
+            val phoneNumber = phoneNumberInput.text.toString()
+            val selectedSim = simDropdown.text.toString()
+
+            if (validateInputs(phoneNumber, selectedSim)) {
+                sendSmsMessages(phoneNumber, selectedSim, currentAmount)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun getAvailableSims(): List<String> {
+        try {
+            val subscriptionManager = requireContext().getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)
+                    as? SubscriptionManager
+
+            if (subscriptionManager == null) {
+                Log.e("ValidityFragment", "Subscription Manager is null")
+                return listOf("Touch SIM", "Alfa SIM")
+            }
+
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    android.Manifest.permission.READ_PHONE_STATE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.w("ValidityFragment", "No READ_PHONE_STATE permission")
+                return listOf("Touch SIM", "Alfa SIM")
+            }
+
+            val activeSubscriptions = subscriptionManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty()) {
+                Log.i("ValidityFragment", "No active subscriptions found")
+                return listOf("Touch SIM", "Alfa SIM")
+            }
+
+            return activeSubscriptions.map { it.displayName.toString() }
+        } catch (e: Exception) {
+            Log.e("ValidityFragment", "Error getting SIMs: ${e.message}")
+            return listOf("Touch SIM", "Alfa SIM")
+        }
+    }
+
+    private fun validateInputs(phoneNumber: String, selectedSim: String): Boolean {
+        if (phoneNumber.length != 8 || !phoneNumber.all { it.isDigit() }) {
+            Toast.makeText(requireContext(), "Please enter a valid 8-digit phone number", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (selectedSim.isEmpty()) {
+            Toast.makeText(requireContext(), "Please select a SIM", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        return true
+    }
+
+    private fun updateSmsSummary(summaryView: TextView, amount: Double) {
+        val messageParts = calculateSmsParts(amount)
+        val summary = StringBuilder("Will send ${messageParts.size} SMS message(s):\n")
+
+        messageParts.forEachIndexed { index, value ->
+            // Format the value the same way for consistency
+            val formattedValue = if (value == value.toInt().toDouble()) {
+                value.toInt().toString()
+            } else {
+                value.toString()
+            }
+
+            summary.append("SMS ${index + 1}: $formattedValue credit\n")
+        }
+
+        summaryView.text = summary.toString()
+    }
+
+    private fun calculateSmsParts(amount: Double): List<Double> {
+        val parts = mutableListOf<Double>()
+        var remainingAmount = amount
+
+        while (remainingAmount > 0) {
+            val partValue = when {
+                remainingAmount >= MAX_CREDIT_PER_SMS -> MAX_CREDIT_PER_SMS
+                remainingAmount >= 2.5 -> 2.5
+                remainingAmount >= 2.0 -> 2.0
+                remainingAmount >= 1.5 -> 1.5
+                remainingAmount >= 1.0 -> 1.0
+                remainingAmount >= 0.5 -> 0.5
+                else -> remainingAmount // Less than 0.5, use actual value
+            }
+
+            parts.add(partValue)
+            remainingAmount -= partValue
+        }
+
+        return parts
+    }
+
+    private fun sendSmsMessages(phoneNumber: String, selectedSim: String, amount: Double) {
+        try {
+            val smsManager = SmsManager.getDefault()
+            val messageParts = calculateSmsParts(amount)
+            val destinationNumber = if (selectedSim.lowercase().contains("touch")) "1199" else "1313"
+
+            var successCount = 0
+
+            for (value in messageParts) {
+                // Format the value to remove decimal if it's a whole number
+                val formattedValue = if (value == value.toInt().toDouble()) {
+                    value.toInt().toString()
+                } else {
+                    value.toString()
+                }
+
+                val message = "${phoneNumber}t$formattedValue"
+                try {
+                    smsManager.sendTextMessage(destinationNumber, null, message, null, null)
+                    successCount++
+                } catch (e: Exception) {
+                    // Handle individual SMS failure
+                    Log.e("SMS_SEND", "Failed to send SMS: ${e.message}")
+                }
+            }
+
+            if (successCount == messageParts.size) {
+                Toast.makeText(requireContext(), "All SMS messages sent successfully", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Sent $successCount of ${messageParts.size} SMS messages", Toast.LENGTH_SHORT).show()
+            }
+
+            // Save the data as well since we're in the "Save & Send" button action
+            saveData()
+        } catch (e: Exception) {
+            // Handle general SMS failure
+            Toast.makeText(requireContext(), "Failed to send SMS: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("SMS_SEND", "Failed to send SMS: ${e.message}")
+        }
     }
 }
