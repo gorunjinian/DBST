@@ -174,4 +174,34 @@ interface AppDao {
     suspend fun insertUserGivens(userGivens: UserGivens)
 
 
+    // Add these methods to your existing AppDao interface
+
+    // Get all checklist items sorted by position
+    @Query("SELECT * FROM checklist_items WHERE isChecked = 0 ORDER BY position ASC")
+    fun getUncheckedItems(): List<ChecklistItem>
+
+    @Query("SELECT * FROM checklist_items WHERE isChecked = 1 ORDER BY dateCreated DESC")
+    fun getCheckedItems(): List<ChecklistItem>
+
+    // Insert a new checklist item
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertChecklistItem(item: ChecklistItem): Long
+
+    // Update a checklist item
+    @Update
+    suspend fun updateChecklistItem(item: ChecklistItem)
+
+    // Delete a checklist item
+    @Query("DELETE FROM checklist_items WHERE id = :id")
+    suspend fun deleteChecklistItem(id: Int)
+
+    // Update positions of multiple items (for reordering)
+    @Query("UPDATE checklist_items SET position = :newPosition WHERE id = :id")
+    suspend fun updateChecklistItemPosition(id: Int, newPosition: Int)
+
+    // Count checked items
+    @Query("SELECT COUNT(*) FROM checklist_items WHERE isChecked = 1")
+    suspend fun getCheckedItemsCount(): Int
+
+
 }

@@ -25,7 +25,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.gorunjinian.dbst.FabManager
+import com.gorunjinian.dbst.fabcomponents.FabManager
 import com.gorunjinian.dbst.MyApplication
 import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.adapters.MainPagerAdapter

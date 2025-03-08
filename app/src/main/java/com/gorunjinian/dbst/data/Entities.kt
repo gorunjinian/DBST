@@ -85,3 +85,12 @@ data class UserGivens(
     val bankBalance: Int = 0,
     val lastUpdated: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "checklist_items")
+    data class ChecklistItem(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val text: String,
+    var isChecked: Boolean = false,
+    val position: Int, // For maintaining order
+    val dateCreated: Long = System.currentTimeMillis()
+)

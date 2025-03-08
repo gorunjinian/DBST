@@ -6,6 +6,7 @@ import com.gorunjinian.dbst.data.AppRepository
 
 class ViewModelFactory(private val repository: AppRepository) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(EntryViewModel::class.java) ->
@@ -14,6 +15,8 @@ class ViewModelFactory(private val repository: AppRepository) : ViewModelProvide
                 ValidityViewModel(repository) as T
             modelClass.isAssignableFrom(TetherViewModel::class.java) ->
                 TetherViewModel(repository) as T
+            modelClass.isAssignableFrom(ChecklistViewModel::class.java) ->
+                ChecklistViewModel(repository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }

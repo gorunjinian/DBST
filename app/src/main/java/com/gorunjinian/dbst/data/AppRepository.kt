@@ -47,4 +47,16 @@ class AppRepository(private val appDao: AppDao) {
     //Cash counter
     suspend fun getCashCounter(): CashCounter? = appDao.getCashCounter()
     suspend fun saveCashCounter(cashCounter: CashCounter) = appDao.insertCashCounter(cashCounter)
+
+    //Checklist
+    // Add these methods to your AppRepository class
+
+    // Checklist items methods
+    fun getUncheckedItems(): List<ChecklistItem> = appDao.getUncheckedItems()
+    fun getCheckedItems(): List<ChecklistItem> = appDao.getCheckedItems()
+    suspend fun insertChecklistItem(item: ChecklistItem) = appDao.insertChecklistItem(item)
+    suspend fun updateChecklistItem(item: ChecklistItem) = appDao.updateChecklistItem(item)
+    suspend fun deleteChecklistItem(id: Int) = appDao.deleteChecklistItem(id)
+    suspend fun updateChecklistItemPosition(id: Int, newPosition: Int) = appDao.updateChecklistItemPosition(id, newPosition)
+    suspend fun getCheckedItemsCount(): Int = appDao.getCheckedItemsCount()
 }

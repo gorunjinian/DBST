@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.0"
+gson = "2.10.1"
 kotlin = "2.1.10"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -23,11 +24,13 @@ navigationFragmentKtx = "2.8.8"
 viewpager2 = "1.1.0"
 roomRuntime = "2.6.1"
 roomKtx = "2.6.1"
-adapters = "8.8.2"
+adapters = "8.9.0"
 uiAndroid = "1.7.8"
+firebaseCrashlyticsBuildtools = "3.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jetbrains-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflectVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -56,6 +59,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 adapters = { group = "com.android.databinding", name = "adapters", version.ref = "adapters" }
 opencsv-opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsvVersion" }
 androidx-ui-android = { group = "androidx.compose.ui", name = "ui-android", version.ref = "uiAndroid" }
+firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

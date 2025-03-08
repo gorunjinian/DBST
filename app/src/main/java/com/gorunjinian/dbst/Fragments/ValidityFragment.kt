@@ -35,6 +35,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+import android.app.AlertDialog
 import java.util.*
 
 
@@ -110,7 +115,8 @@ class ValidityFragment : Fragment() {
         val database = AppDatabase.getDatabase(requireContext())
         val appDao = database.appDao()
         repository = AppRepository(appDao)
-        viewModel = ViewModelProvider(this, ViewModelFactory(repository))[ValidityViewModel::class.java]
+        viewModel =
+            ViewModelProvider(this, ViewModelFactory(repository))[ValidityViewModel::class.java]
 
         // Observe LiveData from ViewModel
         viewModel.lastInsertedVbstIn.observe(viewLifecycleOwner) { entry ->
@@ -169,7 +175,8 @@ class ValidityFragment : Fragment() {
                     requestSmsSendPermission()
                 }
             } else {
-                Toast.makeText(requireContext(), "Please enter an amount", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please enter an amount", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
 
@@ -276,7 +283,11 @@ class ValidityFragment : Fragment() {
 
         // Validate common fields
         if (date.isEmpty() || person.isEmpty() || type.isEmpty() || amountStr.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in all required fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Please fill in all required fields",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -284,13 +295,21 @@ class ValidityFragment : Fragment() {
         if (isCreditIn) {
             // For Credit IN (VBSTIN): require validity and total
             if (validity.isEmpty() || totalStr.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill in validity and total fields", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Please fill in validity and total fields",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return
             }
         } else {
             // For Credit OUT (VBSTOUT): require sell rate (entered in rate field)
             if (rateStr.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill in the sell rate field", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Please fill in the sell rate field",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return
             }
         }
@@ -358,6 +377,7 @@ class ValidityFragment : Fragment() {
                             }
                         }
                     }
+
                     "credit_out" -> {
                         (lastEntry as? VBSTOUT)?.let { vbstout ->
                             viewModel.deleteVbstOut(vbstout)
@@ -418,7 +438,8 @@ class ValidityFragment : Fragment() {
         personInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_NEXT) {
                 // Hide keyboard
-                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val imm =
+                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(personInput.windowToken, 0)
 
                 // Post a delay to show type dropdown after keyboard is hidden
@@ -467,6 +488,17 @@ class ValidityFragment : Fragment() {
             arrayOf(android.Manifest.permission.SEND_SMS),
             PERMISSION_REQUEST_SMS
         )
+    }
+
+    private fun createLoadingDialog(): AlertDialog {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_loading, null)
+        val messageTextView = dialogView.findViewById<TextView>(R.id.loading_message)
+        messageTextView.text = "Sending SMS messages..."
+
+        return AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
     }
 
     // Handle permission result
@@ -530,8 +562,33 @@ class ValidityFragment : Fragment() {
             val selectedSim = simDropdown.text.toString()
 
             if (validateInputs(phoneNumber, selectedSim)) {
-                sendSmsMessages(phoneNumber, selectedSim, currentAmount)
+                // Dismiss the SMS dialog
                 dialog.dismiss()
+
+                // Show loading dialog
+                val loadingDialog = createLoadingDialog()
+                loadingDialog.show()
+
+                // Launch coroutine to send SMS in background
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val success = sendSmsMessages(phoneNumber, selectedSim, currentAmount)
+
+                    // Back to the main thread to update UI
+                    withContext(Dispatchers.Main) {
+                        // Dismiss loading dialog
+                        loadingDialog.dismiss()
+
+                        // Show result toast
+                        if (success) {
+                            Toast.makeText(requireContext(), "All SMS messages sent successfully", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to send some or all SMS messages", Toast.LENGTH_SHORT).show()
+                        }
+
+                        // Save the data
+                        saveData()
+                    }
+                }
             }
         }
 
@@ -540,8 +597,9 @@ class ValidityFragment : Fragment() {
 
     private fun getAvailableSims(): List<String> {
         try {
-            val subscriptionManager = requireContext().getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)
-                    as? SubscriptionManager
+            val subscriptionManager =
+                requireContext().getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)
+                        as? SubscriptionManager
 
             if (subscriptionManager == null) {
                 Log.e("ValidityFragment", "Subscription Manager is null")
@@ -571,8 +629,23 @@ class ValidityFragment : Fragment() {
     }
 
     private fun validateInputs(phoneNumber: String, selectedSim: String): Boolean {
+        // Check if phone number is exactly 8 digits
         if (phoneNumber.length != 8 || !phoneNumber.all { it.isDigit() }) {
             Toast.makeText(requireContext(), "Please enter a valid 8-digit phone number", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        // Check if phone number starts with valid Lebanese prefixes
+        val validPrefixes = listOf("03", "70", "71", "72", "75", "76", "79", "81")
+        val prefix = phoneNumber.substring(0, 2)
+
+        if (!validPrefixes.contains(prefix)) {
+            // Show specific error message listing valid prefixes
+            Toast.makeText(
+                requireContext(),
+                "Invalid Lebanese phone number format.",
+                Toast.LENGTH_LONG
+            ).show()
             return false
         }
 
@@ -624,8 +697,8 @@ class ValidityFragment : Fragment() {
         return parts
     }
 
-    private fun sendSmsMessages(phoneNumber: String, selectedSim: String, amount: Double) {
-        try {
+    private suspend fun sendSmsMessages(phoneNumber: String, selectedSim: String, amount: Double): Boolean {
+        return try {
             val smsManager = SmsManager.getDefault()
             val messageParts = calculateSmsParts(amount)
             val destinationNumber = if (selectedSim.lowercase().contains("touch")) "1199" else "1313"
@@ -644,24 +717,21 @@ class ValidityFragment : Fragment() {
                 try {
                     smsManager.sendTextMessage(destinationNumber, null, message, null, null)
                     successCount++
+
+                    // Add a small delay between messages to avoid network congestion
+                    delay(200)
                 } catch (e: Exception) {
                     // Handle individual SMS failure
                     Log.e("SMS_SEND", "Failed to send SMS: ${e.message}")
                 }
             }
 
-            if (successCount == messageParts.size) {
-                Toast.makeText(requireContext(), "All SMS messages sent successfully", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Sent $successCount of ${messageParts.size} SMS messages", Toast.LENGTH_SHORT).show()
-            }
-
-            // Save the data as well since we're in the "Save & Send" button action
-            saveData()
+            successCount == messageParts.size
         } catch (e: Exception) {
             // Handle general SMS failure
-            Toast.makeText(requireContext(), "Failed to send SMS: ${e.message}", Toast.LENGTH_SHORT).show()
             Log.e("SMS_SEND", "Failed to send SMS: ${e.message}")
+            false
         }
     }
+
 }
