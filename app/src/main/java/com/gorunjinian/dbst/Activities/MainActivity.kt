@@ -18,6 +18,7 @@ import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.get
+import androidx.core.view.size
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
@@ -25,14 +26,12 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.gorunjinian.dbst.FabManager
-import com.gorunjinian.dbst.MainPagerAdapter
 import com.gorunjinian.dbst.MyApplication
 import com.gorunjinian.dbst.R
-import com.gorunjinian.dbst.ThemeManager
+import com.gorunjinian.dbst.adapters.MainPagerAdapter
 import com.gorunjinian.dbst.fragments.DatabasesFragment
 import com.gorunjinian.dbst.fragments.ExportDataFragment
 import com.gorunjinian.dbst.fragments.YearlyViewFragment
-import androidx.core.view.size
 
 @SuppressLint("RestrictedApi")
 class MainActivity : AppCompatActivity() {
@@ -84,11 +83,19 @@ class MainActivity : AppCompatActivity() {
         // Update the validity tab visibility based on preferences
         setupBottomNavigation()
 
+        // Apply the rounded corners background
+        bottomNavigationView.background = ContextCompat.getDrawable(this, R.drawable.bottom_nav_background)
+
+        bottomNavigationView.elevation = resources.getDimension(R.dimen.bottom_nav_elevation)
+
         // Store callback reference to properly unregister later
         pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                // Update the bottom navigation selection
                 bottomNavigationView.menu[position].isChecked = true
-                topAppBar.title = getToolbarTitle(position)
+
+                // Animate the title change
+                animateToolbarTitleChange(getToolbarTitle(position))
             }
         }.also {
             viewPager.registerOnPageChangeCallback(it)
@@ -118,16 +125,51 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Changes the toolbar title without affecting other toolbar elements
+     */
+    private fun animateToolbarTitleChange(newTitle: String) {
+        // Skip if title isn't changing
+        if (topAppBar.title == newTitle) return
+
+        // Simply set the title directly without animation
+        // This prevents the menu button from fading in/out
+        topAppBar.title = newTitle
+    }
+
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
 
-                    // Restore UI elements when returning to the main screen
-                    bottomNavigationView.visibility = View.VISIBLE
-                    viewPager.visibility = View.VISIBLE
-                    fullScreenContainer.visibility = View.GONE
+                    // Restore UI elements when returning to the main screen with animation
+                    fullScreenContainer.animate()
+                        .alpha(0f)
+                        .setDuration(150)
+                        .withEndAction {
+                            fullScreenContainer.visibility = View.GONE
+                            viewPager.visibility = View.VISIBLE
+                            viewPager.alpha = 0f
+
+                            // Fade in the main content
+                            viewPager.animate()
+                                .alpha(1f)
+                                .setDuration(150)
+                                .start()
+
+                            // Slide in the bottom navigation
+                            bottomNavigationView.visibility = View.VISIBLE
+                            bottomNavigationView.translationY = 100f
+                            bottomNavigationView.alpha = 0f
+                            bottomNavigationView.animate()
+                                .translationY(0f)
+                                .alpha(1f)
+                                .setDuration(200)
+                                .start()
+                        }
+                        .start()
+
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)
 
                     // Restore toolbar title
@@ -191,7 +233,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             Log.d("ThemeDebug", "Recreating MainActivity for theme changes")
-            recreate()
+            // Use post handler to avoid immediate recreation which can cause flickering
+            window.decorView.post {
+                recreate()
+            }
             return // Exit early to avoid updating UI twice
         }
 
@@ -246,6 +291,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.nav_settings -> {
+                // Use default transition to Settings
                 startActivity(Intent(this, SettingsActivity::class.java))
                 true
             }
@@ -256,19 +302,47 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToFullScreenFragment(fragment: Fragment, title: String) {
         Log.d("FragmentDebug", "Navigating to: $title")
 
-        // Hide bottom navigation and ViewPager
-        bottomNavigationView.visibility = View.GONE
-        viewPager.visibility = View.GONE
-        fullScreenContainer.visibility = View.VISIBLE
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // Hide bottom navigation and ViewPager with animation
+        bottomNavigationView.animate()
+            .alpha(0f)
+            .translationY(100f)
+            .setDuration(200)
+            .withEndAction {
+                bottomNavigationView.visibility = View.GONE
+                bottomNavigationView.translationY = 0f
+                bottomNavigationView.alpha = 1f
+            }
+            .start()
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.full_screen_container, fragment)
-            .addToBackStack(title) // Ensure it adds to the back stack properly
-            .setReorderingAllowed(true)
-            .commit()
+        viewPager.animate()
+            .alpha(0f)
+            .setDuration(150)
+            .withEndAction {
+                viewPager.visibility = View.GONE
+                fullScreenContainer.visibility = View.VISIBLE
+                fullScreenContainer.alpha = 0f
+                fullScreenContainer.animate()
+                    .alpha(1f)
+                    .setDuration(150)
+                    .start()
 
-        topAppBar.title = title
+                // Add the fragment with animation
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        R.anim.fade_in,
+                        R.anim.fade_out,
+                        R.anim.fade_in,
+                        R.anim.fade_out
+                    )
+                    .replace(R.id.full_screen_container, fragment)
+                    .addToBackStack(title)
+                    .setReorderingAllowed(true)
+                    .commit()
+
+                supportActionBar?.setDisplayHomeAsUpEnabled(true)
+                topAppBar.title = title
+            }
+            .start()
     }
 
     private fun getToolbarTitle(destinationId: Int?): String {
@@ -282,5 +356,10 @@ class MainActivity : AppCompatActivity() {
             R.id.exportDataFragment -> "Export Data"
             else -> getString(R.string.app_name)
         }
+    }
+
+    override fun finish() {
+        super.finish()
+        // Use default activity transition animation
     }
 }

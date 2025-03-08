@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
@@ -40,14 +41,15 @@ class ValidityFragment : Fragment() {
     private lateinit var amountInput: TextInputEditText
     private lateinit var totalInput: TextInputEditText
     private lateinit var rateInput: TextInputEditText
-    private lateinit var creditInButton: MaterialButton
-    private lateinit var creditOutButton: MaterialButton
     private lateinit var saveButton: MaterialButton
     private lateinit var clearButton: MaterialButton
+    private lateinit var creditInButton: MaterialButton
+    private lateinit var creditOutButton: MaterialButton
     private lateinit var undoButton: MaterialButton
     private lateinit var validityLayout: TextInputLayout
     private lateinit var totalLayout: TextInputLayout
     private lateinit var rateLayout: TextInputLayout
+    private lateinit var creditTypeToggle: MaterialButtonToggleGroup
 
     // ViewModel components
     private lateinit var viewModel: ValidityViewModel
@@ -77,11 +79,12 @@ class ValidityFragment : Fragment() {
         amountInput = view.findViewById(R.id.amount_input)
         totalInput = view.findViewById(R.id.total_input)
         rateInput = view.findViewById(R.id.rate_input)
-        creditInButton = view.findViewById(R.id.credit_in_button)
-        creditOutButton = view.findViewById(R.id.credit_out_button)
         saveButton = view.findViewById(R.id.save_button)
         clearButton = view.findViewById(R.id.clear_button)
         undoButton = view.findViewById(R.id.undo_button)
+        creditInButton = view.findViewById(R.id.credit_in_button)
+        creditOutButton = view.findViewById(R.id.credit_out_button)
+        creditTypeToggle = view.findViewById(R.id.credit_type_toggle)
 
         // Initialize additional layouts
         validityLayout = view.findViewById(R.id.validity_layout)
@@ -137,9 +140,14 @@ class ValidityFragment : Fragment() {
         // Clear button functionality
         clearButton.setOnClickListener { clearInputFields() }
 
-        // Set up credit type button click listeners
-        creditInButton.setOnClickListener { selectCreditType(isCreditIn = true) }
-        creditOutButton.setOnClickListener { selectCreditType(isCreditIn = false) }
+        creditTypeToggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.credit_in_button -> selectCreditType(isCreditIn = true)
+                    R.id.credit_out_button -> selectCreditType(isCreditIn = false)
+                }
+            }
+        }
 
         // Set Credit OUT as default selection
         selectCreditType(isCreditIn = false)
@@ -182,36 +190,28 @@ class ValidityFragment : Fragment() {
     }
 
     private fun selectCreditType(isCreditIn: Boolean) {
-        resetButtonStyles()
-
+        // Ensure toggle buttons match the selected state
         if (isCreditIn) {
-            // For Credit IN (VBSTIN): Show validity and total fields, hide rate field.
-            creditInButton.strokeWidth = 12
-            creditInButton.strokeColor =
-                ColorStateList.valueOf(
-                    MaterialColors.getColor(creditInButton, com.google.android.material.R.attr.colorOnBackground)
-                )
+            // Only update the toggle if it doesn't match current selection
+            if (creditTypeToggle.checkedButtonId != R.id.credit_in_button) {
+                creditTypeToggle.check(R.id.credit_in_button)
+            }
 
+            // For Credit IN (VBSTIN): Show validity and total fields, hide rate field
             validityLayout.visibility = View.VISIBLE
             totalLayout.visibility = View.VISIBLE
             rateLayout.visibility = View.GONE
         } else {
-            // For Credit OUT (VBSTOUT): Show rate field (sell rate), hide validity and total fields.
-            creditOutButton.strokeWidth = 12
-            creditOutButton.strokeColor =
-                ColorStateList.valueOf(
-                    MaterialColors.getColor(creditOutButton, com.google.android.material.R.attr.colorOnBackground)
-                )
+            // Only update the toggle if it doesn't match current selection
+            if (creditTypeToggle.checkedButtonId != R.id.credit_out_button) {
+                creditTypeToggle.check(R.id.credit_out_button)
+            }
 
+            // For Credit OUT (VBSTOUT): Show rate field (sell rate), hide validity and total fields
             validityLayout.visibility = View.GONE
             totalLayout.visibility = View.GONE
             rateLayout.visibility = View.VISIBLE
         }
-    }
-
-    private fun resetButtonStyles() {
-        creditInButton.strokeWidth = 0
-        creditOutButton.strokeWidth = 0
     }
 
     private fun setupDropdown(dropdown: MaterialAutoCompleteTextView, options: List<String>) {
@@ -232,6 +232,9 @@ class ValidityFragment : Fragment() {
         val validity = validityDropdown.text.toString()
         val totalStr = totalInput.text.toString()
 
+        // Determine if we're saving Credit IN or Credit OUT based on toggle selection
+        val isCreditIn = creditTypeToggle.checkedButtonId == R.id.credit_in_button
+
         // Validate common fields
         if (date.isEmpty() || person.isEmpty() || type.isEmpty() || amountStr.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill in all required fields", Toast.LENGTH_SHORT).show()
@@ -239,13 +242,13 @@ class ValidityFragment : Fragment() {
         }
 
         // Validate additional fields based on selected credit type
-        if (creditInButton.strokeWidth > 0) {
+        if (isCreditIn) {
             // For Credit IN (VBSTIN): require validity and total
             if (validity.isEmpty() || totalStr.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in validity and total fields", Toast.LENGTH_SHORT).show()
                 return
             }
-        } else if (creditOutButton.strokeWidth > 0) {
+        } else {
             // For Credit OUT (VBSTOUT): require sell rate (entered in rate field)
             if (rateStr.isEmpty()) {
                 Toast.makeText(requireContext(), "Please fill in the sell rate field", Toast.LENGTH_SHORT).show()
@@ -255,7 +258,7 @@ class ValidityFragment : Fragment() {
 
         // Parse numerical values
         val amount = amountStr.replace(",", "").toDouble()
-        if (creditInButton.strokeWidth > 0) {
+        if (isCreditIn) {
             // Save record into VBSTIN table using ViewModel
             val total = totalStr.replace(",", "").toDouble()
             // VBSTIN computes rate automatically as total/amount.
@@ -271,8 +274,7 @@ class ValidityFragment : Fragment() {
             viewModel.insertVbstIn(vbstin)
             Toast.makeText(requireContext(), "Credit IN entry saved", Toast.LENGTH_SHORT).show()
             clearInputFields()
-
-        } else if (creditOutButton.strokeWidth > 0) {
+        } else {
             // Save record into VBSTOUT table using ViewModel
             val sellrate = rateStr.replace(",", "").toDouble()
             val profit = 0.0 // Set profit to 0.0 or compute as needed
@@ -307,7 +309,7 @@ class ValidityFragment : Fragment() {
                             viewModel.deleteVbstIn(vbstin)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit IN
-                                selectCreditType(isCreditIn = true)
+                                selectCreditType(isCreditIn = true) // This now handles toggle selection too
                                 dateInput.setText(vbstin.date)
                                 personInput.setText(vbstin.person)
                                 typeDropdown.setText(vbstin.type, false)
@@ -322,7 +324,7 @@ class ValidityFragment : Fragment() {
                             viewModel.deleteVbstOut(vbstout)
                             withContext(Dispatchers.Main) {
                                 // Repopulate fields for Credit OUT
-                                selectCreditType(isCreditIn = false)
+                                selectCreditType(isCreditIn = false) // This now handles toggle selection too
                                 dateInput.setText(vbstout.date)
                                 personInput.setText(vbstout.person)
                                 typeDropdown.setText(vbstout.type, false)
@@ -380,11 +382,19 @@ class ValidityFragment : Fragment() {
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(personInput.windowToken, 0)
 
-                // Post a delay to show type dropdown after keyboard is hidden
+                // Post a shorter delay to show type dropdown after keyboard is hidden
+                // Shorter delay makes the UI feel more responsive
                 typeDropdown.postDelayed({
                     typeDropdown.requestFocus()
-                    typeDropdown.showDropDown()
-                }, 200)
+
+                    // Check if the dropdown is already shown - if not, show it
+                    if (!typeDropdown.isPopupShowing) {
+                        typeDropdown.showDropDown()
+                    }
+
+                    // Force the dropdown to appear below the field, away from the rounded navigation bar
+                    typeDropdown.dropDownVerticalOffset = -typeDropdown.height
+                }, 150)
 
                 true // consume the action
             } else {
@@ -398,8 +408,28 @@ class ValidityFragment : Fragment() {
             if (creditInButton.strokeWidth > 0) {
                 validityDropdown.postDelayed({
                     validityDropdown.requestFocus()
-                    validityDropdown.showDropDown()
-                }, 200)
+
+                    // Check if the dropdown is already shown - if not, show it
+                    if (!validityDropdown.isPopupShowing) {
+                        validityDropdown.showDropDown()
+                    }
+
+                    // Force the dropdown to appear below the field, away from the rounded navigation bar
+                    validityDropdown.dropDownVerticalOffset = -validityDropdown.height
+                }, 150)
+            }
+        }
+
+        // Add touch feedback for the dropdowns to improve UX
+        typeDropdown.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                typeDropdown.background.state = intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
+            }
+        }
+
+        validityDropdown.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                validityDropdown.background.state = intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
             }
         }
     }

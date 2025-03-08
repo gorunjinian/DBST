@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -37,8 +39,9 @@ class MyApplication : Application() {
     // Scope for database initialization or other coroutines
     private val applicationScope = CoroutineScope(Dispatchers.Main)
 
+    // Add this modified section to your MyApplication.kt
+
     // Listener to detect changes in dynamic theming or theme mode
-    // In MyApplication.kt, replace the existing prefListener with this:
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
         when (key) {
             "dynamic_theming" -> {
@@ -51,14 +54,21 @@ class MyApplication : Application() {
                     DynamicColors.applyToActivitiesIfAvailable(this)
                 }
 
-                // Always recreate activities for immediate theme application
-                val activitiesToRecreate = activeActivities.toSet()
-                activitiesToRecreate.forEach { activity ->
-                    if (!activity.isFinishing && !activity.isDestroyed) {
-                        activity.runOnUiThread {
-                            activity.recreate()
+                // Use a more selective approach to recreate activities
+                // Only recreate visible/foreground activities to avoid unnecessary flickering
+                val activitiesToRecreate = activeActivities.filter { activity ->
+                    !activity.isFinishing && !activity.isDestroyed
+                }.toSet()
+
+                if (activitiesToRecreate.isNotEmpty()) {
+                    // Use slight delay to ensure smoother transitions
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        activitiesToRecreate.forEach { activity ->
+                            activity.runOnUiThread {
+                                activity.recreate()
+                            }
                         }
-                    }
+                    }, 100)
                 }
             }
             "theme_mode" -> {
@@ -69,13 +79,19 @@ class MyApplication : Application() {
                 // Apply theme mode globally
                 ThemeManager.applyThemeMode(themeMode)
 
-                // Recreate activities for immediate theme change
-                activeActivities.toSet().forEach { activity ->
-                    if (!activity.isFinishing && !activity.isDestroyed) {
-                        activity.runOnUiThread {
-                            activity.recreate()
+                // Use the same delayed recreation approach for theme mode changes
+                val visibleActivities = activeActivities.filter {
+                    !it.isFinishing && !it.isDestroyed
+                }.toSet()
+
+                if (visibleActivities.isNotEmpty()) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        visibleActivities.forEach { activity ->
+                            activity.runOnUiThread {
+                                activity.recreate()
+                            }
                         }
-                    }
+                    }, 100)
                 }
             }
         }
@@ -133,9 +149,6 @@ class MyApplication : Application() {
         })
     }
 
-    /**
-     * Initializes the database in a background thread.
-     */
     private fun initializeDatabase() {
         applicationScope.launch {
             val database = AppDatabase.getDatabase(applicationContext)
@@ -143,20 +156,6 @@ class MyApplication : Application() {
         }
     }
 
-    fun updateDynamicColors() {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        val dynamicEnabled = prefs.getBoolean("dynamic_theming", false)
-
-        // Force activity recreation for all active activities
-        activeActivities.toSet().forEach { activity ->
-            activity.recreate()
-        }
-    }
-
-    /**
-     * Shows a biometric prompt (fingerprint) if needed. Check for hardware availability
-     * and whether the user's preference requires biometrics.
-     */
     fun showBiometricPromptIfNeeded(activity: FragmentActivity, onCancelled: () -> Unit = {}) {
         // 1) Check user preference and background state
         if (!shouldAuthenticate(this)) {

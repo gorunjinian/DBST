@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.adapters
 
 import android.view.LayoutInflater
 import android.view.View

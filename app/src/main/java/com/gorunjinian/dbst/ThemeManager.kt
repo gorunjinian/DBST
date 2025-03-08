@@ -1,7 +1,6 @@
 package com.gorunjinian.dbst
 
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
@@ -95,6 +94,7 @@ object ThemeManager {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         prefs.edit {
             putString(PREF_THEME_MODE, mode)
+            apply()
         }
 
         // Apply theme mode
@@ -135,11 +135,16 @@ object ThemeManager {
 
     /**
      * Recreates all provided activities to apply theme changes
+     * Does it with a slight delay to avoid visual glitches
      * @param activities Set of activities to recreate
      */
     fun recreateActivities(activities: Set<Activity>) {
         activities.forEach { activity ->
-            activity.recreate()
+            activity.window.decorView.post {
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    activity.recreate()
+                }
+            }
         }
     }
 }

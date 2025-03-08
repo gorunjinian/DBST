@@ -127,7 +127,6 @@ class DatabasesFragment : Fragment() {
         tableSpinner = view.findViewById(R.id.table_spinner)
         recyclerView = view.findViewById(R.id.recycler_view)
         columnHeaderLayout = view.findViewById(R.id.table_header)
-        importButton = view.findViewById(R.id.import_button)
 
         // Setup RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())

@@ -217,31 +217,34 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Credit IN & Credit OUT Buttons -->
-            <LinearLayout
-                android:id="@+id/button_layout"
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/credit_type_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="16dp"
+                app:singleSelection="true"
+                android:gravity="center">
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/credit_in_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"
                     android:text="IN"
+                    android:layout_height="64dp"
                     app:icon="@drawable/ic_arrowcircledown"
-                    app:iconGravity="textEnd"
-                    android:layout_marginEnd="8dp"/>
+                    app:iconGravity="textStart"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/credit_out_button"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"
+                    android:layout_height="64dp"
                     android:text="OUT"
                     app:icon="@drawable/ic_arrowcircleup"
-                    app:iconGravity="textEnd"/>
-            </LinearLayout>
+                    app:iconGravity="textStart"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            </com.google.android.material.button.MaterialButtonToggleGroup>
 
             <!-- Save Button -->
             <com.google.android.material.button.MaterialButton

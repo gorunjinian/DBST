@@ -43,19 +43,6 @@
                 tools:ignore="ContentDescription"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Import CSV Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/import_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/import_csv_button"
-            android:textAllCaps="false"
-            style="@style/Widget.Material3.Button"
-            android:backgroundTint="?attr/colorPrimary"
-            android:textColor="?attr/colorOnPrimary"
-            app:rippleColor="?attr/colorOnPrimary"
-            android:layout_marginStart="8dp"/>
     </LinearLayout>
 
     <!-- Table Header -->

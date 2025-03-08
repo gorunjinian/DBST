@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.gorunjinian.dbst.adapters.PopupPagerAdapter
 import com.gorunjinian.dbst.data.AppDatabase
 import com.gorunjinian.dbst.data.AppRepository
 import com.gorunjinian.dbst.data.CashCounter

@@ -32,6 +32,8 @@ class SettingsActivity : AppCompatActivity() {
 
     // Add this as a class property to properly track theme change processing
     private var isProcessingThemeChange = false
+    // Add a flag to track if any theme-related setting was changed
+    private var themeSettingsChanged = false
 
     private lateinit var tableDeleteDropdown: MaterialAutoCompleteTextView
     private lateinit var topAppBar: MaterialToolbar
@@ -119,6 +121,9 @@ class SettingsActivity : AppCompatActivity() {
 
         // Set app version info
         setAppVersionInfo()
+
+        // Reset the theme settings changed flag
+        themeSettingsChanged = false
     }
 
     private fun setupDynamicThemeToggle(prefs: android.content.SharedPreferences) {
@@ -127,6 +132,7 @@ class SettingsActivity : AppCompatActivity() {
             if (isProcessingThemeChange) return@setOnCheckedChangeListener
 
             isProcessingThemeChange = true
+            themeSettingsChanged = true
 
             // Update the preference immediately
             prefs.edit {
@@ -160,6 +166,9 @@ class SettingsActivity : AppCompatActivity() {
         lightModeToggle.isChecked = currentThemeMode == ThemeManager.THEME_MODE_LIGHT
 
         lightModeToggle.setOnCheckedChangeListener { _, isChecked ->
+            // Mark that theme settings have changed
+            themeSettingsChanged = true
+
             // Set the theme mode based on the toggle
             val newThemeMode = if (isChecked) ThemeManager.THEME_MODE_LIGHT else ThemeManager.THEME_MODE_DARK
 
@@ -183,6 +192,9 @@ class SettingsActivity : AppCompatActivity() {
     private fun setupValidityTabToggle(prefs: android.content.SharedPreferences) {
         validityTabToggle.isChecked = prefs.getBoolean("turn_off_validity_tab", false)
         validityTabToggle.setOnCheckedChangeListener { _, isChecked ->
+            // Mark that UI settings have changed and need recreation
+            themeSettingsChanged = true
+
             prefs.edit {
                 putBoolean("turn_off_validity_tab", isChecked)
                 apply()
@@ -212,23 +224,28 @@ class SettingsActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
 
-        // Set flag for MainActivity to recreate itself when resumed
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        prefs.edit {
-            putBoolean("needs_recreation", true)
-            apply()
+        // Only set recreation flag if theme settings were actually changed
+        if (themeSettingsChanged) {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            prefs.edit {
+                putBoolean("needs_recreation", true)
+                apply()
+            }
         }
     }
 
     @Deprecated("Use onBackPressedDispatcher instead")
     override fun onBackPressed() {
-        // Set a flag in shared preferences to indicate MainActivity needs recreation
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        prefs.edit {
-            putBoolean("needs_recreation", true)
-            apply()
+        // Only set recreation flag if theme settings were actually changed
+        if (themeSettingsChanged) {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+            prefs.edit {
+                putBoolean("needs_recreation", true)
+                apply()
+            }
         }
         super.onBackPressed()
+        // Using default transition when going back
     }
 
     private fun initializeViews() {

@@ -1,4 +1,4 @@
-package com.gorunjinian.dbst
+package com.gorunjinian.dbst.adapters
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
