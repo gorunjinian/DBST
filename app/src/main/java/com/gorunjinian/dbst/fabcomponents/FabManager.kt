@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -20,66 +21,96 @@ import com.gorunjinian.dbst.data.AppRepository
 
 /**
  * Main manager for the floating action button and its popup
- * This class now delegates the page-specific functionality to specialized managers
  */
 @SuppressLint("StaticFieldLeak")
 object FabManager {
+    private const val TAG = "FabManager"
 
-    private lateinit var viewPager: ViewPager2
+    // ViewPager and managers
+    private var viewPager: ViewPager2? = null
     private var cashCounterManager: CashCounterManager? = null
     private var givenValuesManager: GivenValuesManager? = null
     private var checklistManager: ChecklistManager? = null
 
+    // Track current page
+    private var currentPagePosition = 0
+
+    // Repository instance
+    private lateinit var repository: AppRepository
+
+    // Dialog reference
+    private var popupDialog: Dialog? = null
+
     fun setupFab(fab: FloatingActionButton, activity: FragmentActivity) {
+        // Create and cache repository
+        val database = AppDatabase.getDatabase(activity)
+        val appDao = database.appDao()
+        repository = AppRepository(appDao)
+
         fab.setOnClickListener {
             showPopup(activity)
         }
     }
 
     private fun showPopup(context: Context) {
+        Log.d(TAG, "Opening popup")
+
         val dialog = Dialog(context)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
         dialog.setContentView(R.layout.popup_info)
 
-        // Apply rounded background to popup
+        // Store reference
+        popupDialog = dialog
+
+        // Apply rounded background
         val background: Drawable? = ContextCompat.getDrawable(context, R.drawable.rounded_popup)
         dialog.window?.setBackgroundDrawable(background)
 
-        // Ensure popup appears rounded & properly sized
+        // Ensure popup appears properly sized
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        dialog.window?.setDimAmount(0.8f) // Add dim effect to background
-
-        // Create repository
-        val database = AppDatabase.getDatabase(context)
-        val appDao = database.appDao()
-        val repository = AppRepository(appDao)
+        dialog.window?.setDimAmount(0.8f)
 
         // Set up ViewPager
-        setupPager(dialog, repository, context)
+        setupPager(dialog, context)
 
-        // Set up the Save and Close buttons
+        // Set up buttons
         val saveButton: Button = dialog.findViewById(R.id.save_popup)
         val closeButton: Button = dialog.findViewById(R.id.close_popup)
 
         saveButton.setOnClickListener {
-            // Save data from all managers
-            cashCounterManager?.saveData(repository)
-            // We could also save data from other managers if needed
+            Log.d(TAG, "Save button clicked for page $currentPagePosition")
+
+            // Save data based on current page
+            when (currentPagePosition) {
+                0 -> {
+                    Log.d(TAG, "Saving cash counter data")
+                    cashCounterManager?.saveData(repository)
+                }
+                1 -> {
+                    Log.d(TAG, "Saving given values data")
+                    givenValuesManager?.saveData()
+                }
+                2 -> {
+                    Log.d(TAG, "Saving checklist data")
+                    checklistManager?.saveData(repository)
+                }
+            }
 
             dialog.dismiss()
+            popupDialog = null
+
             Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show()
         }
 
         closeButton.setOnClickListener {
             dialog.dismiss()
+            popupDialog = null
         }
 
-        // Adjust popup window size
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog.show()
     }
 
-    private fun setupPager(dialog: Dialog, repository: AppRepository, context: Context) {
+    private fun setupPager(dialog: Dialog, context: Context) {
         // Initialize ViewPager2
         viewPager = dialog.findViewById(R.id.view_pager)
 
@@ -92,71 +123,153 @@ object FabManager {
 
         // Setup adapter
         val pagerAdapter = PopupPagerAdapter(layouts)
-        viewPager.adapter = pagerAdapter
+        viewPager?.adapter = pagerAdapter
 
-        // Setup page change listener to initialize appropriate page content
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+        // Setup page change listener
+        viewPager?.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+
+                // Update current page position
+                currentPagePosition = position
+                Log.d(TAG, "Page selected: $position")
+
+                // Initialize the page
                 when (position) {
-                    0 -> initCashCounterPage(repository)
-                    1 -> initGivenValuesPage()
-                    2 -> initCollectingPage(context)
+                    0 -> {
+                        Log.d(TAG, "Initializing cash counter page")
+                        initCashCounterPage(context)
+                    }
+                    1 -> {
+                        Log.d(TAG, "Initializing given values page")
+                        initGivenValuesPage()
+                    }
+                    2 -> {
+                        Log.d(TAG, "Initializing checklist page")
+                        initCollectingPage(context)
+                    }
                 }
+
+                // Adjust dialog height
+                updateDialogHeight()
             }
         })
 
-        // Initialize the first page
-        initCashCounterPage(repository)
+        // Initialize first page
+        initCashCounterPage(context)
     }
 
-    private fun initCashCounterPage(repository: AppRepository) {
-        val cashCounterView = findViewPagerChildAt(0) ?: return
-
-        // Create and initialize the CashCounterManager if not already created
-        if (cashCounterManager == null) {
-            cashCounterManager = CashCounterManager(cashCounterView)
+    // Modify the initCashCounterPage method in FabManager.kt
+    private fun initCashCounterPage(context: Context) {
+        val cashCounterView = findViewPagerChildAt(0)
+        if (cashCounterView == null) {
+            Log.e(TAG, "Cash counter view not found")
+            return
         }
 
-        // Initialize with the repository
-        cashCounterManager?.initialize(repository)
+        try {
+            // Initialize the CashCounterManager
+            if (cashCounterManager == null) {
+                Log.d(TAG, "Creating new CashCounterManager")
+                cashCounterManager = CashCounterManager(cashCounterView)
+                cashCounterManager?.initialize(repository)
+            } else {
+                Log.d(TAG, "Refreshing existing CashCounterManager")
+                // Use the new refreshView method
+                cashCounterManager?.refreshView(cashCounterView)
+                // Then load data
+                cashCounterManager?.loadData(repository)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing cash counter page: ${e.message}", e)
+        }
     }
 
     private fun initGivenValuesPage() {
-        val assetManagementView = findViewPagerChildAt(1) ?: return
-
-        // Create and initialize the AssetManagementManager if not already created
-        if (givenValuesManager == null) {
-            givenValuesManager = GivenValuesManager(assetManagementView)
+        val givenValuesView = findViewPagerChildAt(1)
+        if (givenValuesView == null) {
+            Log.e(TAG, "Given values view not found")
+            return
         }
 
-        // Initialize the manager
-        givenValuesManager?.initialize()
+        try {
+            // Initialize the GivenValuesManager
+            if (givenValuesManager == null) {
+                givenValuesManager = GivenValuesManager(givenValuesView)
+            }
+
+            Log.d(TAG, "Initializing GivenValuesManager")
+            givenValuesManager?.initialize()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing given values page: ${e.message}", e)
+        }
     }
 
     private fun initCollectingPage(context: Context) {
-        val collectingPageView = findViewPagerChildAt(2) ?: return
+        val collectingPageView = findViewPagerChildAt(2)
+        if (collectingPageView == null) {
+            Log.e(TAG, "Collecting page view not found")
+            return
+        }
 
-        // Create and initialize the ChecklistManager if not already created
-        if (checklistManager == null) {
-            checklistManager = ChecklistManager(context, collectingPageView)
-        } else {
-            // If manager exists, ensure it reloads data
-            checklistManager?.loadItems() // Make loadItems public for this
+        try {
+            // Initialize the ChecklistManager
+            if (checklistManager == null) {
+                Log.d(TAG, "Creating new ChecklistManager")
+                checklistManager = ChecklistManager(context, collectingPageView, repository)
+            } else {
+                Log.d(TAG, "Reusing existing ChecklistManager")
+                checklistManager?.refreshView(collectingPageView)
+            }
+
+            // Load items
+            Log.d(TAG, "Loading checklist items")
+            checklistManager?.loadItems()
+
+            // Update dialog height based on checked items
+            updateDialogHeight()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing checklist page: ${e.message}", e)
         }
     }
 
-    // Helper method to find child views inside ViewPager2
+    private fun updateDialogHeight() {
+        val dialog = popupDialog ?: return
+
+        // Expand to full height unless on checklist page with no checked items
+        val shouldCollapse = currentPagePosition == 2 &&
+                checklistManager?.hasCheckedItems() == false
+
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            if (shouldCollapse) ViewGroup.LayoutParams.WRAP_CONTENT
+            else ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+    // Helper method to find child views
     private fun findViewPagerChildAt(position: Int): View? {
-        if (position < 0 || !::viewPager.isInitialized) return null
+        val viewPager = this.viewPager ?: return null
 
-        // Get the RecyclerView inside ViewPager2
-        val recyclerView = viewPager.getChildAt(0) as? RecyclerView ?: return null
+        try {
+            // Get the RecyclerView inside ViewPager2
+            val recyclerView = viewPager.getChildAt(0) as? RecyclerView
+            if (recyclerView == null) {
+                Log.e(TAG, "RecyclerView not found in ViewPager2")
+                return null
+            }
 
-        // Find the ViewHolder for the specified position
-        val viewHolder = recyclerView.findViewHolderForAdapterPosition(position) ?: return null
+            // Find the ViewHolder for the position
+            val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+            if (viewHolder == null) {
+                Log.e(TAG, "ViewHolder not found for position $position")
+                return null
+            }
 
-        // Return the itemView
-        return viewHolder.itemView
+            return viewHolder.itemView
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding view at position $position: ${e.message}", e)
+            return null
+        }
     }
 }

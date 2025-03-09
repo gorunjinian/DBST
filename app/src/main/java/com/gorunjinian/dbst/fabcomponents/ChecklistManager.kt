@@ -2,10 +2,8 @@ package com.gorunjinian.dbst.fabcomponents
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.MotionEvent
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
@@ -13,7 +11,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gorunjinian.dbst.R
-import com.gorunjinian.dbst.data.AppDatabase
+import com.gorunjinian.dbst.adapters.ChecklistAdapter
 import com.gorunjinian.dbst.data.AppRepository
 import com.gorunjinian.dbst.data.ChecklistItem
 import kotlinx.coroutines.CoroutineScope
@@ -23,294 +21,410 @@ import kotlinx.coroutines.withContext
 
 /**
  * Manager for the Checklist page in the FAB popup
- * Handles checklist item creation, ordering, checking, and persistence using Room database
  */
-class ChecklistManager(private val context: Context, private val rootView: View) {
+class ChecklistManager(
+    private val context: Context,
+    rootView: View,
+    private val repository: AppRepository
+) {
+    private val TAG = "ChecklistManager"
+
+    // Current rootView
+    private var currentRootView: View = rootView
 
     // UI components
-    private val newItemText: EditText = rootView.findViewById(R.id.new_item_text)
-    private val addItemButton: ImageView = rootView.findViewById(R.id.add_item_button)
-    private val uncheckedItemsList: RecyclerView = rootView.findViewById(R.id.unchecked_items_list)
-    private val checkedItemsList: RecyclerView = rootView.findViewById(R.id.checked_items_list)
-    private val checkedItemsHeader: LinearLayout = rootView.findViewById(R.id.checked_items_header)
-    private val expandArrow: ImageView = rootView.findViewById(R.id.expand_arrow)
-    private val checkedItemsCount: TextView = rootView.findViewById(R.id.checked_items_count)
-    private lateinit var itemTouchHelper: ItemTouchHelper
+    private lateinit var newItemText: EditText
+    private lateinit var addItemButton: ImageView
+    private lateinit var uncheckedItemsList: RecyclerView
+    private lateinit var checkedItemsList: RecyclerView
+    private lateinit var checkedItemsHeader: LinearLayout
+    private lateinit var expandArrow: ImageView
+    private lateinit var checkedItemsCount: TextView
 
-    // Repository for database operations
-    private val repository: AppRepository
+    // Touch helper
+    private var itemTouchHelper: ItemTouchHelper? = null
 
     // Data
     private val uncheckedItems = mutableListOf<ChecklistItem>()
     private val checkedItems = mutableListOf<ChecklistItem>()
 
     // Adapters
-    private val uncheckedAdapter = ChecklistAdapter(
-        uncheckedItems,
-        onCheckedChange = { item, isChecked -> handleItemChecked(item, isChecked) }
-    )
-
-    private val checkedAdapter = ChecklistAdapter(
-        checkedItems,
-        onCheckedChange = { item, isChecked -> handleItemChecked(item, isChecked) }
-    )
+    private var uncheckedAdapter: ChecklistAdapter? = null
+    private var checkedAdapter: ChecklistAdapter? = null
 
     // State
     private var isCheckedItemsExpanded = false
+    private var initialized = false
 
     init {
-        // Initialize repository
-        val database = AppDatabase.getDatabase(context)
-        repository = AppRepository(database.appDao())
+        initializeViews()
+    }
 
-        setupRecyclerViews()
-        setupListeners()
-        loadItems()
+    /**
+     * Update the rootView reference
+     */
+    fun refreshView(rootView: View) {
+        currentRootView = rootView
+        initializeViews()
+    }
+
+    private fun initializeViews() {
+        Log.d(TAG, "Initializing views")
+
+        try {
+            // Find views
+            newItemText = currentRootView.findViewById(R.id.new_item_text)
+            addItemButton = currentRootView.findViewById(R.id.add_item_button)
+            uncheckedItemsList = currentRootView.findViewById(R.id.unchecked_items_list)
+            checkedItemsList = currentRootView.findViewById(R.id.checked_items_list)
+            checkedItemsHeader = currentRootView.findViewById(R.id.checked_items_header)
+            expandArrow = currentRootView.findViewById(R.id.expand_arrow)
+            checkedItemsCount = currentRootView.findViewById(R.id.checked_items_count)
+
+            // Set up RecyclerViews and adapters
+            setupRecyclerViews()
+
+            // Set up listeners
+            setupListeners()
+
+            initialized = true
+
+            // Don't load items here - let caller decide when to load
+            // We removed the loadItems() call that was here
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing views: ${e.message}", e)
+        }
     }
 
     private fun setupRecyclerViews() {
-        // Setup unchecked items RecyclerView
-        uncheckedItemsList.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = uncheckedAdapter
-            setHasFixedSize(true)
-        }
+        Log.d(TAG, "Setting up RecyclerViews")
 
-        // Setup checked items RecyclerView
-        checkedItemsList.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = checkedAdapter
-            setHasFixedSize(true)
-        }
-
-        // Set up ItemTouchHelper for drag-and-drop reordering
-        val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-            0
-        ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                val fromPosition = viewHolder.bindingAdapterPosition
-                val toPosition = target.bindingAdapterPosition
-
-                // Swap items in the list
-                if (fromPosition < uncheckedItems.size && toPosition < uncheckedItems.size) {
-                    // Get the moved item
-                    val item = uncheckedItems[fromPosition]
-
-                    // Move item in UI list
-                    uncheckedItems.removeAt(fromPosition)
-                    uncheckedItems.add(toPosition, item)
-                    uncheckedAdapter.notifyItemMoved(fromPosition, toPosition)
-
-                    // Update positions in database
-                    updateItemPositions()
+        try {
+            // Only create adapters if they don't exist yet
+            if (uncheckedAdapter == null) {
+                Log.d(TAG, "Creating new unchecked adapter")
+                uncheckedAdapter = ChecklistAdapter(
+                    uncheckedItems,
+                    onItemChecked = { item -> toggleItemChecked(item) },
+                    onItemDeleted = { item -> deleteItem(item) }
+                ).apply {
+                    // Set drag callback
+                    onStartDrag = { viewHolder -> itemTouchHelper?.startDrag(viewHolder) }
                 }
-                return true
             }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                // Not implementing swipe
+            if (checkedAdapter == null) {
+                Log.d(TAG, "Creating new checked adapter")
+                checkedAdapter = ChecklistAdapter(
+                    checkedItems,
+                    onItemChecked = { item -> toggleItemChecked(item) },
+                    onItemDeleted = { item -> deleteItem(item) }
+                )
             }
-        })
-        itemTouchHelper.attachToRecyclerView(uncheckedItemsList)
+
+            // Always set the adapters to the new RecyclerViews
+            uncheckedItemsList.apply {
+                layoutManager = LinearLayoutManager(context)
+                adapter = uncheckedAdapter
+                setHasFixedSize(true)
+            }
+
+            // Set up checked items list
+            checkedItemsList.apply {
+                layoutManager = LinearLayoutManager(context)
+                adapter = checkedAdapter
+                setHasFixedSize(true)
+            }
+
+            // Create and attach ItemTouchHelper if needed
+            if (itemTouchHelper == null) {
+                val callback = object : ItemTouchHelper.SimpleCallback(
+                    ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+                    0
+                ) {
+                    override fun onMove(
+                        recyclerView: RecyclerView,
+                        viewHolder: RecyclerView.ViewHolder,
+                        target: RecyclerView.ViewHolder
+                    ): Boolean {
+                        val fromPosition = viewHolder.bindingAdapterPosition
+                        val toPosition = target.bindingAdapterPosition
+
+                        // Check bounds
+                        if (fromPosition < 0 || toPosition < 0 ||
+                            fromPosition >= uncheckedItems.size ||
+                            toPosition >= uncheckedItems.size) {
+                            return false
+                        }
+
+                        // Move item in list
+                        val item = uncheckedItems[fromPosition]
+                        uncheckedItems.removeAt(fromPosition)
+                        uncheckedItems.add(toPosition, item)
+                        uncheckedAdapter?.notifyItemMoved(fromPosition, toPosition)
+
+                        // Update positions in database
+                        updateItemPositions()
+                        return true
+                    }
+
+                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                        // Not using swipe
+                    }
+                }
+
+                itemTouchHelper = ItemTouchHelper(callback)
+            }
+
+            // Always reattach the touch helper to the new RecyclerView
+            itemTouchHelper?.attachToRecyclerView(uncheckedItemsList)
+
+            // Initially hide checked items section
+            checkedItemsList.visibility = View.GONE
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up RecyclerViews: ${e.message}", e)
+        }
     }
 
     private fun setupListeners() {
-        // Set up add item functionality
-        addItemButton.setOnClickListener {
-            addNewItem()
-        }
+        Log.d(TAG, "Setting up listeners")
 
-        // Set up enter key to add items
-        newItemText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
+        try {
+            // Add item button
+            addItemButton.setOnClickListener {
                 addNewItem()
-                return@setOnEditorActionListener true
             }
-            false
-        }
 
-        // Set up expand/collapse for checked items
-        checkedItemsHeader.setOnClickListener {
-            toggleCheckedItemsVisibility()
+            // Enter key
+            newItemText.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    addNewItem()
+                    return@setOnEditorActionListener true
+                }
+                false
+            }
+
+            // Checked items header
+            checkedItemsHeader.setOnClickListener {
+                toggleCheckedItemsVisibility()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up listeners: ${e.message}", e)
         }
     }
 
     private fun addNewItem() {
         val text = newItemText.text.toString().trim()
-        if (text.isNotEmpty()) {
-            // Calculate the next position for the new item
-            val position = 0 // Add to the top
 
-            // Create a new checklist item
+        if (text.isEmpty()) {
+            return
+        }
+
+        try {
+            Log.d(TAG, "Adding new item: \"$text\"")
+
+            // Create new item
             val newItem = ChecklistItem(
                 text = text,
                 isChecked = false,
-                position = position
+                position = uncheckedItems.size
             )
 
             // Save to database
             CoroutineScope(Dispatchers.IO).launch {
-                val itemId = repository.insertChecklistItem(newItem)
+                try {
+                    val id = repository.insertChecklistItem(newItem)
+                    Log.d(TAG, "Item saved with ID: $id")
 
-                // Wait for the database operation to complete
-                withContext(Dispatchers.Main) {
-                    loadItems() // Now call loadItems on the main thread after the insert completes
+                    // Reload items
+                    loadItems()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error saving new item: ${e.message}", e)
                 }
             }
+
+            // Clear input and hide keyboard
+            newItemText.text.clear()
+
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(newItemText.windowToken, 0)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error adding new item: ${e.message}", e)
         }
-
-        // Clear input field
-        newItemText.text.clear()
-
-        // Hide keyboard
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(newItemText.windowToken, 0)
     }
 
-    private fun handleItemChecked(item: ChecklistItem, isChecked: Boolean) {
-        CoroutineScope(Dispatchers.IO).launch {
-            // Update the item in the database
-            val updatedItem = item.copy(isChecked = isChecked)
-            repository.updateChecklistItem(updatedItem)
+    private fun toggleItemChecked(item: ChecklistItem) {
+        Log.d(TAG, "Toggling item checked state: $item")
 
-            // Reload items from database
-            loadItems()
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Update item in database
+                    val updatedItem = item.copy(isChecked = !item.isChecked)
+                    repository.updateChecklistItem(updatedItem)
+                    Log.d(TAG, "Item updated: $updatedItem")
+
+                    // Reload items
+                    loadItems()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating item: ${e.message}", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling item checked state: ${e.message}", e)
+        }
+    }
+
+    private fun deleteItem(item: ChecklistItem) {
+        Log.d(TAG, "Deleting item: $item")
+
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Delete from database
+                    repository.deleteChecklistItem(item.id)
+                    Log.d(TAG, "Item deleted")
+
+                    // Reload items
+                    loadItems()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error deleting item: ${e.message}", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting item: ${e.message}", e)
         }
     }
 
     private fun toggleCheckedItemsVisibility() {
-        isCheckedItemsExpanded = !isCheckedItemsExpanded
+        Log.d(TAG, "Toggling checked items visibility")
 
-        if (isCheckedItemsExpanded) {
-            checkedItemsList.visibility = View.VISIBLE
-            // Rotate arrow upward
-            expandArrow.animate().rotation(180f).setDuration(200).start()
-        } else {
-            checkedItemsList.visibility = View.GONE
-            // Rotate arrow downward
-            expandArrow.animate().rotation(0f).setDuration(200).start()
+        try {
+            // Only toggle if there are checked items
+            if (checkedItems.isEmpty()) {
+                isCheckedItemsExpanded = false
+                checkedItemsList.visibility = View.GONE
+                expandArrow.rotation = 0f
+                return
+            }
+
+            isCheckedItemsExpanded = !isCheckedItemsExpanded
+
+            if (isCheckedItemsExpanded) {
+                checkedItemsList.visibility = View.VISIBLE
+                expandArrow.animate().rotation(180f).setDuration(200).start()
+            } else {
+                checkedItemsList.visibility = View.GONE
+                expandArrow.animate().rotation(0f).setDuration(200).start()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling checked items visibility: ${e.message}", e)
         }
     }
 
-    @SuppressLint("SetTextI18s")
+    private fun updateCheckedItemsVisibility() {
+        Log.d(TAG, "Updating checked items visibility")
+
+        try {
+            // Hide checked items section if empty
+            if (checkedItems.isEmpty()) {
+                checkedItemsHeader.visibility = View.GONE
+                checkedItemsList.visibility = View.GONE
+                isCheckedItemsExpanded = false
+                Log.d(TAG, "No checked items, hiding section")
+            } else {
+                checkedItemsHeader.visibility = View.VISIBLE
+                checkedItemsList.visibility = if (isCheckedItemsExpanded) View.VISIBLE else View.GONE
+                expandArrow.rotation = if (isCheckedItemsExpanded) 180f else 0f
+                Log.d(TAG, "Checked items available, showing section")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating checked items visibility: ${e.message}", e)
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
     private fun updateCheckedItemsCount() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val count = withContext(Dispatchers.IO) {
-                repository.getCheckedItemsCount()
-            }
-            checkedItemsCount.text = "$count Checked items"
+        try {
+            checkedItemsCount.text = "${checkedItems.size} Checked items"
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating checked items count: ${e.message}", e)
         }
     }
 
-    // Update positions of all unchecked items
     private fun updateItemPositions() {
-        CoroutineScope(Dispatchers.IO).launch {
-            // Update positions in database based on current list order
-            uncheckedItems.forEachIndexed { index, item ->
-                repository.updateChecklistItemPosition(item.id, index)
+        Log.d(TAG, "Updating item positions")
+
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    // Update positions
+                    uncheckedItems.forEachIndexed { index, item ->
+                        repository.updateChecklistItemPosition(item.id, index)
+                    }
+                    Log.d(TAG, "Item positions updated")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating item positions: ${e.message}", e)
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating item positions: ${e.message}", e)
         }
     }
 
-    // Load items from database
+    fun hasCheckedItems(): Boolean {
+        return checkedItems.isNotEmpty()
+    }
+
+    fun saveData(repository: AppRepository = this.repository) {
+        Log.d(TAG, "Saving checklist data")
+
+        // Checklist items are saved immediately on each action
+        // This method exists for consistency with other managers
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     fun loadItems() {
+        if (!initialized) {
+            Log.e(TAG, "Cannot load items: view not initialized")
+            return
+        }
+
+        Log.d(TAG, "Loading checklist items")
+
         CoroutineScope(Dispatchers.IO).launch {
-            val fetchedUncheckedItems = repository.getUncheckedItems()
-            val fetchedCheckedItems = repository.getCheckedItems()
+            try {
+                // Get items from database
+                val fetchedUncheckedItems = repository.getUncheckedItems()
+                val fetchedCheckedItems = repository.getCheckedItems()
 
-            withContext(Dispatchers.Main) {
-                // Update unchecked items
-                uncheckedItems.clear()
-                uncheckedItems.addAll(fetchedUncheckedItems)
-                uncheckedAdapter.notifyDataSetChanged()
+                Log.d(TAG, "Found ${fetchedUncheckedItems.size} unchecked items and ${fetchedCheckedItems.size} checked items")
 
-                // Update checked items
-                checkedItems.clear()
-                checkedItems.addAll(fetchedCheckedItems)
-                checkedAdapter.notifyDataSetChanged()
+                withContext(Dispatchers.Main) {
+                    try {
+                        // Update unchecked items
+                        uncheckedItems.clear()
+                        uncheckedItems.addAll(fetchedUncheckedItems)
+                        uncheckedAdapter?.notifyDataSetChanged()
 
-                // Update checked items count
-                updateCheckedItemsCount()
-            }
-        }
-    }
-
-    /**
-     * Inner class for the checklist adapter
-     */
-    private inner class ChecklistAdapter(
-        private val items: MutableList<ChecklistItem>,
-        private val onCheckedChange: (ChecklistItem, Boolean) -> Unit
-    ) : RecyclerView.Adapter<ChecklistAdapter.ViewHolder>() {
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val checkbox: CheckBox = view.findViewById(R.id.item_checkbox)
-            val deleteButton: ImageView = view.findViewById(R.id.delete_button)
-            val dragHandle: ImageView? = view.findViewById(R.id.drag_handle)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_checklist, parent, false)
-            return ViewHolder(view)
-        }
-        @SuppressLint("ClickableViewAccessibility")
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = items[position]
-
-            // Set checkbox text and state
-            holder.checkbox.text = item.text
-            holder.checkbox.isChecked = item.isChecked
-
-            val textView = holder.itemView.findViewById<TextView>(R.id.item_text)
-            textView.text = item.text
-
-            // Handle checkbox state changes
-            holder.checkbox.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked != item.isChecked) {
-                    onCheckedChange(item, isChecked)
-                }
-            }
-
-            // Handle delete button
-            holder.deleteButton.setOnClickListener {
-                if (position < items.size) {
-                    // Delete from database
-                    CoroutineScope(Dispatchers.IO).launch {
-                        repository.deleteChecklistItem(item.id)
+                        // Update checked items
+                        checkedItems.clear()
+                        checkedItems.addAll(fetchedCheckedItems)
+                        checkedAdapter?.notifyDataSetChanged()
 
                         // Update UI
-                        withContext(Dispatchers.Main) {
-                            items.removeAt(position)
-                            notifyItemRemoved(position)
-                            updateCheckedItemsCount()
-                        }
+                        updateCheckedItemsCount()
+                        updateCheckedItemsVisibility()
+
+                        Log.d(TAG, "Checklist items updated in UI")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error updating UI with checklist items: ${e.message}", e)
                     }
                 }
-            }
-
-            // Setup drag handle touch listener if it exists
-            // Only enable drag handle for unchecked items
-            holder.dragHandle?.apply {
-                visibility = if (items == uncheckedItems) View.VISIBLE else View.INVISIBLE
-
-                setOnTouchListener { _, event ->
-                    if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                        if (items == uncheckedItems) {
-                            itemTouchHelper.startDrag(holder)
-                        }
-                        true
-                    } else false
-                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading checklist items: ${e.message}", e)
             }
         }
-
-        override fun getItemCount() = items.size
     }
 }

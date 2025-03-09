@@ -23,7 +23,7 @@ class ChecklistAdapter(
     private val items: List<ChecklistItem>,
     private val onItemChecked: (ChecklistItem) -> Unit,
     private val onItemDeleted: (ChecklistItem) -> Unit,
-    private val onStartDrag: ((RecyclerView.ViewHolder) -> Unit)? = null
+    var onStartDrag: ((RecyclerView.ViewHolder) -> Unit)? = null
 ) : RecyclerView.Adapter<ChecklistAdapter.ViewHolder>(), ItemTouchHelperAdapter {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

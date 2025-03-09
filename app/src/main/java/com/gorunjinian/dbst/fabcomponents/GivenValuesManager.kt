@@ -5,8 +5,7 @@ import android.widget.TextView
 import com.gorunjinian.dbst.R
 
 /**
- * Manager for the Asset Management page in the FAB popup
- * Currently mainly displays static asset information
+ * Manager for the Given Values page in the FAB popup
  */
 class GivenValuesManager(private val rootView: View) {
 
@@ -14,7 +13,7 @@ class GivenValuesManager(private val rootView: View) {
     private lateinit var totalAssetValueText: TextView
 
     /**
-     * Initialize the Asset Management manager
+     * Initialize the Given Values manager
      */
     fun initialize() {
         // Initialize UI components
@@ -25,6 +24,15 @@ class GivenValuesManager(private val rootView: View) {
     }
 
     /**
+     * Save data from the Given Values page
+     * Currently not implemented since the view shows static content
+     */
+    fun saveData() {
+        // This method could be expanded to save any user-entered values
+        // For now, it's a placeholder since the view has static content
+    }
+
+    /**
      * Update the total asset value text
      * Currently not dynamically implemented
      */
@@ -32,14 +40,5 @@ class GivenValuesManager(private val rootView: View) {
         if (::totalAssetValueText.isInitialized) {
             totalAssetValueText.text = totalValue
         }
-    }
-
-    /**
-     * Refresh asset data
-     * This could be expanded in the future to load real asset data
-     */
-    fun refreshData() {
-        // This method could be expanded to load dynamic asset data
-        // For now, using static data from the layout
     }
 }
