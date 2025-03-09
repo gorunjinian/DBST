@@ -203,5 +203,4 @@ interface AppDao {
     @Query("SELECT COUNT(*) FROM checklist_items WHERE isChecked = 1")
     suspend fun getCheckedItemsCount(): Int
 
-
 }

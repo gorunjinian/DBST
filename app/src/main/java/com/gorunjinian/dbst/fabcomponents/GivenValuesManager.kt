@@ -8,7 +8,7 @@ import com.gorunjinian.dbst.R
  * Manager for the Asset Management page in the FAB popup
  * Currently mainly displays static asset information
  */
-class AssetManagementManager(private val rootView: View) {
+class GivenValuesManager(private val rootView: View) {
 
     // UI components
     private lateinit var totalAssetValueText: TextView

@@ -27,7 +27,7 @@ object FabManager {
 
     private lateinit var viewPager: ViewPager2
     private var cashCounterManager: CashCounterManager? = null
-    private var assetManagementManager: AssetManagementManager? = null
+    private var givenValuesManager: GivenValuesManager? = null
     private var checklistManager: ChecklistManager? = null
 
     fun setupFab(fab: FloatingActionButton, activity: FragmentActivity) {
@@ -100,7 +100,7 @@ object FabManager {
                 super.onPageSelected(position)
                 when (position) {
                     0 -> initCashCounterPage(repository)
-                    1 -> initAssetManagementPage()
+                    1 -> initGivenValuesPage()
                     2 -> initCollectingPage(context)
                 }
             }
@@ -122,16 +122,16 @@ object FabManager {
         cashCounterManager?.initialize(repository)
     }
 
-    private fun initAssetManagementPage() {
+    private fun initGivenValuesPage() {
         val assetManagementView = findViewPagerChildAt(1) ?: return
 
         // Create and initialize the AssetManagementManager if not already created
-        if (assetManagementManager == null) {
-            assetManagementManager = AssetManagementManager(assetManagementView)
+        if (givenValuesManager == null) {
+            givenValuesManager = GivenValuesManager(assetManagementView)
         }
 
         // Initialize the manager
-        assetManagementManager?.initialize()
+        givenValuesManager?.initialize()
     }
 
     private fun initCollectingPage(context: Context) {
