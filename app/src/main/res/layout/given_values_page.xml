@@ -47,7 +47,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 1"
+                        android:text="USD/LBP (BMR)"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -60,6 +60,8 @@
                             android:id="@+id/value1_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -75,7 +77,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 2"
+                        android:text="USD/LBP (VLD)"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -88,6 +90,8 @@
                             android:id="@+id/value2_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -103,19 +107,22 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 3"
+                        android:text="USD/LBP (SRF)"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/value3_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -131,7 +138,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 4"
+                        android:text="Validity Price"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -144,6 +151,8 @@
                             android:id="@+id/value4_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -159,7 +168,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 5"
+                        android:text="Validity Profit"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -172,6 +181,8 @@
                             android:id="@+id/value5_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -187,7 +198,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 6"
+                        android:text="Whish Balance"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -200,6 +211,8 @@
                             android:id="@+id/value6_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -215,7 +228,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 7"
+                        android:text="Cash Balance"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -228,6 +241,8 @@
                             android:id="@+id/value7_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -243,7 +258,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Value 8"
+                        android:text="Bank Balance"
                         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -256,6 +271,8 @@
                             android:id="@+id/value8_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -284,6 +301,8 @@
                             android:id="@+id/value9_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -312,6 +331,8 @@
                             android:id="@+id/value10_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -340,6 +361,7 @@
                             android:id="@+id/value11_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -367,6 +389,8 @@
                             android:id="@+id/value12_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@null"
+                            android:importantForAccessibility="no"
                             android:inputType="number"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>

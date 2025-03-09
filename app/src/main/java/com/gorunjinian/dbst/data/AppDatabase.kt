@@ -15,7 +15,7 @@ import androidx.room.RoomDatabase
         CashCounter::class,
         UserGivens::class,
         ChecklistItem::class],
-        version = 3, exportSchema = false)
+        version = 14, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao

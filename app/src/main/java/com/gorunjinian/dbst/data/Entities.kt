@@ -80,9 +80,19 @@ data class UserGivens(
     val usdLbpSr: Int = 0,
     val vldPrice: Int = 0,
     val vldProfit: Double = 0.00,
+    val btcPrice: Int = 0,
+    val btcExch1Balance: Double = 0.00000000,
+    val btcExch2Balance: Double = 0.00000000,
+    val btcWltBalance: Double = 0.00000000,
+    val altExch1Balance: Int = 0,
+    val altExch2Balance: Int = 0,
+    val altWltBalance: Int = 0,
     val whishBalance: Int = 0,
+    val stocksBalance: Int = 0,
+    val usdtBalance: Int = 0,
     val cashLbpBalance: Int = 0,
     val bankBalance: Int = 0,
+    val usdtDebt: Int = 0,
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
