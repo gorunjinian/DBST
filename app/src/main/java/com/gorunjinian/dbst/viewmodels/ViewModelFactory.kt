@@ -17,6 +17,8 @@ class ViewModelFactory(private val repository: AppRepository) : ViewModelProvide
                 TetherViewModel(repository) as T
             modelClass.isAssignableFrom(ChecklistViewModel::class.java) ->
                 ChecklistViewModel(repository) as T
+            modelClass.isAssignableFrom(GivenValuesViewModel::class.java) ->
+                ChecklistViewModel(repository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }

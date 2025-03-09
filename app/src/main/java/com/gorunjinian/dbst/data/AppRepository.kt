@@ -1,6 +1,10 @@
 package com.gorunjinian.dbst.data
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.sqlite.db.SupportSQLiteQuery
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AppRepository(private val appDao: AppDao) {
 
@@ -56,4 +60,25 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun deleteChecklistItem(id: Int) = appDao.deleteChecklistItem(id)
     suspend fun updateChecklistItemPosition(id: Int, newPosition: Int) = appDao.updateChecklistItemPosition(id, newPosition)
     suspend fun getCheckedItemsCount(): Int = appDao.getCheckedItemsCount()
+
+    suspend fun getUserGivens(): UserGivens? {
+        return try {
+            withContext(Dispatchers.IO) {
+                appDao.getUserGivens()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting user givens: ${e.message}", e)
+            null
+        }
+    }
+    suspend fun insertUserGivens(userGivens: UserGivens) {
+        try {
+            withContext(Dispatchers.IO) {
+                appDao.insertUserGivens(userGivens)
+            }
+            Log.d(TAG, "User givens data saved successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inserting user givens: ${e.message}", e)
+        }
+    }
 }

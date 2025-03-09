@@ -185,22 +185,35 @@ object FabManager {
     }
 
     private fun initGivenValuesPage() {
+        Log.e(TAG, "==================================================")
+        Log.e(TAG, "INIT GIVEN VALUES PAGE CALLED")
+        Log.e(TAG, "==================================================")
+
         val givenValuesView = findViewPagerChildAt(1)
         if (givenValuesView == null) {
             Log.e(TAG, "Given values view not found")
             return
         }
 
+        Log.e(TAG, "Given values view found, proceeding...")
+
         try {
             // Initialize the GivenValuesManager
             if (givenValuesManager == null) {
+                Log.e(TAG, "Creating new GivenValuesManager")
                 givenValuesManager = GivenValuesManager(givenValuesView)
+            } else {
+                Log.e(TAG, "Refreshing existing GivenValuesManager")
+                givenValuesManager?.refreshView(givenValuesView)
             }
 
-            Log.d(TAG, "Initializing GivenValuesManager")
-            givenValuesManager?.initialize()
+            // Initialize with repository
+            Log.e(TAG, "Initializing GivenValuesManager with repository")
+            givenValuesManager?.initialize(repository)
+            Log.e(TAG, "GivenValuesManager initialized")
         } catch (e: Exception) {
-            Log.e(TAG, "Error initializing given values page: ${e.message}", e)
+            Log.e(TAG, "Error initializing given values page: ${e.message}")
+            e.printStackTrace()
         }
     }
 

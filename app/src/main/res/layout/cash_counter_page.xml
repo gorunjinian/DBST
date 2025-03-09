@@ -212,7 +212,8 @@
                             android:inputType="number"
                             android:textSize="22sp"
                             android:textAlignment="center"
-                            android:selectAllOnFocus="true" />
+                            android:selectAllOnFocus="true"
+                            android:imeOptions="actionDone"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </FrameLayout>
 
