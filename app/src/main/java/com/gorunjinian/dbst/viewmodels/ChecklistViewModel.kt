@@ -13,26 +13,36 @@ import kotlinx.coroutines.launch
 class ChecklistViewModel(private val repository: AppRepository) : ViewModel() {
 
     private val _uncheckedItems = MutableLiveData<List<ChecklistItem>>()
-    val uncheckedItems: LiveData<List<ChecklistItem>> get() = _uncheckedItems
+    private val uncheckedItems: LiveData<List<ChecklistItem>> get() = _uncheckedItems
 
     private val _checkedItems = MutableLiveData<List<ChecklistItem>>()
-    val checkedItems: LiveData<List<ChecklistItem>> get() = _checkedItems
+    private val checkedItems: LiveData<List<ChecklistItem>> get() = _checkedItems
 
     private val _checkedItemsCount = MutableLiveData<Int>()
-    val checkedItemsCount: LiveData<Int> get() = _checkedItemsCount
+    private val checkedItemsCount: LiveData<Int> get() = _checkedItemsCount
 
     init {
         loadItems()
     }
 
-    fun loadItems() = viewModelScope.launch(Dispatchers.IO) {
-        val unchecked = repository.getUncheckedItems()
-        val checked = repository.getCheckedItems()
-        val count = repository.getCheckedItemsCount()
+    fun loadItems(): Triple<List<ChecklistItem>, List<ChecklistItem>, Int> {
+        val scope = viewModelScope.launch(Dispatchers.IO) {
+            val unchecked = repository.getUncheckedItems()
+            val checked = repository.getCheckedItems()
+            val count = repository.getCheckedItemsCount()
 
-        _uncheckedItems.postValue(unchecked)
-        _checkedItems.postValue(checked)
-        _checkedItemsCount.postValue(count)
+            _uncheckedItems.postValue(unchecked)
+            _checkedItems.postValue(checked)
+            _checkedItemsCount.postValue(count)
+        }
+
+        // Return the current LiveData values
+        // Note: If this is the first load, they might still be null/empty
+        return Triple(
+            uncheckedItems.value ?: emptyList(),
+            checkedItems.value ?: emptyList(),
+            checkedItemsCount.value ?: 0
+        )
     }
 
     fun addItem(text: String) = viewModelScope.launch(Dispatchers.IO) {

@@ -14,14 +14,14 @@ import com.gorunjinian.dbst.R
 import com.gorunjinian.dbst.adapters.ChecklistAdapter
 import com.gorunjinian.dbst.data.AppRepository
 import com.gorunjinian.dbst.data.ChecklistItem
+import com.gorunjinian.dbst.viewmodels.ChecklistViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Manager for the Checklist page in the FAB popup
- */
+
+@SuppressLint("NotifyDataSetChanged","NotifyDataSetChanged","SetTextI18n")
 class ChecklistManager(
     private val context: Context,
     rootView: View,
@@ -56,16 +56,18 @@ class ChecklistManager(
     private var isCheckedItemsExpanded = false
     private var initialized = false
 
+    private val viewModel: ChecklistViewModel = ChecklistViewModel(repository)
+
     init {
         initializeViews()
     }
 
-    /**
-     * Update the rootView reference
-     */
     fun refreshView(rootView: View) {
         currentRootView = rootView
         initializeViews()
+
+        // Load data after refreshing the view
+        loadItems()
     }
 
     private fun initializeViews() {
@@ -216,37 +218,22 @@ class ChecklistManager(
 
     private fun addNewItem() {
         val text = newItemText.text.toString().trim()
-
-        if (text.isEmpty()) {
-            return
-        }
+        if (text.isEmpty()) return
 
         try {
             Log.d(TAG, "Adding new item: \"$text\"")
 
-            // Create new item
-            val newItem = ChecklistItem(
-                text = text,
-                isChecked = false,
-                position = uncheckedItems.size
-            )
-
-            // Save to database
+            // Launch in IO context for database operations
             CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val id = repository.insertChecklistItem(newItem)
-                    Log.d(TAG, "Item saved with ID: $id")
+                // Use ViewModel to add item
+                viewModel.addItem(text)
 
-                    // Reload items
-                    loadItems()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error saving new item: ${e.message}", e)
-                }
+                // Reload items from ViewModel
+                loadItems()
             }
 
-            // Clear input and hide keyboard
+            // Clear input field and hide keyboard
             newItemText.text.clear()
-
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.hideSoftInputFromWindow(newItemText.windowToken, 0)
         } catch (e: Exception) {
@@ -259,17 +246,11 @@ class ChecklistManager(
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Update item in database
-                    val updatedItem = item.copy(isChecked = !item.isChecked)
-                    repository.updateChecklistItem(updatedItem)
-                    Log.d(TAG, "Item updated: $updatedItem")
+                // Use ViewModel to toggle item
+                viewModel.toggleItemChecked(item)
 
-                    // Reload items
-                    loadItems()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error updating item: ${e.message}", e)
-                }
+                // Reload items
+                loadItems()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error toggling item checked state: ${e.message}", e)
@@ -281,16 +262,11 @@ class ChecklistManager(
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Delete from database
-                    repository.deleteChecklistItem(item.id)
-                    Log.d(TAG, "Item deleted")
+                // Use ViewModel to delete item
+                viewModel.deleteItem(item)
 
-                    // Reload items
-                    loadItems()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error deleting item: ${e.message}", e)
-                }
+                // Reload items
+                loadItems()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting item: ${e.message}", e)
@@ -344,10 +320,11 @@ class ChecklistManager(
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun updateCheckedItemsCount() {
+    private fun updateCheckedItemsCount(count: Int? = null) {
         try {
-            checkedItemsCount.text = "${checkedItems.size} Checked items"
+            // Use the provided count or fall back to the list size
+            val displayCount = count ?: checkedItems.size
+            checkedItemsCount.text = "$displayCount Checked items"
         } catch (e: Exception) {
             Log.e(TAG, "Error updating checked items count: ${e.message}", e)
         }
@@ -358,15 +335,11 @@ class ChecklistManager(
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Update positions
-                    uncheckedItems.forEachIndexed { index, item ->
-                        repository.updateChecklistItemPosition(item.id, index)
-                    }
-                    Log.d(TAG, "Item positions updated")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error updating item positions: ${e.message}", e)
-                }
+                // Use ViewModel to reorder items
+                viewModel.reorderItems(uncheckedItems)
+
+                // Reload items
+                loadItems()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error updating item positions: ${e.message}", e)
@@ -377,50 +350,45 @@ class ChecklistManager(
         return checkedItems.isNotEmpty()
     }
 
-    fun saveData(repository: AppRepository = this.repository) {
+    fun saveData() {
         Log.d(TAG, "Saving checklist data")
 
         // Checklist items are saved immediately on each action
         // This method exists for consistency with other managers
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     fun loadItems() {
         if (!initialized) {
             Log.e(TAG, "Cannot load items: view not initialized")
             return
         }
 
-        Log.d(TAG, "Loading checklist items")
+        Log.d(TAG, "Loading checklist items via ViewModel")
 
+        // Launch in IO context for database operations
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Get items from database
-                val fetchedUncheckedItems = repository.getUncheckedItems()
-                val fetchedCheckedItems = repository.getCheckedItems()
-
-                Log.d(TAG, "Found ${fetchedUncheckedItems.size} unchecked items and ${fetchedCheckedItems.size} checked items")
+                // Call the ViewModel to reload and get the current data
+                val (uncheckedData, checkedData, count) = viewModel.loadItems()
 
                 withContext(Dispatchers.Main) {
-                    try {
-                        // Update unchecked items
-                        uncheckedItems.clear()
-                        uncheckedItems.addAll(fetchedUncheckedItems)
-                        uncheckedAdapter?.notifyDataSetChanged()
+                    // Update UI with the loaded data
+                    uncheckedItems.clear()
+                    uncheckedItems.addAll(uncheckedData)
+                    uncheckedAdapter?.notifyDataSetChanged()
 
-                        // Update checked items
-                        checkedItems.clear()
-                        checkedItems.addAll(fetchedCheckedItems)
-                        checkedAdapter?.notifyDataSetChanged()
+                    checkedItems.clear()
+                    checkedItems.addAll(checkedData)
+                    checkedAdapter?.notifyDataSetChanged()
 
-                        // Update UI
-                        updateCheckedItemsCount()
-                        updateCheckedItemsVisibility()
+                    // Update UI components
+                    updateCheckedItemsCount(count)
+                    updateCheckedItemsVisibility()
 
-                        Log.d(TAG, "Checklist items updated in UI")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error updating UI with checklist items: ${e.message}", e)
-                    }
+                    // Ensure list visibility
+                    uncheckedItemsList.visibility = if (uncheckedItems.isEmpty()) View.GONE else View.VISIBLE
+
+                    Log.d(TAG, "UI updated with ${uncheckedData.size} unchecked and ${checkedData.size} checked items")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading checklist items: ${e.message}", e)

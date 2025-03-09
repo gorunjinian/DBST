@@ -1,6 +1,7 @@
 package com.gorunjinian.dbst.adapters
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -41,7 +42,15 @@ class ChecklistAdapter(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (position < 0 || position >= items.size) {
+            Log.e("ChecklistAdapter", "Invalid position: $position, items size: ${items.size}")
+            return
+        }
+
         val item = items[position]
+
+        // Log for debugging
+        Log.d("ChecklistAdapter", "Binding item at position $position: ${item.text}")
 
         holder.itemText.text = item.text
         holder.checkbox.isChecked = item.isChecked
@@ -59,13 +68,17 @@ class ChecklistAdapter(
         // Setup drag handle if drag functionality is enabled
         holder.dragHandle.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                onStartDrag?.invoke(holder)  // Using safe call with invoke
+                onStartDrag?.invoke(holder)
             }
             false
         }
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount(): Int {
+        val count = items.size
+        Log.d("ChecklistAdapter", "getItemCount: $count")
+        return count
+    }
 
     // ItemTouchHelper.Adapter implementation for drag-and-drop
     override fun onItemMove(fromPosition: Int, toPosition: Int): Boolean {

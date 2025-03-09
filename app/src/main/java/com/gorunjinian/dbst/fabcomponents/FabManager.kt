@@ -92,7 +92,7 @@ object FabManager {
                 }
                 2 -> {
                     Log.d(TAG, "Saving checklist data")
-                    checklistManager?.saveData(repository)
+                    checklistManager?.saveData()
                 }
             }
 
@@ -159,7 +159,6 @@ object FabManager {
         initCashCounterPage(context)
     }
 
-    // Modify the initCashCounterPage method in FabManager.kt
     private fun initCashCounterPage(context: Context) {
         val cashCounterView = findViewPagerChildAt(0)
         if (cashCounterView == null) {
@@ -217,14 +216,15 @@ object FabManager {
             if (checklistManager == null) {
                 Log.d(TAG, "Creating new ChecklistManager")
                 checklistManager = ChecklistManager(context, collectingPageView, repository)
-            } else {
-                Log.d(TAG, "Reusing existing ChecklistManager")
-                checklistManager?.refreshView(collectingPageView)
-            }
 
-            // Load items
-            Log.d(TAG, "Loading checklist items")
-            checklistManager?.loadItems()
+                // No need to explicitly call loadItems() as the init block should handle it
+            } else {
+                Log.d(TAG, "Refreshing existing ChecklistManager")
+                checklistManager?.refreshView(collectingPageView)
+
+                // Explicitly call loadItems to ensure data is refreshed
+                checklistManager?.loadItems()
+            }
 
             // Update dialog height based on checked items
             updateDialogHeight()
